@@ -721,7 +721,7 @@
   };
 
   // 自定义代码块
-  renderer.code = (code, language) => {
+  renderer.code = ({ code }, language) => {
     return `<pre class="recipe-code"><code class="language-${language || ''}">${code}</code></pre>`;
   };
 
@@ -743,11 +743,37 @@
     const text = el.textContent;
     if (!text) return;
 
-    // 使用 marked 解析（确保返回字符串）
-    const result = marked.parse(text);
-    // 如果返回的是对象，取 html 属性或转为字符串
-    const html = typeof result === 'string' ? result : (result.html || String(result));
-    el.innerHTML = html;
+    try {
+      // 使用 marked 解析 - 尝试同步模式
+      let html;
+      const result = marked.parse(text);
+      
+      // 处理不同版本的返回值
+      if (typeof result === 'string') {
+        html = result;
+      } else if (result && typeof result === 'object') {
+        // 可能是 Promise 或带有 html 属性的对象
+        if (result.html) {
+          html = result.html;
+        } else if (result.then) {
+          // 是 Promise，需要处理
+          result.then(h => {
+            el.innerHTML = typeof h === 'string' ? h : (h.html || String(h));
+          });
+          return;
+        } else {
+          html = String(result);
+        }
+      } else {
+        html = String(result);
+      }
+      
+      el.innerHTML = html;
+    } catch (e) {
+      console.error('Render error:', e);
+      // 出错时直接显示原文本
+      el.innerHTML = '<pre>' + text.replace(/</g, '&lt;') + '</pre>';
+    }
   }
 
   /* ── 错误显示 ── */
