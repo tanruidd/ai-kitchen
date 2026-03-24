@@ -626,7 +626,7 @@
     <div class="result-header">
       <h2>🎉 食谱出炉啦！</h2>
       <span class="mode-badge" id="mode-badge"></span>
-      <div class="action-btns">
+      <div class="action-btns" id="action-btns" style="display:none;">
         <button class="action-btn" id="copy-btn" onclick="copyRecipe()" title="复制食谱">
           📋 复制
         </button>
@@ -731,6 +731,7 @@
     loading.style.display = 'block';
     resultSection.style.display = 'none';
     errorBox.style.display = 'none';
+    document.getElementById('action-btns').style.display = 'none';
 
     const systemPrompt = modePrompts[currentMode];
     const userMessage = `请根据以下描述生成食谱：\n\n${input}`;
@@ -796,6 +797,9 @@
 
       // 完成后用 marked 渲染 Markdown
       renderMarkdown(outputEl);
+
+      // 显示操作按钮
+      document.getElementById('action-btns').style.display = 'flex';
 
       // 滚动到结果
       resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
