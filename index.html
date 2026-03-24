@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🍔 美味创意AI厨房 | 比奇堡蟹堡王特供</title>
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -677,83 +679,73 @@
     }
   }
 
-  /* ── 简单可靠的 Markdown 渲染 ── */
+  /* ── Marked.js Markdown 渲染 ── */
+  // 配置 marked
+  marked.setOptions({
+    gfm: true,
+    breaks: true,
+    headerIds: false,
+    langPrefix: 'language-'
+  });
+
+  // 自定义渲染器
+  const renderer = new marked.Renderer();
+
+  // 自定义标题
+  renderer.heading = (text, level) => {
+    const className = level === 1 ? 'recipe-main-title' :
+                      level === 2 ? 'recipe-section' : 'recipe-title';
+    return `<h${level} class="${className}">${text}</h${level}>`;
+  };
+
+  // 自定义列表
+  renderer.list = (body, ordered) => {
+    const className = ordered ? 'recipe-list numbered' : 'recipe-list';
+    const tag = ordered ? 'ol' : 'ul';
+    return `<${tag} class="${className}">${body}</${tag}>`;
+  };
+
+  // 自定义列表项
+  renderer.listitem = (text) => {
+    return `<li class="recipe-item">${text}</li>`;
+  };
+
+  // 自定义段落
+  renderer.paragraph = (text) => {
+    return `<p class="recipe-paragraph">${text}</p>`;
+  };
+
+  // 自定义粗体
+  renderer.strong = (text) => {
+    return `<strong class="highlight">${text}</strong>`;
+  };
+
+  // 自定义代码块
+  renderer.code = (code, language) => {
+    return `<pre class="recipe-code"><code class="language-${language || ''}">${code}</code></pre>`;
+  };
+
+  // 自定义行内代码
+  renderer.codespan = (code) => {
+    return `<code class="recipe-inline-code">${code}</code>`;
+  };
+
+  // 自定义分割线
+  renderer.hr = () => {
+    return `<hr class="recipe-divider">`;
+  };
+
+  // 使用自定义渲染器
+  marked.use({ renderer });
+
+  // 渲染函数
   function renderMarkdown(el) {
-    let text = el.textContent;
+    const text = el.textContent;
     if (!text) return;
-    
-    // 转义 HTML 特殊字符（安全）
-    text = text.replace(/&/g, '&amp;')
-               .replace(/</g, '&lt;')
-               .replace(/>/g, '&gt;');
-    
-    // 代码块（优先处理，保护内部内容）
-    const codeBlocks = [];
-    text = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-      codeBlocks.push({ lang, code: code.trim() });
-      return `\x00CODE${codeBlocks.length - 1}\x00`;
-    });
-    
-    // 行内代码
-    const inlineCodes = [];
-    text = text.replace(/`([^`]+)`/g, (match, code) => {
-      inlineCodes.push(code);
-      return `\x00INLINE${inlineCodes.length - 1}\x00`;
-    });
-    
-    // 标题（从大到小）
-    text = text.replace(/^### (.*$)/gim, '<h3 class="recipe-title">$1</h3>');
-    text = text.replace(/^## (.*$)/gim, '<h2 class="recipe-section">$1</h2>');
-    text = text.replace(/^# (.*$)/gim, '<h1 class="recipe-main-title">$1</h1>');
-    
-    // 粗体
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="highlight">$1</strong>');
-    
-    // 斜体
-    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // 分割线
-    text = text.replace(/^---$/gim, '<hr class="recipe-divider">');
-    
-    // 无序列表
-    text = text.replace(/^[-*] (.*$)/gim, '<li class="recipe-item">$1</li>');
-    
-    // 有序列表
-    text = text.replace(/^\d+\. (.*$)/gim, '<li class="recipe-item">$1</li>');
-    
-    // 包裹连续的 li 为 ul/ol
-    text = text.replace(/(<li class="recipe-item">.*?<\/li>\n?)+/g, match => {
-      // 检查是否包含数字序号
-      if (/^\d+\./.test(match)) {
-        return `<ol class="recipe-list numbered">${match}</ol>`;
-      }
-      return `<ul class="recipe-list">${match}</ul>`;
-    });
-    
-    // 段落（处理空行分隔）
-    const paragraphs = text.split(/\n\n+/);
-    text = paragraphs.map(p => {
-      p = p.trim();
-      if (!p) return '';
-      // 如果已经是块级元素，不包裹
-      if (p.match(/^<(h[1-6]|ul|ol|hr|pre)/)) return p;
-      // 将换行转为 <br>
-      p = p.replace(/\n/g, '<br>');
-      return `<p class="recipe-paragraph">${p}</p>`;
-    }).join('\n');
-    
-    // 恢复代码块
-    text = text.replace(/\x00CODE(\d+)\x00/g, (match, idx) => {
-      const { lang, code } = codeBlocks[parseInt(idx)];
-      return `<pre class="recipe-code"><code>${code}</code></pre>`;
-    });
-    
-    // 恢复行内代码
-    text = text.replace(/\x00INLINE(\d+)\x00/g, (match, idx) => {
-      return `<code class="recipe-inline-code">${inlineCodes[parseInt(idx)]}</code>`;
-    });
-    
-    el.innerHTML = text;
+
+    // 使用 marked 解析
+    const html = marked.parse(text);
+    el.innerHTML = html;
   }
 
   /* ── 错误显示 ── */
