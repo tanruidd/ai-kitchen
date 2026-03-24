@@ -765,12 +765,15 @@
       document.getElementById('mode-badge').textContent = modeLabels[currentMode];
 
       const outputEl = document.getElementById('recipe-output');
-      outputEl.textContent = '';
+      outputEl.innerHTML = '';
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
-      let fullText = ''; // 收集完整文本，最后一次性渲染
+      let fullText = '';
+      let lastRenderTime = 0;
+
+      const renderInterval = 120; // 每 120ms 最多渲染一次，防抖
 
       while (true) {
         const { done, value } = await reader.read();
@@ -778,7 +781,7 @@
         buffer += decoder.decode(value, { stream: true });
 
         const lines = buffer.split('\n');
-        buffer = lines.pop(); // 保留不完整行
+        buffer = lines.pop();
 
         for (const line of lines) {
           const trimmed = line.trim();
@@ -789,14 +792,18 @@
             const delta = json.choices?.[0]?.delta?.content;
             if (delta) {
               fullText += delta;
-              outputEl.textContent = fullText; // 先直接显示文本
+              const now = Date.now();
+              if (now - lastRenderTime >= renderInterval) {
+                lastRenderTime = now;
+                outputEl.innerHTML = marked.parse(fullText);
+              }
             }
           } catch (_) { /* 忽略解析错误 */ }
         }
       }
 
-      // 完成后用 marked 渲染 Markdown
-      renderMarkdown(outputEl);
+      // 最后完整渲染一次
+      outputEl.innerHTML = marked.parse(fullText);
 
       // 显示操作按钮
       document.getElementById('action-btns').style.display = 'flex';
