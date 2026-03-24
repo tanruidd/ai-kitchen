@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🍔 美味创意AI厨房 | 比奇堡蟹堡王特供</title>
-  <!-- Marked.js for Markdown rendering -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -679,81 +677,11 @@
     }
   }
 
-  /* ── Marked.js Markdown 渲染 ── */
-  // 配置 marked
-  marked.setOptions({
-    gfm: true,
-    breaks: true,
-    headerIds: false,
-    langPrefix: 'language-'
-  });
-
-  // 自定义渲染器
-  const renderer = new marked.Renderer();
-
-  // 自定义标题
-  renderer.heading = (text, level) => {
-    const className = level === 1 ? 'recipe-main-title' :
-                      level === 2 ? 'recipe-section' : 'recipe-title';
-    return `<h${level} class="${className}">${text}</h${level}>`;
-  };
-
-  // 自定义列表
-  renderer.list = (body, ordered) => {
-    const className = ordered ? 'recipe-list numbered' : 'recipe-list';
-    const tag = ordered ? 'ol' : 'ul';
-    return `<${tag} class="${className}">${body}</${tag}>`;
-  };
-
-  // 自定义列表项
-  renderer.listitem = (text) => {
-    return `<li class="recipe-item">${text}</li>`;
-  };
-
-  // 自定义段落
-  renderer.paragraph = (text) => {
-    return `<p class="recipe-paragraph">${text}</p>`;
-  };
-
-  // 自定义粗体
-  renderer.strong = (text) => {
-    return `<strong class="highlight">${text}</strong>`;
-  };
-
-  // 自定义代码块
-  renderer.code = ({ code }, language) => {
-    return `<pre class="recipe-code"><code class="language-${language || ''}">${code}</code></pre>`;
-  };
-
-  // 自定义行内代码
-  renderer.codespan = (code) => {
-    return `<code class="recipe-inline-code">${code}</code>`;
-  };
-
-  // 自定义分割线
-  renderer.hr = () => {
-    return `<hr class="recipe-divider">`;
-  };
-
-  // 使用自定义渲染器
-  marked.use({ renderer });
-
-  // 渲染函数
+  // 渲染函数 - 直接显示文本，不做 Markdown 渲染
   function renderMarkdown(el) {
-    const text = el.textContent;
-    if (!text) return;
-
-    try {
-      // 使用 marked 解析 - 新版默认返回 AST，需要用 lexer + parser 或者直接走 renderer
-      // 方法：使用 marked.lexer + marked.parser
-      const tokens = marked.lexer(text);
-      const html = marked.parser(tokens, { renderer });
-      
-      el.innerHTML = html;
-    } catch (e) {
-      console.error('Render error:', e);
-      el.innerHTML = '<pre style="color:red">Render Error: ' + e.message + '</pre>';
-    }
+    // 直接使用纯文本显示，不做渲染
+    // AI 返回的内容会直接显示
+    return;
   }
 
   /* ── 错误显示 ── */
