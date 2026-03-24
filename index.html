@@ -743,8 +743,10 @@
     const text = el.textContent;
     if (!text) return;
 
-    // 使用 marked 解析
-    const html = marked.parse(text);
+    // 使用 marked 解析（确保返回字符串）
+    const result = marked.parse(text);
+    // 如果返回的是对象，取 html 属性或转为字符串
+    const html = typeof result === 'string' ? result : (result.html || String(result));
     el.innerHTML = html;
   }
 
