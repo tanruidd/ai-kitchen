@@ -899,6 +899,10 @@
         throw new Error(`API 错误 ${response.status}: ${errText}`);
       }
 
+      // 检查 content-type，判断是流式还是普通 JSON 响应
+      const contentType = response.headers.get('content-type') || '';
+      const isStream = contentType.includes('text/event-stream');
+
       // 流式输出
       loading.style.display = 'none';
       resultSection.style.display = 'block';
@@ -907,26 +911,41 @@
       const outputEl = document.getElementById('recipe-output');
       outputEl.innerHTML = '';
 
+      // ── 非流式响应（API 返回了错误 JSON）──
+      if (!isStream) {
+        try {
+          const data = await response.json();
+          if (data.error) {
+            outputEl.innerHTML = `<p style="color:#c0392b;font-weight:700;">😱 ${data.error}</p>`;
+          } else {
+            outputEl.textContent = JSON.stringify(data, null, 2);
+          }
+        } catch (_) {
+          const text = await response.text().catch(() => '未知错误');
+          outputEl.textContent = text;
+        }
+        finishCooking();
+        return;
+      }
+
+      // ── 流式响应正常处理 ──
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
       let fullText = '';
       let lastRenderTime = 0;
       const renderInterval = 120;
-
       let closed = false;
 
-      // 确保 loading 和按钮恢复（防卡死）
       function finishCooking() {
         if (closed) return;
         closed = true;
         try {
-          // 最后渲染一次
           if (fullText) {
             try {
               outputEl.innerHTML = marked.parse(fullText);
             } catch (e) {
-              outputEl.textContent = fullText; // fallback 纯文本
+              outputEl.textContent = fullText;
             }
           }
           document.getElementById('action-btns').style.display = 'flex';
@@ -961,7 +980,7 @@
                   try {
                     outputEl.innerHTML = marked.parse(fullText);
                   } catch (_) {
-                    outputEl.textContent = fullText; // markdown 解析失败时降级
+                    outputEl.textContent = fullText;
                   }
                 }
               }
