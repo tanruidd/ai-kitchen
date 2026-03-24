@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🍔 美味创意AI厨房 | 比奇堡蟹堡王特供</title>
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- DOMPurify for XSS protection -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
@@ -676,78 +680,77 @@
     }
   }
 
-  /* ── 增强 Markdown 渲染 ── */
-  function renderMarkdown(el) {
-    let text = el.textContent;
-    
-    // 先处理代码块（保护不被其他规则影响）
-    const codeBlocks = [];
-    text = text.replace(/```[\s\S]*?```/g, match => {
-      codeBlocks.push(match);
-      return `\x00CODE${codeBlocks.length - 1}\x00`;
-    });
-    
-    // 处理行内代码
-    const inlineCodes = [];
-    text = text.replace(/`([^`]+)`/g, (match, code) => {
-      inlineCodes.push(code);
-      return `\x00INLINE${inlineCodes.length - 1}\x00`;
-    });
-    
-    let html = text
-      // 标题（增加样式类）
-      .replace(/^### (.+)$/gm, '<h3 class="recipe-title">$1</h3>')
-      .replace(/^## (.+)$/gm,  '<h2 class="recipe-section">$1</h2>')
-      .replace(/^# (.+)$/gm,   '<h1 class="recipe-main-title">$1</h1>')
-      // 粗体
-      .replace(/\*\*(.+?)\*\*/g, '<strong class="highlight">$1</strong>')
-      // 斜体
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // 分割线
-      .replace(/^---$/gm, '<hr class="recipe-divider">')
-      // 无序列表
-      .replace(/^[-•] (.+)$/gm, '<li class="recipe-item">$1</li>')
-      // 有序列表
-      .replace(/^(\d+)\. (.+)$/gm, '<li class="recipe-item" data-num="$1">$2</li>')
-      // 段落（空行分隔）
-      .replace(/\n\n+/g, '</p><p class="recipe-paragraph">')
-      // 单个换行转为 <br>
-      .replace(/\n/g, '<br>');
-    
-    // 包裹段落
-    if (!html.startsWith('<h') && !html.startsWith('<ul') && !html.startsWith('<ol')) {
-      html = '<p class="recipe-paragraph">' + html + '</p>';
-    }
-    
-    // 包裹无序列表
-    html = html.replace(/(<li class="recipe-item">.*?<\/li>)+/gs, m => 
-      `<ul class="recipe-list">${m}</ul>`
-    );
-    
-    // 包裹有序列表（带序号）
-    html = html.replace(/(<li class="recipe-item" data-num="\d+">.*?<\/li>)+/gs, m => 
-      `<ol class="recipe-list numbered">${m}</ol>`
-    );
-    
-    // 恢复代码块
-    html = html.replace(/\x00CODE(\d+)\x00/g, (match, idx) => {
-      const code = codeBlocks[parseInt(idx)];
-      return `<pre class="recipe-code"><code>${escapeHtml(code.slice(3, -3))}</code></pre>`;
-    });
-    
-    // 恢复行内代码
-    html = html.replace(/\x00INLINE(\d+)\x00/g, (match, idx) => {
-      return `<code class="recipe-inline-code">${escapeHtml(inlineCodes[parseInt(idx)])}</code>`;
-    });
-
-    el.innerHTML = html;
-  }
+  /* ── Marked.js Markdown 渲染 ── */
+  // 配置 marked
+  marked.setOptions({
+    gfm: true,           // GitHub 风格
+    breaks: true,        // 允许换行
+    headerIds: false,    // 不需要标题 ID
+    mangle: false,       // 不需要混淆
+    sanitize: false      // 我们用 DOMPurify
+  });
   
-  // HTML 转义函数
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  // 自定义渲染器
+  const renderer = new marked.Renderer();
+  
+  // 自定义标题渲染
+  renderer.heading = (text, level) => {
+    const className = level === 1 ? 'recipe-main-title' : 
+                      level === 2 ? 'recipe-section' : 'recipe-title';
+    return `<h${level} class="${className}">${text}</h${level}>`;
+  };
+  
+  // 自定义列表项渲染
+  renderer.listitem = (text) => {
+    return `<li class="recipe-item">${text}</li>`;
+  };
+  
+  // 自定义列表渲染
+  renderer.list = (body, ordered) => {
+    const className = ordered ? 'recipe-list numbered' : 'recipe-list';
+    const tag = ordered ? 'ol' : 'ul';
+    return `<${tag} class="${className}">${body}</${tag}>`;
+  };
+  
+  // 自定义段落渲染
+  renderer.paragraph = (text) => {
+    return `<p class="recipe-paragraph">${text}</p>`;
+  };
+  
+  // 自定义粗体渲染
+  renderer.strong = (text) => {
+    return `<strong class="highlight">${text}</strong>`;
+  };
+  
+  // 自定义代码块渲染
+  renderer.code = (code, language) => {
+    return `<pre class="recipe-code"><code class="language-${language || ''}">${code}</code></pre>`;
+  };
+  
+  // 自定义行内代码渲染
+  renderer.codespan = (code) => {
+    return `<code class="recipe-inline-code">${code}</code>`;
+  };
+  
+  // 自定义分割线渲染
+  renderer.hr = () => {
+    return `<hr class="recipe-divider">`;
+  };
+  
+  // 更新 marked 配置使用自定义渲染器
+  marked.use({ renderer });
+  
+  // 渲染函数
+  function renderMarkdown(el) {
+    const text = el.textContent;
+    // 使用 marked 解析，然后用 DOMPurify 清理
+    const rawHtml = marked.parse(text);
+    const cleanHtml = DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'ul', 'ol', 'li', 
+                     'strong', 'em', 'code', 'pre', 'hr', 'blockquote', 'a'],
+      ALLOWED_ATTR: ['class', 'href', 'target']
+    });
+    el.innerHTML = cleanHtml;
   }
 
   /* ── 错误显示 ── */
