@@ -875,8 +875,8 @@
 
   /* ── 生成分享 URL（食谱快照模式） ── */
   function generateShareUrl(recipeText, mode) {
-    // 简单处理：把食谱内容 base64 编码塞进 URL hash
-    const encoded = btoa(unescape(encodeURIComponent(recipeText)));
+    // 安全处理中文：encodeURIComponent 可处理任意 Unicode
+    const encoded = encodeURIComponent(recipeText);
     const modeParam = encodeURIComponent(mode);
     // 当前页面 URL（DNS 配置好后自动用正式域名）
     const pageUrl = window.location.origin + window.location.pathname;
@@ -892,13 +892,14 @@
       const encoded = params.get('recipe');
       const mode = params.get('mode');
       if (!encoded) return;
-      const recipeText = decodeURIComponent(escape(atob(encoded)));
+      const recipeText = decodeURIComponent(encoded);
       const outputEl = document.getElementById('recipe-output');
       outputEl.textContent = recipeText;
       renderMarkdown(outputEl);
       if (mode) document.getElementById('mode-badge').textContent = decodeURIComponent(mode);
-      // 显示结果区
+      // 显示结果区 + 操作按钮
       document.getElementById('result-section').style.display = 'block';
+      document.getElementById('action-btns').style.display = 'flex';
       document.getElementById('loading').style.display = 'none';
       // 清理 hash
       history.replaceState(null, '', window.location.pathname);
