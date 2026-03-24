@@ -171,6 +171,7 @@
     .mode-btn.active[data-mode="dark"]     { background: #EDE7F6; border-color: #673AB7; color: #311B92; }
     .mode-btn.active[data-mode="healing"]  { background: #E8F5E9; border-color: #4CAF50; color: #1B5E20; }
     .mode-btn.active[data-mode="squat"]    { background: #E3F2FD; border-color: #2196F3; color: #0D47A1; }
+    .mode-btn.active[data-mode="street"]   { background: #FFF3E0; border-color: #FF9800; color: #E65100; }
 
     /* ── 按钮 ── */
     .cook-btn {
@@ -737,6 +738,9 @@
       <button class="mode-btn" data-mode="squat">
         <span class="mode-icon">🏠</span>蹲门模式
       </button>
+      <button class="mode-btn" data-mode="street">
+        <span class="mode-icon">🏮</span>摆摊小吃
+      </button>
     </div>
   </div>
 
@@ -841,6 +845,7 @@
     dark:     '💀 暗黑料理',
     healing:  '🌸 治愈系',
     squat:    '🏠 蹲门模式',
+    street:   '🏮 摆摊小吃',
   };
   const modePrompts = {
     normal:
@@ -853,6 +858,8 @@
       '你是一位温柔的治愈系厨师。请根据用户的描述，生成一份充满爱与温暖的治愈系食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（温暖系）\n3. 用 ## 分隔不同章节（如：## 疗愈食材、## 温暖步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表，注明疗愈功效\n6. 暖心话语用 **粗体** 标注\n7. 全文使用中文回复\n8. 多用 🌸💝🌟 等温暖 emoji\n9. 段落之间空一行，像写信一样温柔排版',
     squat:
       '你是一位精通"蹲门（穷游/省钱）"的生存厨师。请根据用户的描述，生成一份极度省钱、食材易得、操作简单的蹲门食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（接地气）\n3. 用 ## 分隔不同章节（如：## 省钱食材、## 快手步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表，注明价格/替代方案\n6. 省钱技巧用 **粗体** 标注\n7. 全文使用中文回复，语气接地气\n8. 多用 🏠💰🍜 等生活 emoji\n9. 段落之间空一行，清晰实用排版',
+    street:
+      '你是一位身经百战的摆摊老炮儿，对夜市、路边摊、街头美食了如指掌。请根据用户的描述，生成一份色香味俱全、让人看了就想掏钱的摆摊级食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（要有夜市内味，吸引眼球）\n3. 用 ## 分隔不同章节（如：## 摆摊食材、## 爆款秘诀、## 出摊步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表，注明大致成本\n6. 重点技巧用 **粗体** 标注（如火候、酱料比例、摆摊话术）\n7. 全文使用中文回复，口气要接地气、有画面感\n8. 多用 🏮🍢🔥🌶️ 等摆摊相关 emoji\n9. 段落之间空一行，营造烟火气排版',
   };
 
   document.querySelectorAll('.mode-btn').forEach(btn => {
