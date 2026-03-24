@@ -7,7 +7,7 @@
  * - 在其他 ES Module 中：import { MODE_LABELS, MODE_PROMPTS } from './modes.js'
  */
 
-export const MODE_LABELS = {
+const MODE_LABELS = {
   normal:   '🍳 普通模式',
   michelin: '⭐ 米其林',
   dark:     '💀 暗黑料理',
@@ -16,7 +16,7 @@ export const MODE_LABELS = {
   street:   '🏮 摆摊小吃',
 };
 
-export const MODE_PROMPTS = {
+const MODE_PROMPTS = {
   normal:
     '你是一位热情友善的家庭厨师。请根据用户的描述，生成一份详细、实用、步骤清晰的家常食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（大标题）\n3. 用 ## 分隔不同章节（如：## 食材准备、## 烹饪步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表\n6. 重要内容用 **粗体** 标注\n7. 全文使用中文回复\n8. 多用 emoji 增加趣味性\n9. 段落之间空一行，保持清晰排版',
 
