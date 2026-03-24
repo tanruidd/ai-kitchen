@@ -912,44 +912,67 @@
       let buffer = '';
       let fullText = '';
       let lastRenderTime = 0;
+      const renderInterval = 120;
 
-      const renderInterval = 120; // 每 120ms 最多渲染一次，防抖
+      let closed = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed === 'data: [DONE]') continue;
-          if (!trimmed.startsWith('data: ')) continue;
-          try {
-            const json = JSON.parse(trimmed.slice(6));
-            const delta = json.choices?.[0]?.delta?.content;
-            if (delta) {
-              fullText += delta;
-              const now = Date.now();
-              if (now - lastRenderTime >= renderInterval) {
-                lastRenderTime = now;
-                outputEl.innerHTML = marked.parse(fullText);
-              }
+      // 确保 loading 和按钮恢复（防卡死）
+      function finishCooking() {
+        if (closed) return;
+        closed = true;
+        try {
+          // 最后渲染一次
+          if (fullText) {
+            try {
+              outputEl.innerHTML = marked.parse(fullText);
+            } catch (e) {
+              outputEl.textContent = fullText; // fallback 纯文本
             }
-          } catch (_) { /* 忽略解析错误 */ }
+          }
+          document.getElementById('action-btns').style.display = 'flex';
+          resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
         }
       }
 
-      // 最后完整渲染一次
-      outputEl.innerHTML = marked.parse(fullText);
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      // 显示操作按钮
-      document.getElementById('action-btns').style.display = 'flex';
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
 
-      // 滚动到结果
-      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === 'data: [DONE]') continue;
+            if (!trimmed.startsWith('data: ')) continue;
+            try {
+              const json = JSON.parse(trimmed.slice(6));
+              const delta = json.choices?.[0]?.delta?.content;
+              if (delta) {
+                fullText += delta;
+                const now = Date.now();
+                if (now - lastRenderTime >= renderInterval) {
+                  lastRenderTime = now;
+                  try {
+                    outputEl.innerHTML = marked.parse(fullText);
+                  } catch (_) {
+                    outputEl.textContent = fullText; // markdown 解析失败时降级
+                  }
+                }
+              }
+            } catch (_) { /* 忽略解析错误 */ }
+          }
+        }
+      } catch (streamErr) {
+        console.error('Stream read error:', streamErr);
+      }
+
+      finishCooking();
 
     } catch (err) {
       loading.style.display = 'none';
