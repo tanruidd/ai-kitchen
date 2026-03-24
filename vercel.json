@@ -1,12 +1,5 @@
 {
-  "buildCommand": "echo 'No build needed'",
-  "functions": {
-    "api/chat.js": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
-  "env": {
-    "OPENROUTER_API_KEY": "@openrouter_api_key"
-  }
+  "rewrites": [
+    { "source": "/api/chat", "destination": "/api/chat.js" }
+  ]
 }
