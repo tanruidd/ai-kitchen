@@ -231,6 +231,144 @@
       color: var(--brown);
     }
 
+    /* ── 操作按钮 ── */
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .action-btns {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .action-btn {
+      padding: 5px 14px;
+      border: 2px solid var(--yellow);
+      border-radius: 20px;
+      background: #FFFDE7;
+      color: var(--brown);
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    }
+    .action-btn:hover {
+      background: var(--yellow);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255,215,0,.35);
+    }
+    .action-btn:active {
+      transform: translateY(0);
+    }
+    .action-btn.copied {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    /* ── Toast 提示 ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(51,51,51,.92);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-size: .92rem;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .35s;
+      opacity: 0;
+      z-index: 9999;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ── 分享弹窗 ── */
+    .share-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+    }
+    .share-modal.open {
+      display: flex;
+    }
+    .share-modal-inner {
+      background: #fff;
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .share-modal-inner h3 {
+      font-size: 1.2rem;
+      color: var(--brown);
+      margin-bottom: 16px;
+    }
+    .share-link-wrap {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .share-link-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid var(--yellow);
+      border-radius: 12px;
+      font-size: .85rem;
+      font-family: inherit;
+      color: #333;
+      outline: none;
+    }
+    .share-copy-btn {
+      padding: 10px 18px;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .share-copy-btn:hover {
+      background: var(--coral);
+    }
+    .share-wechat-note {
+      font-size: .82rem;
+      color: #888;
+      line-height: 1.5;
+    }
+    .share-close-btn {
+      margin-top: 16px;
+      padding: 8px 20px;
+      background: #f5f5f5;
+      color: #666;
+      border: none;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     /* ── Markdown 渲染结果样式 ── */
     #recipe-output {
       line-height: 1.9;
@@ -488,9 +626,36 @@
     <div class="result-header">
       <h2>🎉 食谱出炉啦！</h2>
       <span class="mode-badge" id="mode-badge"></span>
+      <div class="action-btns">
+        <button class="action-btn" id="copy-btn" onclick="copyRecipe()" title="复制食谱">
+          📋 复制
+        </button>
+        <button class="action-btn" id="share-btn" onclick="shareRecipe()" title="分享食谱">
+          🔗 分享
+        </button>
+      </div>
     </div>
     <div id="recipe-output"></div>
   </div>
+
+  <!-- 分享弹窗 -->
+  <div class="share-modal" id="share-modal">
+    <div class="share-modal-inner">
+      <h3>🔗 分享这份食谱</h3>
+      <div class="share-link-wrap">
+        <input class="share-link-input" id="share-link-input" type="text" readonly />
+        <button class="share-copy-btn" onclick="copyShareLink()">复制</button>
+      </div>
+      <p class="share-wechat-note">
+        复制链接后，打开微信粘贴发送给朋友～<br/>
+        或者长按复制食谱文字直接分享 👌
+      </p>
+      <button class="share-close-btn" onclick="closeShareModal()">关闭</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
   <footer>
     🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
@@ -655,6 +820,106 @@
     el.innerHTML = marked.parse(raw);
   }
 
+  /* ── Toast 提示 ── */
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  /* ── 复制食谱 ── */
+  function copyRecipe() {
+    const text = document.getElementById('recipe-output').textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✅ 已复制';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 复制';
+        btn.classList.remove('copied');
+      }, 2000);
+      showToast('📋 食谱已复制到剪贴板！');
+    }).catch(() => {
+      showToast('复制失败，请手动选择复制~');
+    });
+  }
+
+  /* ── 分享食谱（生成含食谱内容的 URL） ── */
+  function shareRecipe() {
+    const outputEl = document.getElementById('recipe-output');
+    if (!outputEl.textContent) return;
+
+    // 食谱文字 + 模式
+    const recipeText = outputEl.textContent;
+    const mode = document.getElementById('mode-badge').textContent;
+
+    // 生成 URL（含食谱内容做快照）
+    const shareUrl = generateShareUrl(recipeText, mode);
+
+    document.getElementById('share-link-input').value = shareUrl;
+    document.getElementById('share-modal').classList.add('open');
+  }
+
+  /* ── 生成分享 URL（食谱快照模式） ── */
+  function generateShareUrl(recipeText, mode) {
+    // 简单处理：把食谱内容 base64 编码塞进 URL hash
+    const encoded = btoa(unescape(encodeURIComponent(recipeText)));
+    const modeParam = encodeURIComponent(mode);
+    // 当前页面 URL（DNS 配置好后自动用正式域名）
+    const pageUrl = window.location.origin + window.location.pathname;
+    return `${pageUrl}#recipe=${encoded}&mode=${modeParam}`;
+  }
+
+  /* ── 从分享链接恢复食谱 ── */
+  function loadFromShare() {
+    const hash = window.location.hash;
+    if (!hash.includes('#recipe=')) return;
+    try {
+      const params = new URLSearchParams(hash.slice(1));
+      const encoded = params.get('recipe');
+      const mode = params.get('mode');
+      if (!encoded) return;
+      const recipeText = decodeURIComponent(escape(atob(encoded)));
+      const outputEl = document.getElementById('recipe-output');
+      outputEl.textContent = recipeText;
+      renderMarkdown(outputEl);
+      if (mode) document.getElementById('mode-badge').textContent = decodeURIComponent(mode);
+      // 显示结果区
+      document.getElementById('result-section').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+      // 清理 hash
+      history.replaceState(null, '', window.location.pathname);
+    } catch(e) {
+      console.warn('分享链接解析失败:', e);
+    }
+  }
+
+  /* ── 复制分享链接 ── */
+  function copyShareLink() {
+    const input = document.getElementById('share-link-input');
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('🔗 分享链接已复制！');
+      setTimeout(closeShareModal, 600);
+    }).catch(() => {
+      input.select();
+      document.execCommand('copy');
+      showToast('🔗 分享链接已复制！');
+      setTimeout(closeShareModal, 600);
+    });
+  }
+
+  /* ── 关闭分享弹窗 ── */
+  function closeShareModal() {
+    document.getElementById('share-modal').classList.remove('open');
+  }
+
+  // 点击弹窗背景关闭
+  document.getElementById('share-modal').addEventListener('click', e => {
+    if (e.target.id === 'share-modal') closeShareModal();
+  });
+
   /* ── 错误显示 ── */
   function showError(msg) {
     const box = document.getElementById('error-box');
@@ -665,6 +930,11 @@
   /* ── 回车快捷键 ── */
   document.getElementById('user-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) startCooking();
+  });
+
+  /* ── 页面加载时检查分享链接 ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    loadFromShare();
   });
 </script>
 </body>
