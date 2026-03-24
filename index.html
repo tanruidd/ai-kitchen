@@ -744,47 +744,11 @@
     if (!text) return;
 
     try {
-      // 使用 marked 解析
-      const result = marked.parse(text);
+      // 使用 marked 解析 - 新版默认返回 AST，需要用 lexer + parser 或者直接走 renderer
+      // 方法：使用 marked.lexer + marked.parser
+      const tokens = marked.lexer(text);
+      const html = marked.parser(tokens, { renderer });
       
-      // 打印日志调试
-      console.log('=== marked.parse debug ===');
-      console.log('Type:', typeof result);
-      console.log('Result:', result);
-      console.log('JSON:', JSON.stringify(result));
-      
-      let html;
-      
-      // 处理不同版本的返回值
-      if (typeof result === 'string') {
-        html = result;
-        console.log('Using string result');
-      } else if (result && typeof result === 'object') {
-        console.log('Result is object, keys:', Object.keys(result));
-        if (result.html) {
-          html = result.html;
-          console.log('Using result.html');
-        } else if (result.then) {
-          console.log('Result is Promise');
-          result.then(h => {
-            console.log('Promise resolved:', typeof h, h);
-            const promiseHtml = typeof h === 'string' ? h : (h.html || String(h));
-            el.innerHTML = promiseHtml;
-          }).catch(err => {
-            console.error('Promise error:', err);
-            el.innerHTML = '<pre style="color:red">Error: ' + err.message + '</pre>';
-          });
-          return;
-        } else {
-          html = String(result);
-          console.log('Using String(result)');
-        }
-      } else {
-        html = String(result);
-        console.log('Using String(result) fallback');
-      }
-      
-      console.log('Final html length:', html.length);
       el.innerHTML = html;
     } catch (e) {
       console.error('Render error:', e);
