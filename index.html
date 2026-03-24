@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍔 美味创意AI厨房 | 比奇堡蟹堡王特供</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+    :root {
+      --yellow:   #FFD700;
+      --orange:   #FF8C00;
+      --coral:    #FF6B6B;
+      --teal:     #00CED1;
+      --sky:      #87CEEB;
+      --sand:     #F5DEB3;
+      --cream:    #FFFDE7;
+      --brown:    #8B4513;
+      --green:    #3CB371;
+      --bubble:   rgba(255,255,255,0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(160deg, #87CEEB 0%, #00CED1 40%, #F5DEB3 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── 气泡背景 ── */
+    .bubbles {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--bubble);
+      animation: rise linear infinite;
+    }
+    @keyframes rise {
+      0%   { transform: translateY(110vh) scale(1);   opacity: .6; }
+      100% { transform: translateY(-10vh) scale(1.2); opacity: 0;  }
+    }
+
+    /* ── 主容器 ── */
+    .container {
+      position: relative; z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    /* ── 头部 ── */
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-wrap {
+      display: inline-block;
+      background: var(--yellow);
+      border-radius: 50%;
+      width: 110px; height: 110px;
+      line-height: 110px;
+      font-size: 64px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18), inset 0 -4px 0 rgba(0,0,0,.1);
+      animation: bounce 2.4s ease-in-out infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0);    }
+      50%      { transform: translateY(-10px); }
+    }
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 3px 3px 0 var(--orange), 5px 5px 0 rgba(0,0,0,.15);
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      margin-top: 6px;
+      font-size: .95rem;
+      color: rgba(255,255,255,.9);
+      font-weight: 600;
+    }
+
+    /* ── 卡片 ── */
+    .card {
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 28px 28px 32px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.12);
+      margin-bottom: 20px;
+    }
+
+    /* ── 标签 ── */
+    .label {
+      font-size: .85rem;
+      font-weight: 800;
+      color: var(--brown);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── 输入框 ── */
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      border: 2.5px solid var(--yellow);
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      background: var(--cream);
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 4px rgba(255,140,0,.18);
+    }
+    textarea::placeholder { color: #bbb; font-weight: 400; }
+
+    /* ── 模式选择 ── */
+    .modes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .mode-btn {
+      flex: 1 1 calc(20% - 10px);
+      min-width: 100px;
+      padding: 10px 8px;
+      border: 2.5px solid transparent;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 800;
+      text-align: center;
+      transition: all .2s;
+      background: #f5f5f5;
+      color: #555;
+      user-select: none;
+    }
+    .mode-btn .mode-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+    .mode-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+
+    .mode-btn.active[data-mode="normal"]   { background: #FFF9C4; border-color: #FFD700; color: #7a5c00; }
+    .mode-btn.active[data-mode="michelin"] { background: #FCE4EC; border-color: #E91E63; color: #880E4F; }
+    .mode-btn.active[data-mode="dark"]     { background: #EDE7F6; border-color: #673AB7; color: #311B92; }
+    .mode-btn.active[data-mode="healing"]  { background: #E8F5E9; border-color: #4CAF50; color: #1B5E20; }
+    .mode-btn.active[data-mode="squat"]    { background: #E3F2FD; border-color: #2196F3; color: #0D47A1; }
+
+    /* ── 按钮 ── */
+    .cook-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--coral) 100%);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.15rem;
+      font-weight: 900;
+      cursor: pointer;
+      letter-spacing: .5px;
+      box-shadow: 0 6px 20px rgba(255,107,107,.4);
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .cook-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(255,107,107,.5);
+    }
+    .cook-btn:active:not(:disabled) { transform: translateY(1px); }
+    .cook-btn:disabled { opacity: .7; cursor: not-allowed; }
+    .cook-btn .btn-shine {
+      position: absolute; top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+      animation: shine 2.5s ease-in-out infinite;
+    }
+    @keyframes shine {
+      0%   { left: -100%; }
+      50%  { left: 150%;  }
+      100% { left: 150%;  }
+    }
+
+    /* ── 结果区 ── */
+    #result-section { display: none; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .result-header h2 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--brown);
+    }
+    .mode-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 800;
+      background: var(--yellow);
+      color: var(--brown);
+    }
+
+    #recipe-output {
+      line-height: 1.85;
+      color: #333;
+      font-size: .97rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #recipe-output h1,#recipe-output h2,#recipe-output h3 {
+      color: var(--brown);
+      margin: 14px 0 6px;
+    }
+    #recipe-output strong { color: var(--orange); }
+    #recipe-output ul,#recipe-output ol { padding-left: 20px; }
+    #recipe-output li { margin-bottom: 4px; }
+    #recipe-output hr { border: none; border-top: 2px dashed var(--yellow); margin: 14px 0; }
+
+    /* ── 加载动画 ── */
+    .loading-wrap {
+      text-align: center;
+      padding: 32px 0;
+      display: none;
+    }
+    .pan {
+      font-size: 3rem;
+      display: inline-block;
+      animation: fry .6s ease-in-out infinite alternate;
+    }
+    @keyframes fry {
+      0%   { transform: rotate(-12deg) translateY(0);  }
+      100% { transform: rotate(12deg)  translateY(-8px); }
+    }
+    .loading-text {
+      margin-top: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--brown);
+    }
+    .dots::after {
+      content: '';
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: '';    }
+      25%  { content: '.';   }
+      50%  { content: '..';  }
+      75%  { content: '...'; }
+      100% { content: '';    }
+    }
+
+    /* ── 错误提示 ── */
+    .error-box {
+      background: #FFF3F3;
+      border: 2px solid var(--coral);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: #c0392b;
+      font-weight: 700;
+      display: none;
+      margin-top: 12px;
+    }
+
+    /* ── 底部 ── */
+    footer {
+      text-align: center;
+      color: rgba(255,255,255,.75);
+      font-size: .82rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    /* ── 响应式 ── */
+    @media (max-width: 480px) {
+      .mode-btn { flex: 1 1 calc(50% - 10px); }
+      .card { padding: 20px 16px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 气泡背景 -->
+<div class="bubbles" id="bubbles"></div>
+
+<div class="container">
+
+  <!-- 头部 -->
+  <header>
+    <div class="logo-wrap">🧽</div>
+    <h1>美味创意 AI 厨房</h1>
+    <p class="subtitle">🦀 蟹老板御用 · 比奇堡最强食谱生成器 · 海绵宝宝亲自研发 🍔</p>
+  </header>
+
+  <!-- 输入卡片 -->
+  <div class="card">
+    <div class="label">🍽️ 告诉我你想吃什么 / 你的心情</div>
+    <textarea
+      id="user-input"
+      placeholder="例如：我今天很累，想吃一碗暖暖的汤面 🍜&#10;或者：帮我做一道能让朋友惊艳的派对菜 🎉&#10;或者：我只有鸡蛋和番茄，能做什么？ 🍅"
+    ></textarea>
+  </div>
+
+  <!-- 模式卡片 -->
+  <div class="card">
+    <div class="label">🔥 选择烹饪模式</div>
+    <div class="modes">
+      <button class="mode-btn active" data-mode="normal">
+        <span class="mode-icon">🍳</span>普通模式
+      </button>
+      <button class="mode-btn" data-mode="michelin">
+        <span class="mode-icon">⭐</span>米其林
+      </button>
+      <button class="mode-btn" data-mode="dark">
+        <span class="mode-icon">💀</span>暗黑料理
+      </button>
+      <button class="mode-btn" data-mode="healing">
+        <span class="mode-icon">🌸</span>治愈系
+      </button>
+      <button class="mode-btn" data-mode="squat">
+        <span class="mode-icon">🏠</span>蹲门模式
+      </button>
+    </div>
+  </div>
+
+  <!-- 按钮 -->
+  <button class="cook-btn" id="cook-btn" onclick="startCooking()">
+    <span class="btn-shine"></span>
+    🍔 开始烹饪！让海绵宝宝大显身手！
+  </button>
+
+  <!-- 加载 -->
+  <div class="loading-wrap" id="loading">
+    <div class="pan">🍳</div>
+    <div class="loading-text">海绵宝宝正在厨房疯狂烹饪<span class="dots"></span></div>
+  </div>
+
+  <!-- 错误 -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- 结果卡片 -->
+  <div class="card" id="result-section">
+    <div class="result-header">
+      <h2>🎉 食谱出炉啦！</h2>
+      <span class="mode-badge" id="mode-badge"></span>
+    </div>
+    <div id="recipe-output"></div>
+  </div>
+
+  <footer>
+    🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
+  </footer>
+
+</div>
+
+<script>
+  /* ── 气泡生成 ── */
+  (function spawnBubbles() {
+    const wrap = document.getElementById('bubbles');
+    for (let i = 0; i < 22; i++) {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      const size = 18 + Math.random() * 60;
+      b.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        animation-duration:${6+Math.random()*10}s;
+        animation-delay:${-Math.random()*12}s;
+        opacity:${0.2+Math.random()*0.4};
+      `;
+      wrap.appendChild(b);
+    }
+  })();
+
+  /* ── 模式选择 ── */
+  let currentMode = 'normal';
+  const modeLabels = {
+    normal:   '🍳 普通模式',
+    michelin: '⭐ 米其林',
+    dark:     '💀 暗黑料理',
+    healing:  '🌸 治愈系',
+    squat:    '🏠 蹲门模式',
+  };
+  const modePrompts = {
+    normal:
+      '你是一位热情友善的家庭厨师，请根据用户的描述，生成一份详细、实用、步骤清晰的家常食谱。语气轻松愉快，多用emoji，让人看了就想动手做。',
+    michelin:
+      '你是一位三星米其林主厨，请根据用户的描述，生成一份精致、高端、充满创意的米其林级别食谱。包含摆盘建议、食材选购技巧、精确的烹饪温度和时间。语气专业而优雅，偶尔用法语术语增添格调，多用emoji。',
+    dark:
+      '你是一位专门研究"暗黑料理"的疯狂厨师，请根据用户的描述，生成一份充满奇葩创意、脑洞大开的暗黑食谱。食材组合要出人意料，步骤要充满戏剧性，但最终成品要"勉强能吃"。语气夸张搞笑，多用emoji，让人哭笑不得。',
+    healing:
+      '你是一位温柔的治愈系厨师，请根据用户的描述，生成一份充满爱与温暖的治愈系食谱。注重食材的营养价值和情感疗愈功效，语气温柔细腻，像在给最好的朋友写信，多用温暖的emoji，让人读了心里暖暖的。',
+    squat:
+      '你是一位精通"蹲门（穷游/省钱）"的生存厨师，请根据用户的描述，生成一份极度省钱、食材易得、操作简单的蹲门食谱。预算控制在最低，但要保证好吃。语气接地气、幽默，多用emoji，充满生活智慧。',
+  };
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMode = btn.dataset.mode;
+    });
+  });
+
+  /* ── 主函数 ── */
+  async function startCooking() {
+    const input = document.getElementById('user-input').value.trim();
+    if (!input) {
+      showError('🧽 哎呀！请先告诉海绵宝宝你想吃什么嘛～');
+      return;
+    }
+
+    const btn = document.getElementById('cook-btn');
+    const loading = document.getElementById('loading');
+    const resultSection = document.getElementById('result-section');
+    const errorBox = document.getElementById('error-box');
+
+    // 重置
+    btn.disabled = true;
+    btn.textContent = '🍳 正在烹饪中...';
+    loading.style.display = 'block';
+    resultSection.style.display = 'none';
+    errorBox.style.display = 'none';
+
+    const systemPrompt = modePrompts[currentMode];
+    const userMessage = `请根据以下描述生成食谱：\n\n${input}`;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'stepfun/step-3.5-flash:free',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user',   content: userMessage  },
+          ],
+          temperature: 0.9,
+          max_tokens: 1800,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`API 错误 ${response.status}: ${errText}`);
+      }
+
+      // 流式输出
+      loading.style.display = 'none';
+      resultSection.style.display = 'block';
+      document.getElementById('mode-badge').textContent = modeLabels[currentMode];
+
+      const outputEl = document.getElementById('recipe-output');
+      outputEl.textContent = '';
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // 保留不完整行
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+          try {
+            const json = JSON.parse(trimmed.slice(6));
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) {
+              outputEl.textContent += delta;
+              // 简单 markdown 渲染
+              renderMarkdown(outputEl);
+            }
+          } catch (_) { /* 忽略解析错误 */ }
+        }
+      }
+
+      // 最终渲染
+      renderMarkdown(outputEl);
+
+      // 滚动到结果
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+      loading.style.display = 'none';
+      showError(`😱 哎呀，厨房着火了！${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
+    }
+  }
+
+  /* ── 简易 Markdown 渲染 ── */
+  function renderMarkdown(el) {
+    let html = el.textContent
+      // 标题
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+      // 粗体
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // 斜体
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // 分割线
+      .replace(/^---$/gm, '<hr>')
+      // 无序列表
+      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
+      // 有序列表
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+      // 换行
+      .replace(/\n/g, '<br>');
+
+    // 包裹 li
+    html = html.replace(/(<li>.*?<\/li>(<br>)?)+/g, m => `<ul>${m.replace(/<br>/g,'')}</ul>`);
+
+    el.innerHTML = html;
+  }
+
+  /* ── 错误显示 ── */
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.style.display = 'block';
+  }
+
+  /* ── 回车快捷键 ── */
+  document.getElementById('user-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) startCooking();
+  });
+</script>
+</body>
+</html>
