@@ -740,11 +740,11 @@
   // 更新 marked 配置使用自定义渲染器
   marked.use({ renderer });
   
-  // 渲染函数
+  // 渲染函数（同步版本）
   function renderMarkdown(el) {
     const text = el.textContent;
-    // 使用 marked 解析，然后用 DOMPurify 清理
-    const rawHtml = marked.parse(text);
+    // 使用 marked 同步解析（{ async: false }），然后用 DOMPurify 清理
+    const rawHtml = marked.parse(text, { async: false });
     const cleanHtml = DOMPurify.sanitize(rawHtml, {
       ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'ul', 'ol', 'li', 
                      'strong', 'em', 'code', 'pre', 'hr', 'blockquote', 'a'],
