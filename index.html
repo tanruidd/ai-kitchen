@@ -271,8 +271,106 @@
       color: #fff;
     }
 
-    /* ── Toast 提示 ── */
-    .toast {
+    /* ── 图片预览弹窗 ── */
+    .preview-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-modal.open {
+      display: flex;
+    }
+    .preview-modal-inner {
+      background: #fff;
+      border-radius: 24px;
+      padding: 28px 28px 24px;
+      max-width: 440px;
+      width: 92%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .preview-modal-inner h3 {
+      font-size: 1.15rem;
+      color: var(--brown);
+      margin-bottom: 14px;
+      font-weight: 800;
+    }
+    .preview-img-wrap {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,.15);
+      margin-bottom: 18px;
+      display: inline-block;
+      max-width: 100%;
+    }
+    .preview-img-wrap img {
+      display: block;
+      max-width: 100%;
+      max-height: 420px;
+      width: auto;
+      height: auto;
+    }
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .preview-download-btn {
+      flex: 1;
+      padding: 13px 20px;
+      background: linear-gradient(135deg, var(--orange), var(--coral));
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 4px 16px rgba(255,107,107,.35);
+    }
+    .preview-download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255,107,107,.45);
+    }
+    .preview-cancel-btn {
+      flex: 0 0 auto;
+      padding: 13px 20px;
+      background: #f5f5f5;
+      color: #666;
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .preview-cancel-btn:hover {
+      background: #e8e8e8;
+    }
+    .preview-save-btn {
+      flex: 1;
+      padding: 13px 20px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 4px 12px rgba(60,179,113,.35);
+    }
+    .preview-save-btn:hover {
+      background: #2e9e4b;
+      transform: translateY(-1px);
+    }
       position: fixed;
       bottom: 32px;
       left: 50%;
@@ -677,6 +775,24 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
+  <!-- 图片预览弹窗 -->
+  <div class="preview-modal" id="preview-modal">
+    <div class="preview-modal-inner">
+      <h3>🖼️ 食谱图片预览</h3>
+      <div class="preview-img-wrap">
+        <img id="preview-img" src="" alt="食谱预览" />
+      </div>
+      <div class="preview-actions">
+        <button class="preview-download-btn" id="preview-download-btn">
+          💾 保存图片
+        </button>
+        <button class="preview-cancel-btn" onclick="closePreviewModal()">
+          取消
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 分享卡片（截图用，隐藏在视口外） -->
   <div class="share-card" id="share-card">
     <div class="share-card-header">
@@ -910,32 +1026,49 @@
     try {
       // 3. 用 html2canvas 截图
       const canvas = await html2canvas(card, {
-        scale: 2,               // 2倍清晰度
+        scale: 2,
         useCORS: true,
-        backgroundColor: null,   // 透明背景
+        backgroundColor: null,
         logging: false,
       });
 
-      // 4. 转成 blob 下载
-      canvas.toBlob(blob => {
-        const url = URL.createObjectURL(blob);
+      // 4. 生成 dataURL 显示预览
+      const dataUrl = canvas.toDataURL('image/png');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = dataUrl;
+
+      // 5. 下载按钮绑定
+      const downloadBtn = document.getElementById('preview-download-btn');
+      downloadBtn.onclick = () => {
         const a = document.createElement('a');
-        a.href = url;
+        a.href = dataUrl;
         a.download = `AI食谱-${modeText.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').trim()}.png`;
         a.click();
-        URL.revokeObjectURL(url);
+        closePreviewModal();
+        showToast('🖼️ 图片已保存！');
+      };
 
-        showToast('🖼️ 食谱图片已保存！');
-      }, 'image/png');
+      // 6. 显示预览弹窗
+      document.getElementById('preview-modal').classList.add('open');
 
     } catch(e) {
       console.error('截图失败:', e);
       showToast('截图失败，请稍后重试~');
     } finally {
-      // 5. 隐藏卡片
+      // 隐藏卡片
       card.style.left = '-9999px';
     }
   }
+
+  /* ── 关闭预览弹窗 ── */
+  function closePreviewModal() {
+    document.getElementById('preview-modal').classList.remove('open');
+  }
+
+  // 点击背景关闭
+  document.getElementById('preview-modal').addEventListener('click', e => {
+    if (e.target.id === 'preview-modal') closePreviewModal();
+  });
 
   /* ── 分享链接（URL快照模式，已废弃，改用图片）── */
 
