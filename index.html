@@ -235,14 +235,118 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
-    #recipe-output h1,#recipe-output h2,#recipe-output h3 {
-      color: var(--brown);
-      margin: 20px 0 10px;
+    /* ── 食谱内容样式 ── */
+    #recipe-output {
+      line-height: 1.9;
+      color: #333;
+      font-size: 1rem;
     }
-    #recipe-output strong { color: var(--orange); }
-    #recipe-output ul,#recipe-output ol { padding-left: 24px; margin: 8px 0; }
-    #recipe-output li { margin-bottom: 8px; }
-    #recipe-output hr { border: none; border-top: 2px dashed var(--yellow); margin: 20px 0; }
+    
+    /* 主标题 */
+    #recipe-output .recipe-main-title {
+      color: var(--brown);
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin: 0 0 20px 0;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--yellow);
+      line-height: 1.3;
+    }
+    
+    /* 章节标题 */
+    #recipe-output .recipe-section {
+      color: var(--orange);
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 28px 0 14px 0;
+      padding-left: 12px;
+      border-left: 4px solid var(--orange);
+      line-height: 1.4;
+    }
+    
+    /* 小标题 */
+    #recipe-output .recipe-title {
+      color: var(--brown);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 20px 0 10px 0;
+      line-height: 1.4;
+    }
+    
+    /* 段落 */
+    #recipe-output .recipe-paragraph {
+      margin: 0 0 16px 0;
+      text-align: justify;
+    }
+    
+    /* 高亮 */
+    #recipe-output .highlight {
+      color: var(--orange);
+      font-weight: 700;
+    }
+    
+    /* 列表 */
+    #recipe-output .recipe-list {
+      padding-left: 28px;
+      margin: 12px 0 20px 0;
+    }
+    #recipe-output .recipe-item {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+    #recipe-output .recipe-list.numbered {
+      list-style: none;
+      padding-left: 0;
+      counter-reset: step;
+    }
+    #recipe-output .recipe-list.numbered .recipe-item {
+      position: relative;
+      padding-left: 36px;
+      margin-bottom: 14px;
+    }
+    #recipe-output .recipe-list.numbered .recipe-item::before {
+      content: attr(data-num);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 26px;
+      height: 26px;
+      background: var(--orange);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    
+    /* 分割线 */
+    #recipe-output .recipe-divider {
+      border: none;
+      border-top: 2px dashed var(--yellow);
+      margin: 24px 0;
+    }
+    
+    /* 代码 */
+    #recipe-output .recipe-inline-code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.9em;
+      color: var(--coral);
+    }
+    #recipe-output .recipe-code {
+      background: #f8f8f8;
+      padding: 16px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 16px 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
 
     /* ── 加载动画 ── */
     .loading-wrap {
@@ -572,30 +676,78 @@
     }
   }
 
-  /* ── 简易 Markdown 渲染 ── */
+  /* ── 增强 Markdown 渲染 ── */
   function renderMarkdown(el) {
-    let html = el.textContent
-      // 标题
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+    let text = el.textContent;
+    
+    // 先处理代码块（保护不被其他规则影响）
+    const codeBlocks = [];
+    text = text.replace(/```[\s\S]*?```/g, match => {
+      codeBlocks.push(match);
+      return `\x00CODE${codeBlocks.length - 1}\x00`;
+    });
+    
+    // 处理行内代码
+    const inlineCodes = [];
+    text = text.replace(/`([^`]+)`/g, (match, code) => {
+      inlineCodes.push(code);
+      return `\x00INLINE${inlineCodes.length - 1}\x00`;
+    });
+    
+    let html = text
+      // 标题（增加样式类）
+      .replace(/^### (.+)$/gm, '<h3 class="recipe-title">$1</h3>')
+      .replace(/^## (.+)$/gm,  '<h2 class="recipe-section">$1</h2>')
+      .replace(/^# (.+)$/gm,   '<h1 class="recipe-main-title">$1</h1>')
       // 粗体
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="highlight">$1</strong>')
       // 斜体
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       // 分割线
-      .replace(/^---$/gm, '<hr>')
+      .replace(/^---$/gm, '<hr class="recipe-divider">')
       // 无序列表
-      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
+      .replace(/^[-•] (.+)$/gm, '<li class="recipe-item">$1</li>')
       // 有序列表
-      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-      // 换行
+      .replace(/^(\d+)\. (.+)$/gm, '<li class="recipe-item" data-num="$1">$2</li>')
+      // 段落（空行分隔）
+      .replace(/\n\n+/g, '</p><p class="recipe-paragraph">')
+      // 单个换行转为 <br>
       .replace(/\n/g, '<br>');
-
-    // 包裹 li
-    html = html.replace(/(<li>.*?<\/li>(<br>)?)+/g, m => `<ul>${m.replace(/<br>/g,'')}</ul>`);
+    
+    // 包裹段落
+    if (!html.startsWith('<h') && !html.startsWith('<ul') && !html.startsWith('<ol')) {
+      html = '<p class="recipe-paragraph">' + html + '</p>';
+    }
+    
+    // 包裹无序列表
+    html = html.replace(/(<li class="recipe-item">.*?<\/li>)+/gs, m => 
+      `<ul class="recipe-list">${m}</ul>`
+    );
+    
+    // 包裹有序列表（带序号）
+    html = html.replace(/(<li class="recipe-item" data-num="\d+">.*?<\/li>)+/gs, m => 
+      `<ol class="recipe-list numbered">${m}</ol>`
+    );
+    
+    // 恢复代码块
+    html = html.replace(/\x00CODE(\d+)\x00/g, (match, idx) => {
+      const code = codeBlocks[parseInt(idx)];
+      return `<pre class="recipe-code"><code>${escapeHtml(code.slice(3, -3))}</code></pre>`;
+    });
+    
+    // 恢复行内代码
+    html = html.replace(/\x00INLINE(\d+)\x00/g, (match, idx) => {
+      return `<code class="recipe-inline-code">${escapeHtml(inlineCodes[parseInt(idx)])}</code>`;
+    });
 
     el.innerHTML = html;
+  }
+  
+  // HTML 转义函数
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   /* ── 错误显示 ── */
