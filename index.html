@@ -6,9 +6,6 @@
   <title>🍔 美味创意AI厨房 | 比奇堡蟹堡王特供</title>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-  <script type="module" src="modes.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -173,7 +170,6 @@
     .mode-btn.active[data-mode="dark"]     { background: #EDE7F6; border-color: #673AB7; color: #311B92; }
     .mode-btn.active[data-mode="healing"]  { background: #E8F5E9; border-color: #4CAF50; color: #1B5E20; }
     .mode-btn.active[data-mode="squat"]    { background: #E3F2FD; border-color: #2196F3; color: #0D47A1; }
-    .mode-btn.active[data-mode="street"]   { background: #FFF3E0; border-color: #FF9800; color: #E65100; }
 
     /* ── 按钮 ── */
     .cook-btn {
@@ -274,106 +270,8 @@
       color: #fff;
     }
 
-    /* ── 图片预览弹窗 ── */
-    .preview-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      z-index: 9998;
-      align-items: center;
-      justify-content: center;
-    }
-    .preview-modal.open {
-      display: flex;
-    }
-    .preview-modal-inner {
-      background: #fff;
-      border-radius: 24px;
-      padding: 28px 28px 24px;
-      max-width: 440px;
-      width: 92%;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,.25);
-    }
-    .preview-modal-inner h3 {
-      font-size: 1.15rem;
-      color: var(--brown);
-      margin-bottom: 14px;
-      font-weight: 800;
-    }
-    .preview-img-wrap {
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 6px 24px rgba(0,0,0,.15);
-      margin-bottom: 18px;
-      display: inline-block;
-      max-width: 100%;
-    }
-    .preview-img-wrap img {
-      display: block;
-      max-width: 100%;
-      max-height: 420px;
-      width: auto;
-      height: auto;
-    }
-    .preview-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-    .preview-download-btn {
-      flex: 1;
-      padding: 13px 20px;
-      background: linear-gradient(135deg, var(--orange), var(--coral));
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      font-family: inherit;
-      font-size: .95rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all .2s;
-      box-shadow: 0 4px 16px rgba(255,107,107,.35);
-    }
-    .preview-download-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(255,107,107,.45);
-    }
-    .preview-cancel-btn {
-      flex: 0 0 auto;
-      padding: 13px 20px;
-      background: #f5f5f5;
-      color: #666;
-      border: none;
-      border-radius: 16px;
-      font-family: inherit;
-      font-size: .9rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s;
-    }
-    .preview-cancel-btn:hover {
-      background: #e8e8e8;
-    }
-    .preview-save-btn {
-      flex: 1;
-      padding: 13px 20px;
-      background: var(--green);
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      font-family: inherit;
-      font-size: .9rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all .2s;
-      box-shadow: 0 4px 12px rgba(60,179,113,.35);
-    }
-    .preview-save-btn:hover {
-      background: #2e9e4b;
-      transform: translateY(-1px);
-    }
+    /* ── Toast 提示 ── */
+    .toast {
       position: fixed;
       bottom: 32px;
       left: 50%;
@@ -396,114 +294,79 @@
       opacity: 1;
     }
 
-
-
-    /* ── 分享卡片（截图用） ── */
-    .share-card {
+    /* ── 分享弹窗 ── */
+    .share-modal {
+      display: none;
       position: fixed;
-      left: -9999px;
-      top: 0;
-      width: 680px;
-      padding: 48px 52px 40px;
-      background: linear-gradient(160deg, #87CEEB 0%, #00CED1 40%, #F5DEB3 100%);
-      font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      color: #333;
-      line-height: 1.9;
-    }
-    .share-card-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .share-card-logo {
-      width: 72px;
-      height: 72px;
-      background: #FFD700;
-      border-radius: 50%;
-      font-size: 40px;
-      display: flex;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 9998;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,.15);
-      flex-shrink: 0;
     }
-    .share-card-title {
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: #fff;
-      text-shadow: 2px 2px 0 rgba(0,0,0,.2);
+    .share-modal.open {
+      display: flex;
     }
-    .share-card-subtitle {
-      font-size: .9rem;
-      color: rgba(255,255,255,.85);
-      font-weight: 600;
-      margin-top: 4px;
-    }
-    .share-card-mode {
-      display: inline-block;
-      padding: 4px 12px;
-      background: rgba(255,255,255,.3);
-      border-radius: 20px;
-      font-size: .78rem;
-      font-weight: 700;
-      color: #fff;
-      margin-top: 6px;
-    }
-    .share-card-divider {
-      width: 60px;
-      height: 4px;
-      background: #FFD700;
-      border-radius: 2px;
-      margin-bottom: 24px;
-    }
-    .share-card-recipe {
-      background: rgba(255,255,255,.92);
-      border-radius: 20px;
-      padding: 28px 32px;
-      font-size: .95rem;
-      line-height: 1.85;
-    }
-    .share-card-recipe h1 {
-      color: #8B4513;
-      font-size: 1.4rem;
-      font-weight: 900;
-      margin: 0 0 16px 0;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #FFD700;
-    }
-    .share-card-recipe h2 {
-      color: #FF8C00;
-      font-size: 1.1rem;
-      font-weight: 800;
-      margin: 20px 0 10px 0;
-      padding-left: 10px;
-      border-left: 3px solid #FF8C00;
-    }
-    .share-card-recipe p { margin: 0 0 12px 0; }
-    .share-card-recipe ul,
-    .share-card-recipe ol { padding-left: 22px; margin: 8px 0 16px 0; }
-    .share-card-recipe li { margin-bottom: 6px; }
-    .share-card-recipe strong { color: #FF8C00; font-weight: 700; }
-    .share-card-recipe code {
-      background: #f5f5f5;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-size: .88em;
-      color: #FF6B6B;
-    }
-    .share-card-recipe pre {
-      background: #f8f8f8;
-      padding: 12px;
-      border-radius: 10px;
-      overflow-x: auto;
-    }
-    .share-card-footer {
-      margin-top: 20px;
+    .share-modal-inner {
+      background: #fff;
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+      max-width: 420px;
+      width: 90%;
       text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .share-modal-inner h3 {
+      font-size: 1.2rem;
+      color: var(--brown);
+      margin-bottom: 16px;
+    }
+    .share-link-wrap {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .share-link-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid var(--yellow);
+      border-radius: 12px;
+      font-size: .85rem;
+      font-family: inherit;
+      color: #333;
+      outline: none;
+    }
+    .share-copy-btn {
+      padding: 10px 18px;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .share-copy-btn:hover {
+      background: var(--coral);
+    }
+    .share-wechat-note {
       font-size: .82rem;
-      color: rgba(255,255,255,.75);
+      color: #888;
+      line-height: 1.5;
+    }
+    .share-close-btn {
+      margin-top: 16px;
+      padding: 8px 20px;
+      background: #f5f5f5;
+      color: #666;
+      border: none;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: .85rem;
       font-weight: 600;
+      cursor: pointer;
     }
 
     /* ── Markdown 渲染结果样式 ── */
@@ -740,9 +603,6 @@
       <button class="mode-btn" data-mode="squat">
         <span class="mode-icon">🏠</span>蹲门模式
       </button>
-      <button class="mode-btn" data-mode="street">
-        <span class="mode-icon">🏮</span>摆摊小吃
-      </button>
     </div>
   </div>
 
@@ -771,48 +631,31 @@
           📋 复制
         </button>
         <button class="action-btn" id="share-btn" onclick="shareRecipe()" title="分享食谱">
-          🖼️ 分享图片
+          🔗 分享
         </button>
       </div>
     </div>
     <div id="recipe-output"></div>
   </div>
 
+  <!-- 分享弹窗 -->
+  <div class="share-modal" id="share-modal">
+    <div class="share-modal-inner">
+      <h3>🔗 分享这份食谱</h3>
+      <div class="share-link-wrap">
+        <input class="share-link-input" id="share-link-input" type="text" readonly />
+        <button class="share-copy-btn" onclick="copyShareLink()">复制</button>
+      </div>
+      <p class="share-wechat-note">
+        复制链接后，打开微信粘贴发送给朋友～<br/>
+        或者长按复制食谱文字直接分享 👌
+      </p>
+      <button class="share-close-btn" onclick="closeShareModal()">关闭</button>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div class="toast" id="toast"></div>
-
-  <!-- 图片预览弹窗 -->
-  <div class="preview-modal" id="preview-modal">
-    <div class="preview-modal-inner">
-      <h3>🖼️ 食谱图片预览</h3>
-      <div class="preview-img-wrap">
-        <img id="preview-img" src="" alt="食谱预览" />
-      </div>
-      <div class="preview-actions">
-        <button class="preview-download-btn" id="preview-download-btn">
-          💾 保存图片
-        </button>
-        <button class="preview-cancel-btn" onclick="closePreviewModal()">
-          取消
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 分享卡片（截图用，隐藏在视口外） -->
-  <div class="share-card" id="share-card">
-    <div class="share-card-header">
-      <div class="share-card-logo">🧽</div>
-      <div>
-        <div class="share-card-title">美味创意 AI 厨房</div>
-        <div class="share-card-subtitle">🦀 比奇堡蟹堡王特供 · AI 生成食谱</div>
-        <div class="share-card-mode" id="share-card-mode">🍳 普通模式</div>
-      </div>
-    </div>
-    <div class="share-card-divider"></div>
-    <div class="share-card-recipe" id="share-card-recipe"></div>
-    <div class="share-card-footer">🍔 由美味创意 AI 厨房生成 · 每一道菜都是爱 ❤️</div>
-  </div>
 
   <footer>
     🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
@@ -841,8 +684,25 @@
 
   /* ── 模式选择 ── */
   let currentMode = 'normal';
-  const modeLabels = window.MODE_LABELS;
-  const modePrompts = window.MODE_PROMPTS;
+  const modeLabels = {
+    normal:   '🍳 普通模式',
+    michelin: '⭐ 米其林',
+    dark:     '💀 暗黑料理',
+    healing:  '🌸 治愈系',
+    squat:    '🏠 蹲门模式',
+  };
+  const modePrompts = {
+    normal:
+      '你是一位热情友善的家庭厨师。请根据用户的描述，生成一份详细、实用、步骤清晰的家常食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（大标题）\n3. 用 ## 分隔不同章节（如：## 食材准备、## 烹饪步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表\n6. 重要内容用 **粗体** 标注\n7. 全文使用中文回复\n8. 多用 emoji 增加趣味性\n9. 段落之间空一行，保持清晰排版',
+    michelin:
+      '你是一位三星米其林主厨。请根据用户的描述，生成一份精致、高端、充满创意的米其林级别食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（大标题）\n3. 用 ## 分隔不同章节（如：## 食材准备、## 烹饪步骤、## 摆盘艺术）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表，注明精确用量\n6. 关键温度、时间用 **粗体** 标注\n7. 全文使用中文回复，可穿插法语术语\n8. 多用 emoji 增加格调\n9. 段落之间空一行，保持优雅排版',
+    dark:
+      '你是一位专门研究"暗黑料理"的疯狂厨师。请根据用户的描述，生成一份充满奇葩创意、脑洞大开的暗黑食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（要很奇葩）\n3. 用 ## 分隔不同章节（如：## 诡异食材、## 黑暗步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表\n6. 夸张描述用 **粗体** 标注\n7. 全文使用中文回复\n8. 多用 💀🧪⚗️ 等暗黑 emoji\n9. 段落之间空一行，营造戏剧感',
+    healing:
+      '你是一位温柔的治愈系厨师。请根据用户的描述，生成一份充满爱与温暖的治愈系食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（温暖系）\n3. 用 ## 分隔不同章节（如：## 疗愈食材、## 温暖步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表，注明疗愈功效\n6. 暖心话语用 **粗体** 标注\n7. 全文使用中文回复\n8. 多用 🌸💝🌟 等温暖 emoji\n9. 段落之间空一行，像写信一样温柔排版',
+    squat:
+      '你是一位精通"蹲门（穷游/省钱）"的生存厨师。请根据用户的描述，生成一份极度省钱、食材易得、操作简单的蹲门食谱。\n\n【输出格式要求】\n1. 使用 Markdown 格式输出\n2. 第一行用 # 写菜名（接地气）\n3. 用 ## 分隔不同章节（如：## 省钱食材、## 快手步骤）\n4. 步骤用 1. 2. 3. 有序列表\n5. 食材用 - 无序列表，注明价格/替代方案\n6. 省钱技巧用 **粗体** 标注\n7. 全文使用中文回复，语气接地气\n8. 多用 🏠💰🍜 等生活 emoji\n9. 段落之间空一行，清晰实用排版',
+  };
 
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -899,99 +759,50 @@
         throw new Error(`API 错误 ${response.status}: ${errText}`);
       }
 
-      // 检查 content-type，判断是流式还是普通 JSON 响应
-      const contentType = response.headers.get('content-type') || '';
-      const isStream = contentType.includes('text/event-stream');
-
       // 流式输出
       loading.style.display = 'none';
       resultSection.style.display = 'block';
       document.getElementById('mode-badge').textContent = modeLabels[currentMode];
 
       const outputEl = document.getElementById('recipe-output');
-      outputEl.innerHTML = '';
+      outputEl.textContent = '';
 
-      // ── 非流式响应（API 返回了错误 JSON）──
-      if (!isStream) {
-        try {
-          const data = await response.json();
-          if (data.error) {
-            outputEl.innerHTML = `<p style="color:#c0392b;font-weight:700;">😱 ${data.error}</p>`;
-          } else {
-            outputEl.textContent = JSON.stringify(data, null, 2);
-          }
-        } catch (_) {
-          const text = await response.text().catch(() => '未知错误');
-          outputEl.textContent = text;
-        }
-        finishCooking();
-        return;
-      }
-
-      // ── 流式响应正常处理 ──
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
-      let fullText = '';
-      let lastRenderTime = 0;
-      const renderInterval = 120;
-      let closed = false;
+      let fullText = ''; // 收集完整文本，最后一次性渲染
 
-      function finishCooking() {
-        if (closed) return;
-        closed = true;
-        try {
-          if (fullText) {
-            try {
-              outputEl.innerHTML = marked.parse(fullText);
-            } catch (e) {
-              outputEl.textContent = fullText;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // 保留不完整行
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+          try {
+            const json = JSON.parse(trimmed.slice(6));
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullText += delta;
+              outputEl.textContent = fullText; // 先直接显示文本
             }
-          }
-          document.getElementById('action-btns').style.display = 'flex';
-          resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
+          } catch (_) { /* 忽略解析错误 */ }
         }
       }
 
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      // 完成后用 marked 渲染 Markdown
+      renderMarkdown(outputEl);
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop();
+      // 显示操作按钮
+      document.getElementById('action-btns').style.display = 'flex';
 
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed === 'data: [DONE]') continue;
-            if (!trimmed.startsWith('data: ')) continue;
-            try {
-              const json = JSON.parse(trimmed.slice(6));
-              const delta = json.choices?.[0]?.delta?.content;
-              if (delta) {
-                fullText += delta;
-                const now = Date.now();
-                if (now - lastRenderTime >= renderInterval) {
-                  lastRenderTime = now;
-                  try {
-                    outputEl.innerHTML = marked.parse(fullText);
-                  } catch (_) {
-                    outputEl.textContent = fullText;
-                  }
-                }
-              }
-            } catch (_) { /* 忽略解析错误 */ }
-          }
-        }
-      } catch (streamErr) {
-        console.error('Stream read error:', streamErr);
-      }
-
-      finishCooking();
+      // 滚动到结果
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (err) {
       loading.style.display = 'none';
@@ -1039,69 +850,79 @@
     });
   }
 
-  /* ── 图片分享食谱 ── */
-  async function shareRecipe() {
+  /* ── 分享食谱（生成含食谱内容的 URL） ── */
+  function shareRecipe() {
     const outputEl = document.getElementById('recipe-output');
     if (!outputEl.textContent) return;
 
-    const modeText = document.getElementById('mode-badge').textContent;
+    // 食谱文字 + 模式
+    const recipeText = outputEl.textContent;
+    const mode = document.getElementById('mode-badge').textContent;
 
-    // 1. 把当前食谱内容复制到分享卡片
-    document.getElementById('share-card-mode').textContent = modeText;
-    document.getElementById('share-card-recipe').innerHTML = outputEl.innerHTML;
+    // 生成 URL（含食谱内容做快照）
+    const shareUrl = generateShareUrl(recipeText, mode);
 
-    // 2. 显示卡片（移出视口外）
-    const card = document.getElementById('share-card');
-    card.style.left = '0';
+    document.getElementById('share-link-input').value = shareUrl;
+    document.getElementById('share-modal').classList.add('open');
+  }
 
+  /* ── 生成分享 URL（食谱快照模式） ── */
+  function generateShareUrl(recipeText, mode) {
+    // 简单处理：把食谱内容 base64 编码塞进 URL hash
+    const encoded = btoa(unescape(encodeURIComponent(recipeText)));
+    const modeParam = encodeURIComponent(mode);
+    // 当前页面 URL（DNS 配置好后自动用正式域名）
+    const pageUrl = window.location.origin + window.location.pathname;
+    return `${pageUrl}#recipe=${encoded}&mode=${modeParam}`;
+  }
+
+  /* ── 从分享链接恢复食谱 ── */
+  function loadFromShare() {
+    const hash = window.location.hash;
+    if (!hash.includes('#recipe=')) return;
     try {
-      // 3. 用 html2canvas 截图
-      const canvas = await html2canvas(card, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null,
-        logging: false,
-      });
-
-      // 4. 生成 dataURL 显示预览
-      const dataUrl = canvas.toDataURL('image/png');
-      const previewImg = document.getElementById('preview-img');
-      previewImg.src = dataUrl;
-
-      // 5. 下载按钮绑定
-      const downloadBtn = document.getElementById('preview-download-btn');
-      downloadBtn.onclick = () => {
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = `AI食谱-${modeText.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').trim()}.png`;
-        a.click();
-        closePreviewModal();
-        showToast('🖼️ 图片已保存！');
-      };
-
-      // 6. 显示预览弹窗
-      document.getElementById('preview-modal').classList.add('open');
-
+      const params = new URLSearchParams(hash.slice(1));
+      const encoded = params.get('recipe');
+      const mode = params.get('mode');
+      if (!encoded) return;
+      const recipeText = decodeURIComponent(escape(atob(encoded)));
+      const outputEl = document.getElementById('recipe-output');
+      outputEl.textContent = recipeText;
+      renderMarkdown(outputEl);
+      if (mode) document.getElementById('mode-badge').textContent = decodeURIComponent(mode);
+      // 显示结果区
+      document.getElementById('result-section').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+      // 清理 hash
+      history.replaceState(null, '', window.location.pathname);
     } catch(e) {
-      console.error('截图失败:', e);
-      showToast('截图失败，请稍后重试~');
-    } finally {
-      // 隐藏卡片
-      card.style.left = '-9999px';
+      console.warn('分享链接解析失败:', e);
     }
   }
 
-  /* ── 关闭预览弹窗 ── */
-  function closePreviewModal() {
-    document.getElementById('preview-modal').classList.remove('open');
+  /* ── 复制分享链接 ── */
+  function copyShareLink() {
+    const input = document.getElementById('share-link-input');
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('🔗 分享链接已复制！');
+      setTimeout(closeShareModal, 600);
+    }).catch(() => {
+      input.select();
+      document.execCommand('copy');
+      showToast('🔗 分享链接已复制！');
+      setTimeout(closeShareModal, 600);
+    });
   }
 
-  // 点击背景关闭
-  document.getElementById('preview-modal').addEventListener('click', e => {
-    if (e.target.id === 'preview-modal') closePreviewModal();
-  });
+  /* ── 关闭分享弹窗 ── */
+  function closeShareModal() {
+    document.getElementById('share-modal').classList.remove('open');
+  }
 
-  /* ── 分享链接（URL快照模式，已废弃，改用图片）── */
+  // 点击弹窗背景关闭
+  document.getElementById('share-modal').addEventListener('click', e => {
+    if (e.target.id === 'share-modal') closeShareModal();
+  });
 
   /* ── 错误显示 ── */
   function showError(msg) {
@@ -1117,7 +938,7 @@
 
   /* ── 页面加载时检查分享链接 ── */
   window.addEventListener('DOMContentLoaded', () => {
-    // 预留：后续可从 URL 恢复分享内容
+    loadFromShare();
   });
 </script>
 </body>
