@@ -18,6 +18,7 @@ export default async function handler(req, res) {
     'http://localhost:3000',
     'http://localhost:5000',
     'https://ai-kitchen.vercel.app',
+    'https://www.bikini-bottom.store',
     // 添加你的自定义域名
   ];
   
