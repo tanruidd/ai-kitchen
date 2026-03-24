@@ -76,7 +76,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': req.headers.origin || 'https://ai-kitchen.vercel.app',
-        'X-Title': '美味创意AI厨房',
+        'X-Title': 'AI Kitchen',
       },
       body: JSON.stringify({
         model: model || 'stepfun/step-3.5-flash:free',
