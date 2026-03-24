@@ -4,7 +4,7 @@
 
 ## 🎯 功能
 
-- 🧽 **5种烹饪模式**：普通 / 米其林 / 暗黑料理 / 治愈系 / 蹲门模式
+- 🧽 **6种烹饪模式**：普通 / 米其林 / 暗黑料理 / 治愈系 / 蹲门模式 / 摆摊小吃
 - 🔥 **AI驱动**：调用 OpenRouter 的 Step-3.5-Flash 模型
 - 🌊 **比奇堡主题**：海底世界风格界面，气泡背景动画
 - ⚡ **流式输出**：实时显示生成的食谱
@@ -47,6 +47,7 @@ vercel
 ```
 ai-kitchen/
 ├── index.html              # 前端页面（无 API Key）
+├── modes.js                # 烹饪模式配置（6种模式 + prompt 模板）
 ├── api/
 │   └── chat.js            # Serverless 后端函数
 ├── vercel.json            # Vercel 配置
