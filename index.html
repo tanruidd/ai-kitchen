@@ -6,6 +6,7 @@
   <title>🍔 美味创意AI厨房 | 比奇堡蟹堡王特供</title>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -294,79 +295,114 @@
       opacity: 1;
     }
 
-    /* ── 分享弹窗 ── */
-    .share-modal {
-      display: none;
+
+
+    /* ── 分享卡片（截图用） ── */
+    .share-card {
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.5);
-      z-index: 9998;
+      left: -9999px;
+      top: 0;
+      width: 680px;
+      padding: 48px 52px 40px;
+      background: linear-gradient(160deg, #87CEEB 0%, #00CED1 40%, #F5DEB3 100%);
+      font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      color: #333;
+      line-height: 1.9;
+    }
+    .share-card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .share-card-logo {
+      width: 72px;
+      height: 72px;
+      background: #FFD700;
+      border-radius: 50%;
+      font-size: 40px;
+      display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      flex-shrink: 0;
     }
-    .share-modal.open {
-      display: flex;
-    }
-    .share-modal-inner {
-      background: #fff;
-      border-radius: 24px;
-      padding: 32px 28px 28px;
-      max-width: 420px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,.2);
-    }
-    .share-modal-inner h3 {
-      font-size: 1.2rem;
-      color: var(--brown);
-      margin-bottom: 16px;
-    }
-    .share-link-wrap {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .share-link-input {
-      flex: 1;
-      padding: 10px 14px;
-      border: 2px solid var(--yellow);
-      border-radius: 12px;
-      font-size: .85rem;
-      font-family: inherit;
-      color: #333;
-      outline: none;
-    }
-    .share-copy-btn {
-      padding: 10px 18px;
-      background: var(--orange);
+    .share-card-title {
+      font-size: 1.5rem;
+      font-weight: 900;
       color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-family: inherit;
-      font-size: .88rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s;
+      text-shadow: 2px 2px 0 rgba(0,0,0,.2);
     }
-    .share-copy-btn:hover {
-      background: var(--coral);
-    }
-    .share-wechat-note {
-      font-size: .82rem;
-      color: #888;
-      line-height: 1.5;
-    }
-    .share-close-btn {
-      margin-top: 16px;
-      padding: 8px 20px;
-      background: #f5f5f5;
-      color: #666;
-      border: none;
-      border-radius: 20px;
-      font-family: inherit;
-      font-size: .85rem;
+    .share-card-subtitle {
+      font-size: .9rem;
+      color: rgba(255,255,255,.85);
       font-weight: 600;
-      cursor: pointer;
+      margin-top: 4px;
+    }
+    .share-card-mode {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(255,255,255,.3);
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 6px;
+    }
+    .share-card-divider {
+      width: 60px;
+      height: 4px;
+      background: #FFD700;
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
+    .share-card-recipe {
+      background: rgba(255,255,255,.92);
+      border-radius: 20px;
+      padding: 28px 32px;
+      font-size: .95rem;
+      line-height: 1.85;
+    }
+    .share-card-recipe h1 {
+      color: #8B4513;
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin: 0 0 16px 0;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .share-card-recipe h2 {
+      color: #FF8C00;
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin: 20px 0 10px 0;
+      padding-left: 10px;
+      border-left: 3px solid #FF8C00;
+    }
+    .share-card-recipe p { margin: 0 0 12px 0; }
+    .share-card-recipe ul,
+    .share-card-recipe ol { padding-left: 22px; margin: 8px 0 16px 0; }
+    .share-card-recipe li { margin-bottom: 6px; }
+    .share-card-recipe strong { color: #FF8C00; font-weight: 700; }
+    .share-card-recipe code {
+      background: #f5f5f5;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: .88em;
+      color: #FF6B6B;
+    }
+    .share-card-recipe pre {
+      background: #f8f8f8;
+      padding: 12px;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+    .share-card-footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: .82rem;
+      color: rgba(255,255,255,.75);
+      font-weight: 600;
     }
 
     /* ── Markdown 渲染结果样式 ── */
@@ -631,31 +667,30 @@
           📋 复制
         </button>
         <button class="action-btn" id="share-btn" onclick="shareRecipe()" title="分享食谱">
-          🔗 分享
+          🖼️ 分享图片
         </button>
       </div>
     </div>
     <div id="recipe-output"></div>
   </div>
 
-  <!-- 分享弹窗 -->
-  <div class="share-modal" id="share-modal">
-    <div class="share-modal-inner">
-      <h3>🔗 分享这份食谱</h3>
-      <div class="share-link-wrap">
-        <input class="share-link-input" id="share-link-input" type="text" readonly />
-        <button class="share-copy-btn" onclick="copyShareLink()">复制</button>
-      </div>
-      <p class="share-wechat-note">
-        复制链接后，打开微信粘贴发送给朋友～<br/>
-        或者长按复制食谱文字直接分享 👌
-      </p>
-      <button class="share-close-btn" onclick="closeShareModal()">关闭</button>
-    </div>
-  </div>
-
   <!-- Toast -->
   <div class="toast" id="toast"></div>
+
+  <!-- 分享卡片（截图用，隐藏在视口外） -->
+  <div class="share-card" id="share-card">
+    <div class="share-card-header">
+      <div class="share-card-logo">🧽</div>
+      <div>
+        <div class="share-card-title">美味创意 AI 厨房</div>
+        <div class="share-card-subtitle">🦀 比奇堡蟹堡王特供 · AI 生成食谱</div>
+        <div class="share-card-mode" id="share-card-mode">🍳 普通模式</div>
+      </div>
+    </div>
+    <div class="share-card-divider"></div>
+    <div class="share-card-recipe" id="share-card-recipe"></div>
+    <div class="share-card-footer">🍔 由美味创意 AI 厨房生成 · 每一道菜都是爱 ❤️</div>
+  </div>
 
   <footer>
     🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
@@ -857,80 +892,52 @@
     });
   }
 
-  /* ── 分享食谱（生成含食谱内容的 URL） ── */
-  function shareRecipe() {
+  /* ── 图片分享食谱 ── */
+  async function shareRecipe() {
     const outputEl = document.getElementById('recipe-output');
     if (!outputEl.textContent) return;
 
-    // 食谱文字 + 模式
-    const recipeText = outputEl.textContent;
-    const mode = document.getElementById('mode-badge').textContent;
+    const modeText = document.getElementById('mode-badge').textContent;
 
-    // 生成 URL（含食谱内容做快照）
-    const shareUrl = generateShareUrl(recipeText, mode);
+    // 1. 把当前食谱内容复制到分享卡片
+    document.getElementById('share-card-mode').textContent = modeText;
+    document.getElementById('share-card-recipe').innerHTML = outputEl.innerHTML;
 
-    document.getElementById('share-link-input').value = shareUrl;
-    document.getElementById('share-modal').classList.add('open');
-  }
+    // 2. 显示卡片（移出视口外）
+    const card = document.getElementById('share-card');
+    card.style.left = '0';
 
-  /* ── 生成分享 URL（食谱快照模式） ── */
-  function generateShareUrl(recipeText, mode) {
-    // 安全处理中文：encodeURIComponent 可处理任意 Unicode
-    const encoded = encodeURIComponent(recipeText);
-    const modeParam = encodeURIComponent(mode);
-    // 当前页面 URL（DNS 配置好后自动用正式域名）
-    const pageUrl = window.location.origin + window.location.pathname;
-    return `${pageUrl}#recipe=${encoded}&mode=${modeParam}`;
-  }
-
-  /* ── 从分享链接恢复食谱 ── */
-  function loadFromShare() {
-    const hash = window.location.hash;
-    if (!hash.includes('#recipe=')) return;
     try {
-      const params = new URLSearchParams(hash.slice(1));
-      const encoded = params.get('recipe');
-      const mode = params.get('mode');
-      if (!encoded) return;
-      const recipeText = decodeURIComponent(encoded);
-      const outputEl = document.getElementById('recipe-output');
-      outputEl.textContent = recipeText;
-      renderMarkdown(outputEl);
-      if (mode) document.getElementById('mode-badge').textContent = decodeURIComponent(mode);
-      // 显示结果区 + 操作按钮
-      document.getElementById('result-section').style.display = 'block';
-      document.getElementById('action-btns').style.display = 'flex';
-      document.getElementById('loading').style.display = 'none';
-      // 清理 hash
-      history.replaceState(null, '', window.location.pathname);
+      // 3. 用 html2canvas 截图
+      const canvas = await html2canvas(card, {
+        scale: 2,               // 2倍清晰度
+        useCORS: true,
+        backgroundColor: null,   // 透明背景
+        logging: false,
+      });
+
+      // 4. 转成 blob 下载
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `AI食谱-${modeText.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').trim()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showToast('🖼️ 食谱图片已保存！');
+      }, 'image/png');
+
     } catch(e) {
-      console.warn('分享链接解析失败:', e);
+      console.error('截图失败:', e);
+      showToast('截图失败，请稍后重试~');
+    } finally {
+      // 5. 隐藏卡片
+      card.style.left = '-9999px';
     }
   }
 
-  /* ── 复制分享链接 ── */
-  function copyShareLink() {
-    const input = document.getElementById('share-link-input');
-    navigator.clipboard.writeText(input.value).then(() => {
-      showToast('🔗 分享链接已复制！');
-      setTimeout(closeShareModal, 600);
-    }).catch(() => {
-      input.select();
-      document.execCommand('copy');
-      showToast('🔗 分享链接已复制！');
-      setTimeout(closeShareModal, 600);
-    });
-  }
-
-  /* ── 关闭分享弹窗 ── */
-  function closeShareModal() {
-    document.getElementById('share-modal').classList.remove('open');
-  }
-
-  // 点击弹窗背景关闭
-  document.getElementById('share-modal').addEventListener('click', e => {
-    if (e.target.id === 'share-modal') closeShareModal();
-  });
+  /* ── 分享链接（URL快照模式，已废弃，改用图片）── */
 
   /* ── 错误显示 ── */
   function showError(msg) {
@@ -946,7 +953,7 @@
 
   /* ── 页面加载时检查分享链接 ── */
   window.addEventListener('DOMContentLoaded', () => {
-    loadFromShare();
+    // 预留：后续可从 URL 恢复分享内容
   });
 </script>
 </body>
