@@ -6,6 +6,8 @@
  */
 
 let currentMode = 'normal';
+let isCooking   = false;
+let cookAbortController = null;
 
 /* ── 模式选择 ── */
 function initModeButtons() {
@@ -42,6 +44,9 @@ async function startCooking() {
     return;
   }
 
+  isCooking = true;
+  cookAbortController = new AbortController();
+
   const btn           = document.getElementById('cook-btn');
   const loading       = document.getElementById('loading');
   const resultSection = document.getElementById('result-section');
@@ -62,6 +67,7 @@ async function startCooking() {
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: cookAbortController.signal,
       body: JSON.stringify({
         model:       'stepfun/step-3.5-flash:free',
         messages:    [
@@ -131,8 +137,12 @@ async function startCooking() {
 
   } catch (err) {
     loading.style.display = 'none';
+    // 用户主动离开页面 / 手动中断 → 静默，不报错
+    if (err.name === 'AbortError') return;
     showError(`😱 哎呀，厨房着火了！${err.message}`);
   } finally {
+    isCooking = false;
+    cookAbortController = null;
     btn.disabled = false;
     btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
   }
@@ -145,5 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ctrl/Cmd + Enter 快捷键
   document.getElementById('user-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) startCooking();
+  });
+
+  // 烹饪中离开页面：提示用户 + 中断请求
+  window.addEventListener('beforeunload', e => {
+    if (isCooking) {
+      e.preventDefault();
+      e.returnValue = '食谱还在生成中，确定要离开吗？';
+    }
+  });
+
+  window.addEventListener('pagehide', () => {
+    if (cookAbortController) cookAbortController.abort();
   });
 });
