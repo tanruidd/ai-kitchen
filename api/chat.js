@@ -10,6 +10,7 @@
 const MODEL_FALLBACKS = [
   'stepfun/step-3.5-flash:free',           // 主模型：阶跃星辰
   'arcee-ai/trinity-large-preview:free',   // 备用：Arcee Trinity
+  'z-ai/glm-4.5-air:free',                 // 备用：智谱 GLM
   'nvidia/nemotron-3-super-120b-a12b:free', // 备用：NVIDIA Nemotron
 ];
 
