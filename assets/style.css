@@ -386,7 +386,40 @@
       opacity: 1;
     }
 
-    /* ── 历史记录 ── */
+    /* ── BGM 按钮 ── */
+    .bgm-btn {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 100;
+      background: rgba(255,255,255,.9);
+      border: 2.5px solid var(--teal);
+      border-radius: 50%;
+      width: 52px; height: 52px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bgm-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(0,206,209,.3);
+    }
+    .bgm-btn.bgm-on {
+      background: var(--teal);
+      border-color: var(--teal);
+      box-shadow: 0 4px 16px rgba(0,206,209,.4);
+      animation: bgm-pulse 2s ease-in-out infinite;
+    }
+    @keyframes bgm-pulse {
+      0%, 100% { box-shadow: 0 4px 16px rgba(0,206,209,.4); }
+      50%       { box-shadow: 0 4px 24px rgba(0,206,209,.7); }
+    }
+
+
     .history-toggle-btn {
       position: fixed;
       top: 20px;
@@ -1001,6 +1034,18 @@
     @media (max-width: 580px) {
       .container {
         padding: 40px 20px 80px;
+      }
+      .bgm-btn {
+        top: 80px;
+        right: 16px;
+        width: 46px; height: 46px;
+        font-size: 1.2rem;
+      }
+      .history-toggle-btn {
+        top: 20px;
+        right: 16px;
+        width: 46px; height: 46px;
+        font-size: 1.2rem;
       }
       .card {
         padding: 28px 24px 32px;

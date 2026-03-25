@@ -22,6 +22,11 @@
   <span class="history-count" id="history-count" style="display:none;">0</span>
 </button>
 
+<!-- BGM 按钮 -->
+<button class="bgm-btn" id="bgm-btn" onclick="BGM.toggle()" title="开启背景音乐">
+  🔇
+</button>
+
 <!-- 历史记录面板 -->
 <div class="history-overlay" id="history-overlay" onclick="toggleHistory()"></div>
 <div class="history-panel" id="history-panel">
@@ -181,6 +186,7 @@
 
 <script src="./modules/utils.js"></script>
 <script src="./modules/sfx.js"></script>
+<script src="./modules/bgm.js"></script>
 <script src="./modules/history.js"></script>
 <script src="./modules/inspire.js"></script>
 <script src="./modules/share.js"></script>
