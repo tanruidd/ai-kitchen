@@ -2843,3 +2843,109 @@
       font-size: 0.8rem;
       color: #999;
     }
+
+    /* ════════════════════════════════════════
+       移动端字体优化
+    ════════════════════════════════════════ */
+
+    @media (max-width: 480px) {
+      /* 盲盒 */
+      .gacha-item-name {
+        font-size: 0.85rem;
+      }
+      .gacha-item-desc {
+        font-size: 0.7rem;
+      }
+      .gacha-inventory-item {
+        padding: 12px;
+      }
+
+      /* 成就 */
+      .achievement-item {
+        padding: 10px;
+      }
+      .achievement-item-icon {
+        font-size: 1.5rem;
+      }
+      .achievement-item-name {
+        font-size: 0.75rem;
+      }
+      .achievement-item-desc {
+        font-size: 0.65rem;
+      }
+      .achievement-item-date,
+      .achievement-item-locked {
+        font-size: 0.6rem;
+      }
+      .achievement-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 8px;
+      }
+
+      /* 排行榜 */
+      .leaderboard-item {
+        padding: 12px;
+        gap: 12px;
+      }
+      .leaderboard-rank {
+        font-size: 1.2rem;
+        min-width: 32px;
+      }
+      .leaderboard-mode {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+      }
+      .leaderboard-input {
+        font-size: 0.8rem;
+      }
+      .leaderboard-stats {
+        font-size: 0.7rem;
+        gap: 8px;
+      }
+      .leaderboard-score {
+        font-size: 0.75rem;
+      }
+
+      /* 统计 */
+      .stats-card-value {
+        font-size: 1.2rem;
+      }
+      .stats-card-label {
+        font-size: 0.7rem;
+      }
+      .stats-mode-label {
+        font-size: 0.75rem;
+        min-width: 60px;
+      }
+      .stats-mode-value {
+        font-size: 0.7rem;
+      }
+      .stats-rarity-label {
+        font-size: 0.8rem;
+      }
+      .stats-rarity-value {
+        font-size: 1rem;
+      }
+
+      /* 设置 */
+      .settings-item-label {
+        font-size: 0.85rem;
+      }
+      .settings-item-desc {
+        font-size: 0.7rem;
+      }
+      .settings-about-logo {
+        font-size: 3rem;
+      }
+      .settings-about-title {
+        font-size: 1.1rem;
+      }
+
+      /* 子页面容器 */
+      .sub-page-container {
+        padding: 70px 16px 80px;
+      }
+      .sub-page-content {
+        padding: 16px;
+      }
+    }
