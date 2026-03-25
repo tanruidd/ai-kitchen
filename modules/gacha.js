@@ -192,50 +192,23 @@ const GachaModule = (() => {
   }
 
   /**
-   * 打开盲盒面板
-   */
-  function openGacha() {
-    const panel = document.getElementById('gacha-panel');
-    const overlay = document.getElementById('gacha-overlay');
-    if (!panel) return;
-
-    panel.classList.add('open');
-    overlay.classList.add('show');
-    renderGachaPanel();
-  }
-
-  /**
-   * 关闭盲盒面板
-   */
-  function closeGacha() {
-    const panel = document.getElementById('gacha-panel');
-    const overlay = document.getElementById('gacha-overlay');
-    if (!panel) return;
-
-    panel.classList.remove('open');
-    overlay.classList.remove('show');
-  }
-
-  /**
-   * 渲染盲盒面板
+   * 渲染盲盒面板（页面模式）
    */
   function renderGachaPanel() {
     const data = loadGachaData();
-    const tabsContainer = document.getElementById('gacha-tabs');
-    const contentContainer = document.getElementById('gacha-content');
+    const container = document.getElementById('gacha-page-content');
+    if (!container) return;
 
-    if (!tabsContainer || !contentContainer) return;
+    container.innerHTML = `
+      <div class="gacha-tabs">
+        <button class="gacha-tab active" data-tab="draw" onclick="GachaModule.switchGachaTab('draw')">🎁 抽奖</button>
+        <button class="gacha-tab" data-tab="inventory" onclick="GachaModule.switchGachaTab('inventory')">🎒 背包</button>
+        <button class="gacha-tab" data-tab="shop" onclick="GachaModule.switchGachaTab('shop')">💳 商店</button>
+      </div>
+      <div class="gacha-content" id="gacha-content"></div>
+    `;
 
-    // 切换 Tab
-    const activeTab = tabsContainer.querySelector('.gacha-tab.active')?.dataset.tab || 'draw';
-
-    if (activeTab === 'draw') {
-      renderDrawTab(data);
-    } else if (activeTab === 'inventory') {
-      renderInventoryTab(data);
-    } else if (activeTab === 'shop') {
-      renderShopTab(data);
-    }
+    renderDrawTab(data);
   }
 
   /**
@@ -251,7 +224,7 @@ const GachaModule = (() => {
           <div class="gacha-tickets-count">${data.tickets}</div>
           <div class="gacha-tickets-label">张卡券</div>
         </div>
-        <button class="gacha-draw-btn ${data.tickets > 0 ? '' : 'disabled'}" 
+        <button class="gacha-draw-btn ${data.tickets > 0 ? '' : 'disabled'}"
           onclick="GachaModule.performDraw()"
           ${data.tickets > 0 ? '' : 'disabled'}>
           ${data.tickets > 0 ? '🎁 开启盲盒' : '🎁 没有卡券了'}
@@ -425,7 +398,8 @@ const GachaModule = (() => {
     const michelin = document.querySelector('.mode-btn[data-mode="michelin"]');
     if (michelin) michelin.click();
 
-    closeGacha();
+    // 返回主页
+    window.MenuModule?.goBack();
     showToast(`🍳 已加载限定食谱：${recipe.name}`);
   }
 
@@ -443,19 +417,22 @@ const GachaModule = (() => {
   function switchGachaTab(tab) {
     document.querySelectorAll('.gacha-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`.gacha-tab[data-tab="${tab}"]`)?.classList.add('active');
-    renderGachaPanel();
+
+    const data = loadGachaData();
+    if (tab === 'draw') renderDrawTab(data);
+    else if (tab === 'inventory') renderInventoryTab(data);
+    else if (tab === 'shop') renderShopTab(data);
   }
 
   return {
     addCookCount,
-    openGacha,
-    closeGacha,
     drawGacha,
     performDraw,
     updateGachaBadge,
     switchGachaTab,
     useRecipe,
     buyTickets,
+    renderGachaPanel,
   };
 })();
 

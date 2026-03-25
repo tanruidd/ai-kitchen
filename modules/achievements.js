@@ -256,35 +256,10 @@ const AchievementModule = (() => {
   }
 
   /**
-   * 打开成就面板
-   */
-  function openAchievements() {
-    const panel = document.getElementById('achievement-panel');
-    const overlay = document.getElementById('achievement-overlay');
-    if (!panel) return;
-
-    panel.classList.add('open');
-    overlay.classList.add('show');
-    renderAchievementPanel();
-  }
-
-  /**
-   * 关闭成就面板
-   */
-  function closeAchievements() {
-    const panel = document.getElementById('achievement-panel');
-    const overlay = document.getElementById('achievement-overlay');
-    if (!panel) return;
-
-    panel.classList.remove('open');
-    overlay.classList.remove('show');
-  }
-
-  /**
-   * 渲染成就面板
+   * 渲染成就面板（页面模式）
    */
   function renderAchievementPanel() {
-    const container = document.getElementById('achievement-content');
+    const container = document.getElementById('achievements-page-content');
     if (!container) return;
 
     const progress = getAchievementProgress();
@@ -340,8 +315,7 @@ const AchievementModule = (() => {
     checkAchievements,
     getAchievements,
     getAchievementProgress,
-    openAchievements,
-    closeAchievements,
+    renderAchievementPanel,
     switchAchievementTab,
   };
 })();

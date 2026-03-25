@@ -67,35 +67,10 @@ const StatsModule = (() => {
   }
 
   /**
-   * 打开统计面板
-   */
-  function openStats() {
-    const panel = document.getElementById('stats-panel');
-    const overlay = document.getElementById('stats-overlay');
-    if (!panel) return;
-
-    panel.classList.add('open');
-    overlay.classList.add('show');
-    renderStatsPanel();
-  }
-
-  /**
-   * 关闭统计面板
-   */
-  function closeStats() {
-    const panel = document.getElementById('stats-panel');
-    const overlay = document.getElementById('stats-overlay');
-    if (!panel) return;
-
-    panel.classList.remove('open');
-    overlay.classList.remove('show');
-  }
-
-  /**
-   * 渲染统计面板
+   * 渲染统计面板（页面模式）
    */
   function renderStatsPanel() {
-    const container = document.getElementById('stats-content');
+    const container = document.getElementById('stats-page-content');
     if (!container) return;
 
     const stats = getUserStats();
@@ -270,8 +245,7 @@ const StatsModule = (() => {
 
   return {
     getUserStats,
-    openStats,
-    closeStats,
+    renderStatsPanel,
     exportDataAsJSON,
     exportDataAsCSV,
     clearAllData,

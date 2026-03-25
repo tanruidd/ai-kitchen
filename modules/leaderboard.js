@@ -99,35 +99,10 @@ const LeaderboardModule = (() => {
   }
 
   /**
-   * 打开排行榜面板
-   */
-  function openLeaderboard() {
-    const panel = document.getElementById('leaderboard-panel');
-    const overlay = document.getElementById('leaderboard-overlay');
-    if (!panel) return;
-
-    panel.classList.add('open');
-    overlay.classList.add('show');
-    renderLeaderboard();
-  }
-
-  /**
-   * 关闭排行榜面板
-   */
-  function closeLeaderboard() {
-    const panel = document.getElementById('leaderboard-panel');
-    const overlay = document.getElementById('leaderboard-overlay');
-    if (!panel) return;
-
-    panel.classList.remove('open');
-    overlay.classList.remove('show');
-  }
-
-  /**
-   * 渲染排行榜
+   * 渲染排行榜（页面模式）
    */
   function renderLeaderboard() {
-    const container = document.getElementById('leaderboard-content');
+    const container = document.getElementById('leaderboard-page-content');
     if (!container) return;
 
     const topRecipes = getTopRecipes(20);
@@ -184,8 +159,7 @@ const LeaderboardModule = (() => {
     getTopRecipes,
     likeRecipe,
     shareRecipe,
-    openLeaderboard,
-    closeLeaderboard,
+    renderLeaderboard,
     switchLeaderboardTab,
   };
 })();

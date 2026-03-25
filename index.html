@@ -16,31 +16,20 @@
 <!-- 气泡背景 -->
 <div class="bubbles" id="bubbles"></div>
 
-<!-- 历史记录按钮 -->
+<!-- 返回按钮（子页面显示） -->
+<button class="back-btn" id="back-btn" onclick="MenuModule.goBack()" style="display:none;">
+  ← 返回
+</button>
+
+<!-- 历史记录按钮（主页显示） -->
 <button class="history-toggle-btn" id="history-toggle-btn" onclick="toggleHistory()" title="历史记录">
   📜
   <span class="history-count" id="history-count" style="display:none;">0</span>
 </button>
 
-<!-- 盲盒按钮 -->
-<button class="gacha-toggle-btn" id="gacha-toggle-btn" onclick="GachaModule.openGacha()" title="食材盲盒">
-  🎁
-  <span class="gacha-count" id="gacha-count" style="display:none;">0</span>
-</button>
-
-<!-- 成就按钮 -->
-<button class="achievement-toggle-btn" id="achievement-toggle-btn" onclick="AchievementModule.openAchievements()" title="成就">
-  🏆
-</button>
-
-<!-- 排行榜按钮 -->
-<button class="leaderboard-toggle-btn" id="leaderboard-toggle-btn" onclick="LeaderboardModule.openLeaderboard()" title="排行榜">
-  📊
-</button>
-
-<!-- 统计按钮 -->
-<button class="stats-toggle-btn" id="stats-toggle-btn" onclick="StatsModule.openStats()" title="统计">
-  📈
+<!-- 菜单按钮 -->
+<button class="menu-toggle-btn" id="menu-toggle-btn" onclick="MenuModule.toggleMenu()" title="菜单">
+  ☰
 </button>
 
 <!-- BGM 按钮 -->
@@ -54,6 +43,46 @@
   title="开启背景音乐（长按切换曲目）">
   🔇
 </button>
+
+<!-- 菜单面板 -->
+<div class="menu-overlay" id="menu-overlay" onclick="MenuModule.toggleMenu()"></div>
+<div class="main-menu" id="main-menu">
+  <div class="menu-header">
+    <div class="menu-avatar">🦀</div>
+    <div class="menu-title">蟹堡王 AI 厨房</div>
+  </div>
+  <div class="menu-items">
+    <button class="menu-item" onclick="MenuModule.navigateTo('gacha')">
+      <span class="menu-item-icon">🎁</span>
+      <span class="menu-item-label">食材盲盒</span>
+      <span class="menu-item-badge" id="menu-gacha-badge" style="display:none;">0</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
+    <button class="menu-item" onclick="MenuModule.navigateTo('achievements')">
+      <span class="menu-item-icon">🏆</span>
+      <span class="menu-item-label">成就系统</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
+    <button class="menu-item" onclick="MenuModule.navigateTo('leaderboard')">
+      <span class="menu-item-icon">📊</span>
+      <span class="menu-item-label">排行榜</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
+    <button class="menu-item" onclick="MenuModule.navigateTo('stats')">
+      <span class="menu-item-icon">📈</span>
+      <span class="menu-item-label">数据统计</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
+    <button class="menu-item" onclick="MenuModule.navigateTo('settings')">
+      <span class="menu-item-icon">⚙️</span>
+      <span class="menu-item-label">设置</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
+  </div>
+  <div class="menu-footer">
+    <div class="menu-version">v1.0.0 · Made with 🦀</div>
+  </div>
+</div>
 
 <!-- BGM 曲目面板 -->
 <div class="bgm-panel" id="bgm-panel">
@@ -96,185 +125,203 @@
   </div>
 </div>
 
-<div class="container">
+<!-- ════════════════════════════════════════
+     页面容器
+════════════════════════════════════════ -->
 
-  <!-- 头部 -->
-  <header>
-    <div class="logo-wrap">🧽</div>
-    <h1>美味创意 AI 厨房</h1>
-    <p class="subtitle">🦀 蟹老板御用 · 比奇堡最强食谱生成器 · 海绵宝宝亲自研发 🍔</p>
-  </header>
+<!-- 主页面 -->
+<div class="app-page active" id="page-main">
+  <div class="container">
 
-  <!-- 输入卡片 -->
-  <div class="card">
-    <div class="label">🍽️ 告诉我你想吃什么 / 你的心情</div>
-    <div class="input-row">
-      <textarea
-        id="user-input"
-        placeholder="例如：我今天很累，想吃一碗暖暖的汤面 🍜&#10;或者：帮我做一道能让朋友惊艳的派对菜 🎉&#10;或者：我只有鸡蛋和番茄，能做什么？ 🍅"
-      ></textarea>
-      <button class="inspire-btn" id="inspire-btn" onclick="randomInspire()" title="随机灵感">
-        🎲
-      </button>
-    </div>
-    <div class="ingredient-label">🏷️ 快速添加食材</div>
-    <div class="ingredient-tags" id="ingredient-tags"></div>
-  </div>
+    <!-- 头部 -->
+    <header>
+      <div class="logo-wrap">🧽</div>
+      <h1>美味创意 AI 厨房</h1>
+      <p class="subtitle">🦀 蟹老板御用 · 比奇堡最强食谱生成器 · 海绵宝宝亲自研发 🍔</p>
+    </header>
 
-  <!-- 模式卡片 -->
-  <div class="card">
-    <div class="label">🔥 选择烹饪模式</div>
-    <div class="modes">
-      <button class="mode-btn active" data-mode="normal">
-        <span class="mode-icon">🍳</span>普通模式
-      </button>
-      <button class="mode-btn" data-mode="michelin">
-        <span class="mode-icon">⭐</span>米其林
-      </button>
-      <button class="mode-btn" data-mode="dark">
-        <span class="mode-icon">💀</span>暗黑料理
-      </button>
-      <button class="mode-btn" data-mode="healing">
-        <span class="mode-icon">🌸</span>治愈系
-      </button>
-      <button class="mode-btn" data-mode="squat">
-        <span class="mode-icon">🏠</span>蹲门模式
-      </button>
-      <button class="mode-btn" data-mode="street">
-        <span class="mode-icon">🏮</span>摆摊小吃
-      </button>
-    </div>
-  </div>
-
-  <!-- 按钮 -->
-  <button class="cook-btn" id="cook-btn" onclick="startCooking()">
-    <span class="btn-shine"></span>
-    🍔 开始烹饪！让海绵宝宝大显身手！
-  </button>
-
-  <!-- 加载 -->
-  <div class="loading-wrap" id="loading">
-    <div class="pan">🍳</div>
-    <div class="loading-text">海绵宝宝正在厨房疯狂烹饪<span class="dots"></span></div>
-    <div class="loading-hint">🙏 请不要离开页面，否则食谱会消失哦～</div>
-  </div>
-
-  <!-- 错误 -->
-  <div class="error-box" id="error-box"></div>
-
-  <!-- 结果卡片 -->
-  <div class="card" id="result-section">
-    <div class="result-header">
-      <h2>🎉 食谱出炉啦！</h2>
-      <span class="mode-badge" id="mode-badge"></span>
-      <div class="action-btns" id="action-btns" style="display:none;">
-        <button class="action-btn" id="copy-btn" onclick="copyRecipe()" title="复制食谱">
-          📋 复制
+    <!-- 输入卡片 -->
+    <div class="card">
+      <div class="label">🍽️ 告诉我你想吃什么 / 你的心情</div>
+      <div class="input-row">
+        <textarea
+          id="user-input"
+          placeholder="例如：我今天很累，想吃一碗暖暖的汤面 🍜&#10;或者：帮我做一道能让朋友惊艳的派对菜 🎉&#10;或者：我只有鸡蛋和番茄，能做什么？ 🍅"
+        ></textarea>
+        <button class="inspire-btn" id="inspire-btn" onclick="randomInspire()" title="随机灵感">
+          🎲
         </button>
-        <button class="action-btn" id="share-btn" onclick="PremiumShareModule.openSharePanel()" title="高级分享图">
-          🖼️ 分享图片
+      </div>
+      <div class="ingredient-label">🏷️ 快速添加食材</div>
+      <div class="ingredient-tags" id="ingredient-tags"></div>
+    </div>
+
+    <!-- 模式卡片 -->
+    <div class="card">
+      <div class="label">🔥 选择烹饪模式</div>
+      <div class="modes">
+        <button class="mode-btn active" data-mode="normal">
+          <span class="mode-icon">🍳</span>普通模式
+        </button>
+        <button class="mode-btn" data-mode="michelin">
+          <span class="mode-icon">⭐</span>米其林
+        </button>
+        <button class="mode-btn" data-mode="dark">
+          <span class="mode-icon">💀</span>暗黑料理
+        </button>
+        <button class="mode-btn" data-mode="healing">
+          <span class="mode-icon">🌸</span>治愈系
+        </button>
+        <button class="mode-btn" data-mode="squat">
+          <span class="mode-icon">🏠</span>蹲门模式
+        </button>
+        <button class="mode-btn" data-mode="street">
+          <span class="mode-icon">🏮</span>摆摊小吃
         </button>
       </div>
     </div>
-    <div id="recipe-output"></div>
-  </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast"></div>
+    <!-- 按钮 -->
+    <button class="cook-btn" id="cook-btn" onclick="startCooking()">
+      <span class="btn-shine"></span>
+      🍔 开始烹饪！让海绵宝宝大显身手！
+    </button>
 
-  <!-- 图片预览弹窗 -->
-  <div class="preview-modal" id="preview-modal">
-    <div class="preview-modal-inner">
-      <h3>🖼️ 食谱图片预览</h3>
-      <div class="preview-img-wrap">
-        <img id="preview-img" src="" alt="食谱预览" />
+    <!-- 加载 -->
+    <div class="loading-wrap" id="loading">
+      <div class="pan">🍳</div>
+      <div class="loading-text">海绵宝宝正在厨房疯狂烹饪<span class="dots"></span></div>
+      <div class="loading-hint">🙏 请不要离开页面，否则食谱会消失哦～</div>
+    </div>
+
+    <!-- 错误 -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- 结果卡片 -->
+    <div class="card" id="result-section">
+      <div class="result-header">
+        <h2>🎉 食谱出炉啦！</h2>
+        <span class="mode-badge" id="mode-badge"></span>
+        <div class="action-btns" id="action-btns" style="display:none;">
+          <button class="action-btn" id="copy-btn" onclick="copyRecipe()" title="复制食谱">
+            📋 复制
+          </button>
+          <button class="action-btn" id="share-btn" onclick="PremiumShareModule.openSharePanel()" title="高级分享图">
+            🖼️ 分享图片
+          </button>
+        </div>
       </div>
-      <div class="preview-actions">
-        <button class="preview-download-btn" id="preview-download-btn">
-          💾 保存图片
-        </button>
-        <button class="preview-cancel-btn" onclick="closePreviewModal()">
-          取消
-        </button>
+      <div id="recipe-output"></div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 图片预览弹窗 -->
+    <div class="preview-modal" id="preview-modal">
+      <div class="preview-modal-inner">
+        <h3>🖼️ 食谱图片预览</h3>
+        <div class="preview-img-wrap">
+          <img id="preview-img" src="" alt="食谱预览" />
+        </div>
+        <div class="preview-actions">
+          <button class="preview-download-btn" id="preview-download-btn">
+            💾 保存图片
+          </button>
+          <button class="preview-cancel-btn" onclick="closePreviewModal()">
+            取消
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- 分享卡片（截图用，隐藏在视口外） -->
-  <div class="share-card" id="share-card">
-    <div class="share-card-header">
-      <div class="share-card-logo">🧽</div>
-      <div>
-        <div class="share-card-title">美味创意 AI 厨房</div>
-        <div class="share-card-subtitle">🦀 比奇堡蟹堡王特供 · AI 生成食谱</div>
-        <div class="share-card-mode" id="share-card-mode">🍳 普通模式</div>
+    <!-- 分享卡片（截图用，隐藏在视口外） -->
+    <div class="share-card" id="share-card">
+      <div class="share-card-header">
+        <div class="share-card-logo">🧽</div>
+        <div>
+          <div class="share-card-title">美味创意 AI 厨房</div>
+          <div class="share-card-subtitle">🦀 比奇堡蟹堡王特供 · AI 生成食谱</div>
+          <div class="share-card-mode" id="share-card-mode">🍳 普通模式</div>
+        </div>
       </div>
+      <div class="share-card-divider"></div>
+      <div class="share-card-recipe" id="share-card-recipe"></div>
+      <div class="share-card-footer">🍔 由美味创意 AI 厨房生成 · 每一道菜都是爱 ❤️</div>
     </div>
-    <div class="share-card-divider"></div>
-    <div class="share-card-recipe" id="share-card-recipe"></div>
-    <div class="share-card-footer">🍔 由美味创意 AI 厨房生成 · 每一道菜都是爱 ❤️</div>
+
+    <!-- 高级分享图面板 -->
+    <div class="premium-share-overlay" id="premium-share-overlay" onclick="PremiumShareModule.closeSharePanel()"></div>
+    <div class="premium-share-panel" id="premium-share-panel">
+      <div class="premium-share-panel-header">
+        <h3>✨ 高级分享图</h3>
+        <button class="premium-share-panel-close" onclick="PremiumShareModule.closeSharePanel()">✕</button>
+      </div>
+      <div class="premium-share-content" id="premium-share-content"></div>
+    </div>
+
+    <footer>
+      🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
+    </footer>
+
   </div>
-
-  <!-- 盲盒面板 -->
-  <div class="gacha-overlay" id="gacha-overlay" onclick="GachaModule.closeGacha()"></div>
-  <div class="gacha-panel" id="gacha-panel">
-    <div class="gacha-panel-header">
-      <h3>🎁 食材盲盒</h3>
-      <button class="gacha-panel-close" onclick="GachaModule.closeGacha()">✕</button>
-    </div>
-    <div class="gacha-tabs">
-      <button class="gacha-tab active" data-tab="draw" onclick="GachaModule.switchGachaTab('draw')">🎁 抽奖</button>
-      <button class="gacha-tab" data-tab="inventory" onclick="GachaModule.switchGachaTab('inventory')">🎒 背包</button>
-      <button class="gacha-tab" data-tab="shop" onclick="GachaModule.switchGachaTab('shop')">💳 商店</button>
-    </div>
-    <div class="gacha-content" id="gacha-content"></div>
-  </div>
-
-  <!-- 高级分享图面板 -->
-  <div class="premium-share-overlay" id="premium-share-overlay" onclick="PremiumShareModule.closeSharePanel()"></div>
-  <div class="premium-share-panel" id="premium-share-panel">
-    <div class="premium-share-panel-header">
-      <h3>✨ 高级分享图</h3>
-      <button class="premium-share-panel-close" onclick="PremiumShareModule.closeSharePanel()">✕</button>
-    </div>
-    <div class="premium-share-content" id="premium-share-content"></div>
-  </div>
-
-  <!-- 成就面板 -->
-  <div class="achievement-overlay" id="achievement-overlay" onclick="AchievementModule.closeAchievements()"></div>
-  <div class="achievement-panel" id="achievement-panel">
-    <div class="achievement-panel-header">
-      <h3>🏆 成就</h3>
-      <button class="achievement-panel-close" onclick="AchievementModule.closeAchievements()">✕</button>
-    </div>
-    <div class="achievement-content" id="achievement-content"></div>
-  </div>
-
-  <!-- 排行榜面板 -->
-  <div class="leaderboard-overlay" id="leaderboard-overlay" onclick="LeaderboardModule.closeLeaderboard()"></div>
-  <div class="leaderboard-panel" id="leaderboard-panel">
-    <div class="leaderboard-panel-header">
-      <h3>📊 排行榜</h3>
-      <button class="leaderboard-panel-close" onclick="LeaderboardModule.closeLeaderboard()">✕</button>
-    </div>
-    <div class="leaderboard-content" id="leaderboard-content"></div>
-  </div>
-
-  <!-- 统计面板 -->
-  <div class="stats-overlay" id="stats-overlay" onclick="StatsModule.closeStats()"></div>
-  <div class="stats-panel" id="stats-panel">
-    <div class="stats-panel-header">
-      <h3>📈 统计数据</h3>
-      <button class="stats-panel-close" onclick="StatsModule.closeStats()">✕</button>
-    </div>
-    <div class="stats-content" id="stats-content"></div>
-  </div>
-
-  <footer>
-    🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
-  </footer>
-
 </div>
+
+<!-- 盲盒页面 -->
+<div class="app-page" id="page-gacha">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>🎁 食材盲盒</h2>
+    </div>
+    <div class="sub-page-content" id="gacha-page-content"></div>
+  </div>
+</div>
+
+<!-- 成就页面 -->
+<div class="app-page" id="page-achievements">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>🏆 成就系统</h2>
+    </div>
+    <div class="sub-page-content" id="achievements-page-content"></div>
+  </div>
+</div>
+
+<!-- 排行榜页面 -->
+<div class="app-page" id="page-leaderboard">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>📊 排行榜</h2>
+    </div>
+    <div class="sub-page-content" id="leaderboard-page-content"></div>
+  </div>
+</div>
+
+<!-- 统计页面 -->
+<div class="app-page" id="page-stats">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>📈 数据统计</h2>
+    </div>
+    <div class="sub-page-content" id="stats-page-content"></div>
+  </div>
+</div>
+
+<!-- 设置页面 -->
+<div class="app-page" id="page-settings">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>⚙️ 设置</h2>
+    </div>
+    <div class="sub-page-content" id="settings-page-content"></div>
+  </div>
+</div>
+
+<!-- 盲盒抽奖结果弹窗 -->
+<div class="gacha-result-modal" id="gacha-result-modal"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast-main"></div>
 
 <script src="./modules/utils.js"></script>
 <script src="./modules/sfx.js"></script>
@@ -288,12 +335,21 @@
 <script src="./modules/achievements.js"></script>
 <script src="./modules/leaderboard.js"></script>
 <script src="./modules/stats.js"></script>
+<script src="./modules/settings.js"></script>
+<script src="./modules/menu.js"></script>
 <script src="./modules/cooking.js"></script>
 <script>
   // ── 页面初始化 ──
   spawnBubbles();
   window.addEventListener('DOMContentLoaded', () => {
     updateHistoryBadge();
+    // 更新菜单盲盒角标
+    const gachaData = JSON.parse(localStorage.getItem('ai-kitchen-gacha') || '{"tickets":0}');
+    const badge = document.getElementById('menu-gacha-badge');
+    if (badge && gachaData.tickets > 0) {
+      badge.style.display = 'flex';
+      badge.textContent = gachaData.tickets;
+    }
   });
 </script>
 </body>
