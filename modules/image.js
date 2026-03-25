@@ -1,5 +1,5 @@
 /**
- * image.js — 食谱配图模块（Unsplash 免费 API）
+ * image.js — 食谱配图模块
  *
  * 对外暴露：
  *   ImageModule.fetchRecipeImage(keyword)  — 根据关键词获取美食图片
@@ -7,91 +7,48 @@
  */
 
 const ImageModule = (() => {
-  // Unsplash Source API（无需 API Key）
-  // 格式：https://source.unsplash.com/featured/?{keyword}&w=800&h=500
-  const UNSPLASH_BASE = 'https://source.unsplash.com/featured/';
+  // Lorem Picsum（免费，无需 API Key）
+  // 格式：https://picsum.photos/seed/{seed}/800/500
+  const PICSUM_BASE = 'https://picsum.photos/seed';
 
-  // 预设的美食关键词映射（中 → 英）
-  const KEYWORD_MAP = {
-    // 主食
-    '面条': 'noodles,pasta',
-    '米饭': 'rice,bowl',
-    '面包': 'bread,toast',
-    '汉堡': 'burger',
-    '披萨': 'pizza',
-    '寿司': 'sushi',
-    '饺子': 'dumpling',
-    '汤': 'soup,bowl',
-    '粥': 'porridge,bowl',
-    '沙拉': 'salad',
-    // 食材
-    '鸡蛋': 'egg,breakfast',
-    '鸡肉': 'chicken,food',
-    '牛肉': 'beef,steak',
-    '猪肉': 'pork,meat',
-    '鱼肉': 'fish,seafood',
-    '虾': 'shrimp,seafood',
-    '蟹': 'crab,seafood',
-    '蔬菜': 'vegetables',
-    '番茄': 'tomato',
-    '土豆': 'potato',
-    '豆腐': 'tofu',
-    '蘑菇': 'mushroom',
-    // 菜系
-    '中式': 'chinese,food',
-    '日式': 'japanese,food',
-    '韩式': 'korean,food',
-    '西式': 'western,food',
-    '泰式': 'thai,food',
-    '印度': 'indian,food',
-    // 烹饪方式
-    '烧烤': 'grill,bbq',
-    '火锅': 'hotpot',
-    '炒': 'stir,fry',
-    '蒸': 'steamed,food',
-    '炸': 'fried,food',
-    '烘焙': 'baking,pastry',
-    // 其他
-    '甜品': 'dessert,sweet',
-    '蛋糕': 'cake',
-    '甜点': 'dessert',
-    '饮品': 'drink,beverage',
-    '早餐': 'breakfast',
-    '午餐': 'lunch',
-    '晚餐': 'dinner',
-    '夜宵': 'midnight,snack',
-  };
-
-  // 默认关键词
-  const DEFAULT_KEYWORD = 'food,cooking';
+  // 预设的美食主题种子词（用于生成不同的图片）
+  const FOOD_SEEDS = [
+    'food', 'cooking', 'meal', 'dinner', 'lunch', 'breakfast',
+    'pasta', 'salad', 'soup', 'bread', 'rice', 'vegetables',
+    'kitchen', 'chef', 'restaurant', 'plate', 'bowl', 'table'
+  ];
 
   // 当前图片 URL
   let currentImageUrl = null;
-  let currentKeyword = null;
+  let currentSeed = null;
 
   /**
-   * 从文本中提取关键词
+   * 从文本中提取种子词
    */
-  function extractKeywords(text) {
-    const keywords = [];
-    for (const [cn, en] of Object.entries(KEYWORD_MAP)) {
-      if (text.includes(cn)) {
-        keywords.push(en);
+  function extractSeed(inputText) {
+    // 简单映射：根据输入文本选择不同的种子
+    const seedMap = {
+      '面': 'pasta', '饭': 'rice', '汤': 'soup',
+      '肉': 'meal', '鸡': 'dinner', '鱼': 'salad',
+      '蛋': 'breakfast', '菜': 'vegetables', '甜': 'food',
+    };
+    
+    for (const [key, seed] of Object.entries(seedMap)) {
+      if (inputText.includes(key)) {
+        return seed + Date.now();
       }
     }
-    // 最多取 2 个关键词
-    return keywords.slice(0, 2).join(',');
+    // 随机选择一个种子
+    const randomSeed = FOOD_SEEDS[Math.floor(Math.random() * FOOD_SEEDS.length)];
+    return randomSeed + Date.now();
   }
 
   /**
    * 获取食谱配图 URL
    */
   function fetchRecipeImage(inputText) {
-    const keywords = extractKeywords(inputText) || DEFAULT_KEYWORD;
-    currentKeyword = keywords;
-    // 加随机数防止缓存
-    const random = Date.now();
-    currentImageUrl = `${UNSPLASH_BASE}?${keywords},food&w=800&h=500&sig=${random}`;
+    currentSeed = extractSeed(inputText);
+    currentImageUrl = `${PICSUM_BASE}/${currentSeed}/800/500`;
     return currentImageUrl;
   }
 
@@ -99,9 +56,8 @@ const ImageModule = (() => {
    * 刷新图片（换一张）
    */
   function refreshImage() {
-    if (!currentKeyword) return null;
-    const random = Date.now() + Math.random();
-    currentImageUrl = `${UNSPLASH_BASE}?${currentKeyword},food&w=800&h=500&sig=${random}`;
+    currentSeed = 'food' + Date.now() + Math.random();
+    currentImageUrl = `${PICSUM_BASE}/${currentSeed}/800/500`;
     return currentImageUrl;
   }
 
@@ -128,7 +84,7 @@ const ImageModule = (() => {
         </button>
       </div>
       <div class="recipe-image-source">
-        📷 图片来源：<a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
+        📷 图片来源：<a href="https://picsum.photos" target="_blank" rel="noopener">Lorem Picsum</a>
       </div>
     `;
 
