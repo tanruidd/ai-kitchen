@@ -635,6 +635,109 @@
     /* ── 收藏之星 ── */
     .history-item-fav.active-star { color: #FFD700; }
 
+    /* ── 历史搜索框 ── */
+    .history-search-wrap {
+      padding: 10px 16px 6px;
+      flex-shrink: 0;
+    }
+    .history-search {
+      width: 100%;
+      padding: 9px 14px;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 600;
+      color: #333;
+      background: #fafafa;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .history-search:focus {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 3px rgba(255,215,0,.18);
+      background: #fff;
+    }
+    .history-search::placeholder { color: #bbb; font-weight: 400; }
+
+    /* ── 输入行（textarea + 灵感按钮） ── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .input-row textarea {
+      flex: 1;
+    }
+    .inspire-btn {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border: 2.5px solid var(--yellow);
+      border-radius: 14px;
+      background: var(--cream);
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .inspire-btn:hover {
+      background: var(--yellow);
+      transform: scale(1.08);
+      box-shadow: 0 4px 14px rgba(255,215,0,.4);
+    }
+    .inspire-btn.spin {
+      animation: spin-once .4s ease;
+    }
+    @keyframes spin-once {
+      0%   { transform: rotate(0deg) scale(1); }
+      50%  { transform: rotate(180deg) scale(1.15); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    /* ── 食材快捷标签 ── */
+    .ingredient-label {
+      font-size: .78rem;
+      font-weight: 800;
+      color: var(--brown);
+      opacity: .7;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      letter-spacing: .5px;
+    }
+    .ingredient-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .ingredient-tag {
+      padding: 5px 12px;
+      border: 2px solid #e8e8e8;
+      border-radius: 20px;
+      background: #fff;
+      font-family: inherit;
+      font-size: .78rem;
+      font-weight: 700;
+      color: #666;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .ingredient-tag:hover {
+      border-color: var(--orange);
+      background: #FFF3E0;
+      color: var(--orange);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(255,140,0,.18);
+    }
+    .ingredient-tag:active {
+      transform: translateY(0);
+    }
+
 
 
     /* ── 分享卡片（截图用） ── */

@@ -23,6 +23,7 @@ const STORAGE_KEY  = 'ai-kitchen-history';
 const LAST_READ_KEY = 'ai-kitchen-last-read';
 
 let currentHistoryTab = 'history';
+let historySearchQuery = '';
 
 /* ══════════════════════════════
    存储层（Phase 2 只改这里）
@@ -96,6 +97,9 @@ function toggleHistory() {
   } else {
     panel.classList.add('open');
     overlay.classList.add('show');
+    historySearchQuery = '';
+    const searchEl = document.getElementById('history-search');
+    if (searchEl) searchEl.value = '';
     renderHistoryList();
     // 打开即已读
     localStorage.setItem(LAST_READ_KEY, Date.now().toString());
@@ -110,6 +114,11 @@ function switchHistoryTab(tab) {
   renderHistoryList();
 }
 
+function onHistorySearch(val) {
+  historySearchQuery = val;
+  renderHistoryList();
+}
+
 /* ══════════════════════════════
    列表渲染
 ══════════════════════════════ */
@@ -118,16 +127,25 @@ function renderHistoryList() {
   const list    = document.getElementById('history-list');
   const empty   = document.getElementById('history-empty');
 
-  const items = currentHistoryTab === 'fav'
+  const q = historySearchQuery.trim().toLowerCase();
+  let items = currentHistoryTab === 'fav'
     ? history.filter(h => h.fav)
     : history;
+  if (q) {
+    items = items.filter(h =>
+      h.input.toLowerCase().includes(q) ||
+      (window.MODE_LABELS[h.mode] || h.mode).toLowerCase().includes(q)
+    );
+  }
 
   if (items.length === 0) {
     list.innerHTML = '';
     empty.classList.remove('show');
-    empty.innerHTML = currentHistoryTab === 'fav'
-      ? '<span class="empty-icon">⭐</span>还没有收藏的食谱<br/>点击 ☆ 收藏你喜欢的食谱吧！'
-      : '<span class="empty-icon">📭</span>还没有生成过食谱<br/>快去创作第一道菜吧！';
+    empty.innerHTML = q
+      ? `<span class="empty-icon">🔍</span>没有找到「${escapeHtml(q)}」相关的食谱`
+      : currentHistoryTab === 'fav'
+        ? '<span class="empty-icon">⭐</span>还没有收藏的食谱<br/>点击 ☆ 收藏你喜欢的食谱吧！'
+        : '<span class="empty-icon">📭</span>还没有生成过食谱<br/>快去创作第一道菜吧！';
     requestAnimationFrame(() => empty.classList.add('show'));
     return;
   }

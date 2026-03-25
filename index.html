@@ -33,6 +33,15 @@
     <button class="history-tab active" id="tab-history" onclick="switchHistoryTab('history')">最近</button>
     <button class="history-tab" id="tab-fav" onclick="switchHistoryTab('fav')">⭐ 收藏</button>
   </div>
+  <div class="history-search-wrap">
+    <input
+      class="history-search"
+      id="history-search"
+      type="text"
+      placeholder="🔍 搜索食谱..."
+      oninput="onHistorySearch(this.value)"
+    />
+  </div>
   <div class="history-list" id="history-list"></div>
   <div class="history-empty" id="history-empty">
     <span class="empty-icon">📭</span>
@@ -57,10 +66,17 @@
   <!-- 输入卡片 -->
   <div class="card">
     <div class="label">🍽️ 告诉我你想吃什么 / 你的心情</div>
-    <textarea
-      id="user-input"
-      placeholder="例如：我今天很累，想吃一碗暖暖的汤面 🍜&#10;或者：帮我做一道能让朋友惊艳的派对菜 🎉&#10;或者：我只有鸡蛋和番茄，能做什么？ 🍅"
-    ></textarea>
+    <div class="input-row">
+      <textarea
+        id="user-input"
+        placeholder="例如：我今天很累，想吃一碗暖暖的汤面 🍜&#10;或者：帮我做一道能让朋友惊艳的派对菜 🎉&#10;或者：我只有鸡蛋和番茄，能做什么？ 🍅"
+      ></textarea>
+      <button class="inspire-btn" id="inspire-btn" onclick="randomInspire()" title="随机灵感">
+        🎲
+      </button>
+    </div>
+    <div class="ingredient-label">🏷️ 快速添加食材</div>
+    <div class="ingredient-tags" id="ingredient-tags"></div>
   </div>
 
   <!-- 模式卡片 -->
@@ -165,6 +181,7 @@
 
 <script src="./modules/utils.js"></script>
 <script src="./modules/history.js"></script>
+<script src="./modules/inspire.js"></script>
 <script src="./modules/share.js"></script>
 <script src="./modules/cooking.js"></script>
 <script>
