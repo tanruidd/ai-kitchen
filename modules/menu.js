@@ -85,6 +85,7 @@ const MenuModule = (() => {
   function updatePageTitle(page) {
     const titles = {
       'main': '美味创意 AI 厨房',
+      'history': '📜 历史记录',
       'gacha': '🎁 食材盲盒',
       'achievements': '🏆 成就系统',
       'leaderboard': '📊 排行榜',
@@ -100,6 +101,9 @@ const MenuModule = (() => {
    */
   function initPage(page) {
     switch (page) {
+      case 'history':
+        window.renderHistoryPage?.();
+        break;
       case 'gacha':
         window.GachaModule?.renderGachaPanel?.();
         break;
@@ -111,6 +115,9 @@ const MenuModule = (() => {
         break;
       case 'stats':
         window.StatsModule?.renderStatsPanel?.();
+        break;
+      case 'settings':
+        window.SettingsModule?.renderSettings?.();
         break;
     }
   }

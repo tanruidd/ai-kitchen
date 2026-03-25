@@ -5,7 +5,6 @@
  * 其余 UI 逻辑完全不用动。
  *
  * 对外暴露（挂到 window）：
- *   toggleHistory()       — 打开/关闭历史面板
  *   switchHistoryTab(tab) — 切换最近/收藏 Tab
  *   saveCurrentResult(input, mode, output) — 保存一条新记录
  *   updateHistoryBadge()  — 刷新未读角标
@@ -16,6 +15,7 @@
  *   clearHistory()        — 清空全部
  *   exportHistory()       — 导出 JSON
  *   importHistory()       — 导入 JSON
+ *   renderHistoryPage()   — 渲染历史记录页面
  */
 
 const MAX_HISTORY  = 100;
@@ -36,7 +36,7 @@ function loadHistory() {
 function saveHistory(history) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
   updateHistoryBadge();
-  renderHistoryList();
+  renderHistoryPage();
 }
 
 /* ══════════════════════════════
@@ -70,12 +70,13 @@ function getUnreadCount() {
   const history  = loadHistory();
   const lastRead = parseInt(localStorage.getItem(LAST_READ_KEY) || '0', 10);
   if (!lastRead) return history.length;
-  return history.filter(h => h.ts > lastRead).length;
+  return history.filter(h => h.ts > lastRead).count;
 }
 
 function updateHistoryBadge() {
-  const count = getUnreadCount();
-  const badge = document.getElementById('history-count');
+  const count = loadHistory().length;
+  const badge = document.getElementById('menu-history-badge');
+  if (!badge) return;
   if (count > 0) {
     badge.textContent    = count > 99 ? '99+' : count;
     badge.style.display  = 'flex';
@@ -85,48 +86,32 @@ function updateHistoryBadge() {
 }
 
 /* ══════════════════════════════
-   面板开关
+   Tab 切换
 ══════════════════════════════ */
-function toggleHistory() {
-  const panel   = document.getElementById('history-panel');
-  const overlay = document.getElementById('history-overlay');
-  const isOpen  = panel.classList.contains('open');
-  if (isOpen) {
-    panel.classList.remove('open');
-    overlay.classList.remove('show');
-  } else {
-    panel.classList.add('open');
-    overlay.classList.add('show');
-    historySearchQuery = '';
-    const searchEl = document.getElementById('history-search');
-    if (searchEl) searchEl.value = '';
-    renderHistoryList();
-    // 打开即已读
-    localStorage.setItem(LAST_READ_KEY, Date.now().toString());
-    updateHistoryBadge();
-  }
-}
-
 function switchHistoryTab(tab) {
   currentHistoryTab = tab;
-  document.getElementById('tab-history').classList.toggle('active', tab === 'history');
-  document.getElementById('tab-fav').classList.toggle('active', tab === 'fav');
-  renderHistoryList();
+  document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.history-tab[data-tab="${tab}"]`)?.classList.add('active');
+  renderHistoryPage();
 }
 
 function onHistorySearch(val) {
   historySearchQuery = val;
-  renderHistoryList();
+  renderHistoryPage();
 }
 
 /* ══════════════════════════════
-   列表渲染
+   页面渲染
 ══════════════════════════════ */
-function renderHistoryList() {
-  const history = loadHistory();
-  const list    = document.getElementById('history-list');
-  const empty   = document.getElementById('history-empty');
+function renderHistoryPage() {
+  const container = document.getElementById('history-page-content');
+  if (!container) return;
 
+  // 标记已读
+  localStorage.setItem(LAST_READ_KEY, Date.now().toString());
+  updateHistoryBadge();
+
+  const history = loadHistory();
   const q = historySearchQuery.trim().toLowerCase();
   let items = currentHistoryTab === 'fav'
     ? history.filter(h => h.fav)
@@ -138,36 +123,56 @@ function renderHistoryList() {
     );
   }
 
+  let emptyHtml = '';
   if (items.length === 0) {
-    list.innerHTML = '';
-    empty.classList.remove('show');
-    empty.innerHTML = q
-      ? `<span class="empty-icon">🔍</span>没有找到「${escapeHtml(q)}」相关的食谱`
+    emptyHtml = q
+      ? `<div class="history-empty"><span class="empty-icon">🔍</span>没有找到「${escapeHtml(q)}」相关的食谱</div>`
       : currentHistoryTab === 'fav'
-        ? '<span class="empty-icon">⭐</span>还没有收藏的食谱<br/>点击 ☆ 收藏你喜欢的食谱吧！'
-        : '<span class="empty-icon">📭</span>还没有生成过食谱<br/>快去创作第一道菜吧！';
-    requestAnimationFrame(() => empty.classList.add('show'));
-    return;
+        ? `<div class="history-empty"><span class="empty-icon">⭐</span>还没有收藏的食谱<br/>点击 ☆ 收藏你喜欢的食谱吧！</div>`
+        : `<div class="history-empty"><span class="empty-icon">📭</span>还没有生成过食谱<br/>快去创作第一道菜吧！</div>`;
   }
 
-  empty.classList.remove('show');
-  list.innerHTML = items.map(item => `
-    <div class="history-item" onclick="restoreHistory('${item.id}')">
-      <div class="history-item-meta">
-        <span class="history-item-mode">${window.MODE_LABELS[item.mode] || item.mode}</span>
-        <span class="history-item-time">${item.time}</span>
-        <button class="history-item-fav ${item.fav ? 'active-star' : ''}"
-          onclick="event.stopPropagation(); toggleFav('${item.id}')"
-          title="${item.fav ? '取消收藏' : '收藏'}">${item.fav ? '★' : '☆'}</button>
-      </div>
-      <div class="history-item-input">${escapeHtml(item.input)}</div>
-      <div class="history-item-actions">
-        <button class="history-action-btn" onclick="event.stopPropagation(); restoreHistory('${item.id}')">🔄 恢复</button>
-        <button class="history-action-btn" onclick="event.stopPropagation(); copyHistoryOutput('${item.id}')">📋 复制</button>
-        <button class="history-action-btn delete" onclick="event.stopPropagation(); deleteHistory('${item.id}')">🗑️</button>
-      </div>
+  container.innerHTML = `
+    <div class="history-tabs">
+      <button class="history-tab ${currentHistoryTab === 'history' ? 'active' : ''}" data-tab="history" onclick="switchHistoryTab('history')">最近</button>
+      <button class="history-tab ${currentHistoryTab === 'fav' ? 'active' : ''}" data-tab="fav" onclick="switchHistoryTab('fav')">⭐ 收藏</button>
     </div>
-  `).join('');
+    <div class="history-search-wrap">
+      <input
+        class="history-search"
+        id="history-search"
+        type="text"
+        placeholder="🔍 搜索食谱..."
+        value="${escapeHtml(historySearchQuery)}"
+        oninput="onHistorySearch(this.value)"
+      />
+    </div>
+    <div class="history-list" id="history-list">
+      ${items.map(item => `
+        <div class="history-item" onclick="restoreHistory('${item.id}')">
+          <div class="history-item-meta">
+            <span class="history-item-mode">${window.MODE_LABELS[item.mode] || item.mode}</span>
+            <span class="history-item-time">${item.time}</span>
+            <button class="history-item-fav ${item.fav ? 'active-star' : ''}"
+              onclick="event.stopPropagation(); toggleFav('${item.id}')"
+              title="${item.fav ? '取消收藏' : '收藏'}">${item.fav ? '★' : '☆'}</button>
+          </div>
+          <div class="history-item-input">${escapeHtml(item.input)}</div>
+          <div class="history-item-actions">
+            <button class="history-action-btn" onclick="event.stopPropagation(); restoreHistory('${item.id}')">🔄 恢复</button>
+            <button class="history-action-btn" onclick="event.stopPropagation(); copyHistoryOutput('${item.id}')">📋 复制</button>
+            <button class="history-action-btn delete" onclick="event.stopPropagation(); deleteHistory('${item.id}')">🗑️</button>
+          </div>
+        </div>
+      `).join('')}
+      ${emptyHtml}
+    </div>
+    <div class="history-panel-footer">
+      <button class="history-footer-btn" onclick="exportHistory()">📥 导出</button>
+      <button class="history-footer-btn" onclick="importHistory()">📤 导入</button>
+      <button class="history-footer-btn danger" onclick="clearHistory()">🗑️ 清空</button>
+    </div>
+  `;
 }
 
 /* ══════════════════════════════
@@ -192,7 +197,8 @@ function restoreHistory(id) {
   // 恢复配图
   window.ImageModule?.renderImageSection(item.input, outputEl);
 
-  toggleHistory();
+  // 返回主页
+  window.MenuModule?.goBack();
   document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
   showToast('📜 食谱已恢复！');
 }

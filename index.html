@@ -21,12 +21,6 @@
   ← 返回
 </button>
 
-<!-- 历史记录按钮（主页显示） -->
-<button class="history-toggle-btn" id="history-toggle-btn" onclick="toggleHistory()" title="历史记录">
-  📜
-  <span class="history-count" id="history-count" style="display:none;">0</span>
-</button>
-
 <!-- 菜单按钮 -->
 <button class="menu-toggle-btn" id="menu-toggle-btn" onclick="MenuModule.toggleMenu()" title="菜单">
   ☰
@@ -52,6 +46,12 @@
     <div class="menu-title">蟹堡王 AI 厨房</div>
   </div>
   <div class="menu-items">
+    <button class="menu-item" onclick="MenuModule.navigateTo('history')">
+      <span class="menu-item-icon">📜</span>
+      <span class="menu-item-label">历史记录</span>
+      <span class="menu-item-badge" id="menu-history-badge" style="display:none;">0</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
     <button class="menu-item" onclick="MenuModule.navigateTo('gacha')">
       <span class="menu-item-icon">🎁</span>
       <span class="menu-item-label">食材盲盒</span>
@@ -91,38 +91,6 @@
     <button class="bgm-panel-close" onclick="toggleBgmPanel()">✕</button>
   </div>
   <div class="bgm-tracks" id="bgm-tracks"></div>
-</div>
-
-<!-- 历史记录面板 -->
-<div class="history-overlay" id="history-overlay" onclick="toggleHistory()"></div>
-<div class="history-panel" id="history-panel">
-  <div class="history-panel-header">
-    <h3>📜 历史记录</h3>
-    <button class="history-panel-close" onclick="toggleHistory()">✕</button>
-  </div>
-  <div class="history-tabs">
-    <button class="history-tab active" id="tab-history" onclick="switchHistoryTab('history')">最近</button>
-    <button class="history-tab" id="tab-fav" onclick="switchHistoryTab('fav')">⭐ 收藏</button>
-  </div>
-  <div class="history-search-wrap">
-    <input
-      class="history-search"
-      id="history-search"
-      type="text"
-      placeholder="🔍 搜索食谱..."
-      oninput="onHistorySearch(this.value)"
-    />
-  </div>
-  <div class="history-list" id="history-list"></div>
-  <div class="history-empty" id="history-empty">
-    <span class="empty-icon">📭</span>
-    还没有生成过食谱<br/>快去创作第一道菜吧！
-  </div>
-  <div class="history-panel-footer">
-    <button class="history-footer-btn" onclick="exportHistory()">📥 导出</button>
-    <button class="history-footer-btn" onclick="importHistory()">📤 导入</button>
-    <button class="history-footer-btn danger" onclick="clearHistory()">🗑️ 清空</button>
-  </div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -264,6 +232,16 @@
       🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
     </footer>
 
+  </div>
+</div>
+
+<!-- 历史记录页面 -->
+<div class="app-page" id="page-history">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>📜 历史记录</h2>
+    </div>
+    <div class="sub-page-content" id="history-page-content"></div>
   </div>
 </div>
 
