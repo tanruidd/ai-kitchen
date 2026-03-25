@@ -3,7 +3,14 @@
  * Vercel Serverless Function
  * 
  * 作用：隐藏 API Key，代理前端请求到 OpenRouter
+ * 功能：自动故障转移，一个模型失败自动切换到备用模型
  */
+
+// 模型优先级列表（按顺序尝试）
+const MODEL_FALLBACKS = [
+  'stepfun/step-3.5-flash:free',      // 主模型：阶跃星辰
+  'nvidia/nemotron-3-super-120b-a12b:free', // 备用：NVIDIA Nemotron
+];
 
 export default async function handler(req, res) {
   // ========== 安全检查 ==========
@@ -35,7 +42,7 @@ export default async function handler(req, res) {
   }
 
   // 4. 输入验证
-  const { messages, model, temperature, max_tokens, stream } = req.body;
+  const { messages, temperature, max_tokens, stream } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Invalid messages format' });
@@ -56,13 +63,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 6. 验证模型名称（只允许特定模型）
-  const allowedModels = ['stepfun/step-3.5-flash:free'];
-  if (!allowedModels.includes(model)) {
-    return res.status(400).json({ error: 'Model not allowed' });
-  }
-
-  // ========== 调用 OpenRouter API ==========
+  // ========== 调用 OpenRouter API（带故障转移）==========
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -70,66 +71,80 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': req.headers.origin || 'https://ai-kitchen.vercel.app',
-        'X-Title': 'AI Kitchen',
-      },
-      body: JSON.stringify({
-        model: model || 'stepfun/step-3.5-flash:free',
-        messages,
-        temperature: temperature || 0.9,
-        max_tokens: max_tokens || 1800,
-        stream: stream !== false, // 默认启用流式输出
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ OpenRouter API error:', response.status, errorData);
-      return res.status(response.status).json({
-        error: errorData.error?.message || 'API request failed',
+  // 尝试每个模型，直到成功
+  let lastError = null;
+  
+  for (const model of MODEL_FALLBACKS) {
+    try {
+      console.log(`🔄 Trying model: ${model}`);
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': req.headers.origin || 'https://ai-kitchen.vercel.app',
+          'X-Title': 'AI Kitchen',
+        },
+        body: JSON.stringify({
+          model: model,
+          messages,
+          temperature: temperature || 0.9,
+          max_tokens: max_tokens || 1800,
+          stream: stream !== false, // 默认启用流式输出
+        }),
       });
-    }
 
-    // ========== 流式响应 ==========
-    if (stream) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          res.write(chunk);
-        }
-        res.end();
-      } catch (err) {
-        console.error('❌ Stream error:', err);
-        res.write(`data: {"error": "Stream interrupted"}\n\n`);
-        res.end();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`❌ Model ${model} failed:`, response.status, errorData);
+        lastError = { status: response.status, data: errorData, model };
+        continue; // 尝试下一个模型
       }
-    } else {
-      // ========== 非流式响应 ==========
-      const data = await response.json();
-      res.status(200).json(data);
-    }
 
-  } catch (error) {
-    console.error('❌ Server error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
+      console.log(`✅ Model ${model} succeeded`);
+
+      // ========== 流式响应 ==========
+      if (stream) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            res.write(chunk);
+          }
+          res.end();
+        } catch (err) {
+          console.error('❌ Stream error:', err);
+          res.write(`data: {"error": "Stream interrupted"}\n\n`);
+          res.end();
+        }
+      } else {
+        // ========== 非流式响应 ==========
+        const data = await response.json();
+        res.status(200).json(data);
+      }
+
+      return; // 成功，退出
+
+    } catch (err) {
+      console.error(`❌ Model ${model} exception:`, err);
+      lastError = { status: 500, error: err.message, model };
+    }
   }
+
+  // 所有模型都失败了
+  console.error('❌ All models failed');
+  res.status(lastError?.status || 500).json({
+    error: lastError?.data?.error?.message || lastError?.error || 'All models failed',
+    triedModels: MODEL_FALLBACKS,
+  });
 }
