@@ -23,9 +23,25 @@
 </button>
 
 <!-- BGM 按钮 -->
-<button class="bgm-btn" id="bgm-btn" onclick="BGM.toggle()" title="开启背景音乐">
+<button class="bgm-btn" id="bgm-btn"
+  onmousedown="window._bgmTimer=setTimeout(toggleBgmPanel,400)"
+  onmouseup="clearTimeout(window._bgmTimer)"
+  onmouseleave="clearTimeout(window._bgmTimer)"
+  ontouchstart="window._bgmTimer=setTimeout(toggleBgmPanel,400)"
+  ontouchend="clearTimeout(window._bgmTimer)"
+  onclick="BGM.toggle()"
+  title="开启背景音乐（长按切换曲目）">
   🔇
 </button>
+
+<!-- BGM 曲目面板 -->
+<div class="bgm-panel" id="bgm-panel">
+  <div class="bgm-panel-header">
+    <span>🎵 背景音乐</span>
+    <button class="bgm-panel-close" onclick="toggleBgmPanel()">✕</button>
+  </div>
+  <div class="bgm-tracks" id="bgm-tracks"></div>
+</div>
 
 <!-- 历史记录面板 -->
 <div class="history-overlay" id="history-overlay" onclick="toggleHistory()"></div>

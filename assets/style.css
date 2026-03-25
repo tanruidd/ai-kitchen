@@ -419,6 +419,76 @@
       50%       { box-shadow: 0 4px 24px rgba(0,206,209,.7); }
     }
 
+    /* ── BGM 曲目面板 ── */
+    .bgm-panel {
+      position: fixed;
+      top: 140px;
+      right: 20px;
+      z-index: 99;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15);
+      padding: 16px;
+      min-width: 160px;
+      display: none;
+    }
+    .bgm-panel.show {
+      display: block;
+      animation: panel-in .2s ease;
+    }
+    @keyframes panel-in {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .bgm-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: .85rem;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .bgm-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: #999;
+      padding: 2px;
+      line-height: 1;
+    }
+    .bgm-panel-close:hover { color: #555; }
+    .bgm-tracks {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bgm-track {
+      padding: 10px 14px;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      background: #fafafa;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 700;
+      color: #666;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: left;
+    }
+    .bgm-track:hover {
+      border-color: var(--teal);
+      background: #E0F7FA;
+      color: #00838F;
+    }
+    .bgm-track.active {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: #fff;
+    }
+
 
     .history-toggle-btn {
       position: fixed;

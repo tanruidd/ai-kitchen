@@ -1,20 +1,37 @@
 /**
- * bgm.js — 海底世界背景音乐（Web Audio API 合成，零依赖）
+ * bgm.js — 海底世界背景音乐（多曲可选，Web Audio API 合成）
  *
- * 对外暴露（挂到 window）：
- *   BGM.toggle()   — 开关背景音乐
- *   BGM.isPlaying  — 当前状态
+ * 曲目：
+ *   - ocean      🌊 海底世界（环境音+气泡）
+ *   - spongebob  🧽 海绵宝宝主题（欢快尤克里里）
+ *   - squidward  🐙 章鱼哥忧郁（缓慢竖琴）
+ *   - krabs      🦀 蟹老板贪财（紧张追逐）
+ *   - patrick    ⭐ 派大星发呆（空灵冥想）
+ *
+ * 对外暴露：
+ *   BGM.toggle()        — 开关音乐
+ *   BGM.switchTrack(id) — 切换曲目
+ *   BGM.currentTrack    — 当前曲目 id
+ *   BGM.isPlaying       — 播放状态
  */
 
 const BGM = (() => {
   let ctx        = null;
   let masterGain = null;
   let isPlaying  = false;
-  let bubbleTimer = null;
-  let chordTimer  = null;
-  const nodes = []; // 持续节点，stop 时统一清理
+  let currentTrack = 'ocean';
+  const nodes = [];
+  let timers = [];
 
-  /* ── AudioContext 懒初始化 ── */
+  const TRACKS = {
+    ocean:     { name: '🌊 海底世界',  emoji: '🌊' },
+    spongebob: { name: '🧽 海绵宝宝', emoji: '🧽' },
+    squidward: { name: '🐙 章鱼哥',   emoji: '🐙' },
+    krabs:     { name: '🦀 蟹老板',   emoji: '🦀' },
+    patrick:   { name: '⭐ 派大星',   emoji: '⭐' },
+  };
+
+  /* ── 初始化 ── */
   function getCtx() {
     if (!ctx) {
       ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -26,167 +43,400 @@ const BGM = (() => {
     return ctx;
   }
 
+  function clearAll() {
+    timers.forEach(t => clearTimeout(t));
+    timers = [];
+    nodes.forEach(n => { try { n.stop(); } catch (_) {} });
+    nodes.length = 0;
+  }
+
+  function scheduleTimer(fn, delay) {
+    const t = setTimeout(fn, delay);
+    timers.push(t);
+    return t;
+  }
+
   /* ══════════════════════════════
-     🌊 水波底噪
-     白噪声 → 低通滤波器（频率缓慢 LFO 摇摆）→ gain
+     🌊 海底世界 — 环境音 + 气泡
   ══════════════════════════════ */
-  function startOceanNoise() {
+  function startOcean() {
     const c = getCtx();
 
-    // 白噪声 buffer（4 秒循环）
+    // 水波底噪
     const bufLen = c.sampleRate * 4;
-    const buf    = c.createBuffer(1, bufLen, c.sampleRate);
-    const data   = buf.getChannelData(0);
+    const buf = c.createBuffer(1, bufLen, c.sampleRate);
+    const data = buf.getChannelData(0);
     for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
 
     const src = c.createBufferSource();
     src.buffer = buf;
-    src.loop   = true;
+    src.loop = true;
 
-    // 低通滤波器
     const lpf = c.createBiquadFilter();
-    lpf.type            = 'lowpass';
+    lpf.type = 'lowpass';
     lpf.frequency.value = 300;
-    lpf.Q.value         = 0.8;
 
-    // LFO 控制滤波器频率（模拟水波起伏）
     const lfo = c.createOscillator();
-    lfo.type            = 'sine';
-    lfo.frequency.value = 0.08; // 极慢，约 12 秒一个周期
-
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.08;
     const lfoGain = c.createGain();
-    lfoGain.gain.value = 120; // 频率摆动幅度
-
+    lfoGain.gain.value = 120;
     lfo.connect(lfoGain);
     lfoGain.connect(lpf.frequency);
 
-    // 音量
-    const gainNode = c.createGain();
-    gainNode.gain.value = 0.35;
+    const gain = c.createGain();
+    gain.gain.value = 0.35;
 
     src.connect(lpf);
-    lpf.connect(gainNode);
-    gainNode.connect(masterGain);
-
+    lpf.connect(gain);
+    gain.connect(masterGain);
     src.start();
     lfo.start();
-
     nodes.push(src, lfo);
+
+    // 和弦底音
+    [110, 165, 220].forEach((freq, i) => {
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      g.gain.value = [0.12, 0.08, 0.06][i];
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start();
+      nodes.push(osc);
+    });
+
+    // 随机气泡
+    function bubble() {
+      if (!isPlaying || currentTrack !== 'ocean') return;
+      const baseFreq = 400 + Math.random() * 800;
+      const dur = 0.06 + Math.random() * 0.08;
+
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq, c.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.8, c.currentTime + dur);
+      g.gain.setValueAtTime(0.0, c.currentTime);
+      g.gain.linearRampToValueAtTime(0.08, c.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + dur + 0.05);
+
+      scheduleTimer(bubble, 1500 + Math.random() * 3500);
+    }
+    scheduleTimer(bubble, 500);
   }
 
   /* ══════════════════════════════
-     🎵 和弦底音
-     三个正弦波叠加，模拟海底低鸣
-     Am 和弦：A2(110Hz) + E3(165Hz) + A3(220Hz)
+     🧽 海绵宝宝主题 — 欢快尤克里里风格
+     明亮的 C 大调旋律，跳跃的节奏
   ══════════════════════════════ */
-  function startChordDrone() {
+  const SPONGEBOB_MELODY = [
+    { note: 523.25, dur: 0.15 }, // C5
+    { note: 587.33, dur: 0.15 }, // D5
+    { note: 659.25, dur: 0.15 }, // E5
+    { note: 523.25, dur: 0.15 }, // C5
+    { note: 659.25, dur: 0.15 }, // E5
+    { note: 587.33, dur: 0.3  }, // D5
+    { note: 523.25, dur: 0.15 }, // C5
+    { note: 493.88, dur: 0.15 }, // B4
+    { note: 523.25, dur: 0.3  }, // C5
+    { note: 392.00, dur: 0.3  }, // G4
+    { note: 440.00, dur: 0.15 }, // A4
+    { note: 493.88, dur: 0.15 }, // B4
+    { note: 523.25, dur: 0.15 }, // C5
+    { note: 493.88, dur: 0.15 }, // B4
+    { note: 440.00, dur: 0.15 }, // A4
+    { note: 392.00, dur: 0.3  }, // G4
+  ];
+
+  function startSpongebob() {
     const c = getCtx();
-    const chordFreqs = [110, 165, 220, 330];
+    let noteIndex = 0;
 
-    chordFreqs.forEach((freq, i) => {
-      const osc  = c.createOscillator();
-      const gain = c.createGain();
+    function playNote() {
+      if (!isPlaying || currentTrack !== 'spongebob') return;
 
-      osc.type            = 'sine';
+      const { note, dur } = SPONGEBOB_MELODY[noteIndex];
+      noteIndex = (noteIndex + 1) % SPONGEBOB_MELODY.length;
+
+      // 尤克里里音色：三角波 + 轻微噪声
+      const osc = c.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = note;
+
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.12, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur * 0.9);
+
+      // 轻微泛音
+      const osc2 = c.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = note * 2;
+      const g2 = c.createGain();
+      g2.gain.setValueAtTime(0.04, c.currentTime);
+      g2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur * 0.8);
+
+      osc.connect(g);
+      g.connect(masterGain);
+      osc2.connect(g2);
+      g2.connect(masterGain);
+
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + dur);
+      osc2.start(c.currentTime);
+      osc2.stop(c.currentTime + dur);
+
+      // 底音（C大三和弦）
+      if (noteIndex % 4 === 0) {
+        [261.63, 329.63, 392.00].forEach(freq => {
+          const bass = c.createOscillator();
+          bass.type = 'sine';
+          bass.frequency.value = freq / 2;
+          const bg = c.createGain();
+          bg.gain.value = 0.06;
+          bass.connect(bg);
+          bg.connect(masterGain);
+          bass.start(c.currentTime);
+          bass.stop(c.currentTime + dur * 4);
+          nodes.push(bass);
+        });
+      }
+
+      scheduleTimer(playNote, dur * 1000 + 50);
+    }
+
+    playNote();
+  }
+
+  /* ══════════════════════════════
+     🐙 章鱼哥忧郁 — 缓慢竖琴/大提琴
+     小调，长音符，带颤音
+  ══════════════════════════════ */
+  const SQUIDWARD_NOTES = [
+    220.00, // A3
+    261.63, // C4
+    293.66, // D4
+    329.63, // E4
+    293.66, // D4
+    261.63, // C4
+    220.00, // A3
+    196.00, // G3
+  ];
+
+  function startSquidward() {
+    const c = getCtx();
+    let noteIndex = 0;
+
+    function playNote() {
+      if (!isPlaying || currentTrack !== 'squidward') return;
+
+      const freq = SQUIDWARD_NOTES[noteIndex];
+      noteIndex = (noteIndex + 1) % SQUIDWARD_NOTES.length;
+
+      // 竖琴音色
+      const osc = c.createOscillator();
+      osc.type = 'sine';
       osc.frequency.value = freq;
 
-      // 每个音量略有差异，高频更轻
-      gain.gain.value = [0.12, 0.08, 0.06, 0.03][i];
-
-      // 轻微颤音（vibrato）
-      const vib     = c.createOscillator();
+      // 颤音
+      const vib = c.createOscillator();
+      vib.type = 'sine';
+      vib.frequency.value = 4.5;
       const vibGain = c.createGain();
-      vib.type            = 'sine';
-      vib.frequency.value = 0.3 + i * 0.1;
-      vibGain.gain.value  = freq * 0.003;
+      vibGain.gain.value = freq * 0.008;
       vib.connect(vibGain);
       vibGain.connect(osc.frequency);
 
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start();
-      vib.start();
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0, c.currentTime);
+      g.gain.linearRampToValueAtTime(0.15, c.currentTime + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 2.5);
 
+      osc.connect(g);
+      g.connect(masterGain);
+
+      osc.start(c.currentTime);
+      vib.start(c.currentTime);
+      osc.stop(c.currentTime + 3);
+      vib.stop(c.currentTime + 3);
       nodes.push(osc, vib);
-    });
+
+      scheduleTimer(playNote, 2800);
+    }
+
+    // 低音持续
+    function drone() {
+      if (!isPlaying || currentTrack !== 'squidward') return;
+      const bass = c.createOscillator();
+      bass.type = 'sine';
+      bass.frequency.value = 110; // A2
+      const g = c.createGain();
+      g.gain.value = 0.08;
+      bass.connect(g);
+      g.connect(masterGain);
+      bass.start();
+      nodes.push(bass);
+      scheduleTimer(drone, 10000);
+    }
+
+    playNote();
+    drone();
   }
 
   /* ══════════════════════════════
-     🫧 随机气泡声
-     随机间隔触发短促上升音调
+     🦀 蟹老板贪财 — 紧张追逐
+     快速断奏，锯齿波，低音驱动
   ══════════════════════════════ */
-  function scheduleBubble() {
-    if (!isPlaying) return;
+  const KRABS_BASS = [130.81, 146.83, 164.81, 146.83]; // C3 D3 E3 D3 循环
+  const KRABS_MELODY = [523.25, 493.88, 440.00, 392.00, 440.00, 493.88, 523.25, 587.33];
+
+  function startKrabs() {
     const c = getCtx();
+    let bassIdx = 0;
+    let melodyIdx = 0;
 
-    // 随机音调（模拟不同大小的气泡）
-    const baseFreq = 400 + Math.random() * 800;
-    const duration = 0.06 + Math.random() * 0.08;
+    function bassNote() {
+      if (!isPlaying || currentTrack !== 'krabs') return;
 
-    const osc  = c.createOscillator();
-    const gain = c.createGain();
+      const freq = KRABS_BASS[bassIdx];
+      bassIdx = (bassIdx + 1) % KRABS_BASS.length;
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(baseFreq, c.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.8, c.currentTime + duration);
+      const osc = c.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = freq;
 
-    gain.gain.setValueAtTime(0.0, c.currentTime);
-    gain.gain.linearRampToValueAtTime(0.08 + Math.random() * 0.06, c.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + duration);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.12, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.2);
 
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(c.currentTime);
-    osc.stop(c.currentTime + duration + 0.05);
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + 0.25);
 
-    // 下一个气泡：1.5 ~ 5 秒后随机触发
-    const nextDelay = 1500 + Math.random() * 3500;
-    bubbleTimer = setTimeout(scheduleBubble, nextDelay);
+      scheduleTimer(bassNote, 250);
+    }
+
+    function melodyNote() {
+      if (!isPlaying || currentTrack !== 'krabs') return;
+
+      const freq = KRABS_MELODY[melodyIdx];
+      melodyIdx = (melodyIdx + 1) % KRABS_MELODY.length;
+
+      const osc = c.createOscillator();
+      osc.type = 'square';
+      osc.frequency.value = freq;
+
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.06, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
+
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + 0.2);
+
+      scheduleTimer(melodyNote, 180);
+    }
+
+    bassNote();
+    scheduleTimer(melodyNote, 100);
   }
 
   /* ══════════════════════════════
-     🎶 偶尔的旋律音符
-     随机间隔弹出一个轻柔的音符，像海底钢琴
+     ⭐ 派大星发呆 — 空灵冥想
+     极慢，玻璃琴音色，长延音
   ══════════════════════════════ */
-  const MELODY_NOTES = [261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9, 523.3]; // C大调
+  const PATRICK_NOTES = [261.63, 329.63, 392.00, 523.25, 659.25]; // C E G C E
 
-  function scheduleChordNote() {
-    if (!isPlaying) return;
-    const c    = getCtx();
-    const freq = MELODY_NOTES[Math.floor(Math.random() * MELODY_NOTES.length)];
-    const dur  = 1.2 + Math.random() * 1.5;
+  function startPatrick() {
+    const c = getCtx();
+    let noteIndex = 0;
 
-    const osc  = c.createOscillator();
-    const gain = c.createGain();
+    function playNote() {
+      if (!isPlaying || currentTrack !== 'patrick') return;
 
-    osc.type            = 'sine';
-    osc.frequency.value = freq;
+      const freq = PATRICK_NOTES[noteIndex];
+      noteIndex = (noteIndex + 1) % PATRICK_NOTES.length;
 
-    gain.gain.setValueAtTime(0.0, c.currentTime);
-    gain.gain.linearRampToValueAtTime(0.07, c.currentTime + 0.15);
-    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+      // 玻璃琴音色：多个正弦波叠加
+      const osc1 = c.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.value = freq;
 
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(c.currentTime);
-    osc.stop(c.currentTime + dur + 0.1);
+      const osc2 = c.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq * 2;
 
-    // 下一个音符：3 ~ 9 秒后
-    const nextDelay = 3000 + Math.random() * 6000;
-    chordTimer = setTimeout(scheduleChordNote, nextDelay);
+      const osc3 = c.createOscillator();
+      osc3.type = 'sine';
+      osc3.frequency.value = freq * 3;
+
+      const g1 = c.createGain();
+      const g2 = c.createGain();
+      const g3 = c.createGain();
+
+      g1.gain.setValueAtTime(0.0, c.currentTime);
+      g1.gain.linearRampToValueAtTime(0.1, c.currentTime + 1);
+      g1.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 8);
+
+      g2.gain.setValueAtTime(0.0, c.currentTime);
+      g2.gain.linearRampToValueAtTime(0.03, c.currentTime + 1.5);
+      g2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 7);
+
+      g3.gain.setValueAtTime(0.0, c.currentTime);
+      g3.gain.linearRampToValueAtTime(0.01, c.currentTime + 2);
+      g3.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 6);
+
+      osc1.connect(g1);
+      osc2.connect(g2);
+      osc3.connect(g3);
+      g1.connect(masterGain);
+      g2.connect(masterGain);
+      g3.connect(masterGain);
+
+      osc1.start(c.currentTime);
+      osc2.start(c.currentTime);
+      osc3.start(c.currentTime);
+      osc1.stop(c.currentTime + 10);
+      osc2.stop(c.currentTime + 10);
+      osc3.stop(c.currentTime + 10);
+      nodes.push(osc1, osc2, osc3);
+
+      scheduleTimer(playNote, 5000);
+    }
+
+    playNote();
   }
+
+  /* ══════════════════════════════
+     曲目启动器
+  ══════════════════════════════ */
+  const TRACK_STARTERS = {
+    ocean:     startOcean,
+    spongebob: startSpongebob,
+    squidward: startSquidward,
+    krabs:     startKrabs,
+    patrick:   startPatrick,
+  };
 
   /* ══════════════════════════════
      淡入 / 淡出
   ══════════════════════════════ */
-  function fadeIn(duration = 2.5) {
+  function fadeIn(duration = 2) {
     const c = getCtx();
     masterGain.gain.cancelScheduledValues(c.currentTime);
-    masterGain.gain.setValueAtTime(masterGain.gain.value, c.currentTime);
+    masterGain.gain.setValueAtTime(0.0, c.currentTime);
     masterGain.gain.linearRampToValueAtTime(1.0, c.currentTime + duration);
   }
 
-  function fadeOut(duration = 1.5) {
+  function fadeOut(duration = 1) {
     const c = getCtx();
     masterGain.gain.cancelScheduledValues(c.currentTime);
     masterGain.gain.setValueAtTime(masterGain.gain.value, c.currentTime);
@@ -194,50 +444,106 @@ const BGM = (() => {
   }
 
   /* ══════════════════════════════
-     开 / 关
+     开 / 关 / 切换曲目
   ══════════════════════════════ */
   function start() {
     if (isPlaying) return;
     isPlaying = true;
     getCtx();
-    startOceanNoise();
-    startChordDrone();
-    scheduleBubble();
-    scheduleChordNote();
+    TRACK_STARTERS[currentTrack]();
     fadeIn();
-    updateBtn(true);
+    updateUI();
   }
 
   function stop() {
     if (!isPlaying) return;
     isPlaying = false;
-    clearTimeout(bubbleTimer);
-    clearTimeout(chordTimer);
-    fadeOut(1.5);
-    // 淡出后停止所有节点
+    fadeOut(1);
     setTimeout(() => {
-      nodes.forEach(n => { try { n.stop(); } catch (_) {} });
-      nodes.length = 0;
-    }, 1800);
-    updateBtn(false);
+      clearAll();
+    }, 1200);
+    updateUI();
   }
 
   function toggle() {
     isPlaying ? stop() : start();
   }
 
-  /* ══════════════════════════════
-     更新按钮状态
-  ══════════════════════════════ */
-  function updateBtn(playing) {
-    const btn = document.getElementById('bgm-btn');
-    if (!btn) return;
-    btn.textContent = playing ? '🔊' : '🔇';
-    btn.title       = playing ? '关闭背景音乐' : '开启背景音乐';
-    btn.classList.toggle('bgm-on', playing);
+  function switchTrack(trackId) {
+    if (!TRACKS[trackId]) return;
+    if (currentTrack === trackId && isPlaying) return;
+
+    currentTrack = trackId;
+
+    if (isPlaying) {
+      fadeOut(0.5);
+      setTimeout(() => {
+        clearAll();
+        TRACK_STARTERS[trackId]();
+        fadeIn(0.8);
+      }, 600);
+    }
+    updateUI();
   }
 
-  return { toggle, get isPlaying() { return isPlaying; } };
+  /* ══════════════════════════════
+     UI 更新
+  ══════════════════════════════ */
+  function updateUI() {
+    // 更新按钮状态
+    const btn = document.getElementById('bgm-btn');
+    if (btn) {
+      btn.textContent = TRACKS[currentTrack].emoji;
+      btn.title = isPlaying ? '关闭背景音乐' : '开启背景音乐';
+      btn.classList.toggle('bgm-on', isPlaying);
+    }
+
+    // 更新曲目列表高亮
+    document.querySelectorAll('.bgm-track').forEach(el => {
+      const track = el.dataset.track;
+      el.classList.toggle('active', track === currentTrack);
+    });
+  }
+
+  // 暴露曲目列表供 UI 使用
+  function getTracks() {
+    return TRACKS;
+  }
+
+  /* ══════════════════════════════
+     渲染曲目列表
+  ══════════════════════════════ */
+  function renderTrackList() {
+    const wrap = document.getElementById('bgm-tracks');
+    if (!wrap) return;
+
+    wrap.innerHTML = Object.entries(TRACKS).map(([id, track]) =>
+      `<button class="bgm-track ${id === currentTrack ? 'active' : ''}"
+        data-track="${id}"
+        onclick="BGM.switchTrack('${id}')">${track.name}</button>`
+    ).join('');
+  }
+
+  // 页面加载时渲染列表
+  document.addEventListener('DOMContentLoaded', renderTrackList);
+
+  return {
+    toggle,
+    switchTrack,
+    start,
+    stop,
+    getTracks,
+    renderTrackList,
+    get currentTrack() { return currentTrack; },
+    get isPlaying() { return isPlaying; },
+  };
 })();
 
 window.BGM = BGM;
+
+/* ── 切换 BGM 面板 ── */
+function toggleBgmPanel() {
+  const panel = document.getElementById('bgm-panel');
+  if (!panel) return;
+  panel.classList.toggle('show');
+}
