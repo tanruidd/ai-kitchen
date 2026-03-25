@@ -2511,7 +2511,7 @@
       height: 52px;
       border-radius: 50%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: 2px solid #fff;
+      border: 2px solid #667eea;
       color: #fff;
       font-size: 1.4rem;
       cursor: pointer;
