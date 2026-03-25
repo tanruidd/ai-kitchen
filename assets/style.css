@@ -482,7 +482,7 @@
       right: 20px;
       z-index: 100;
       background: rgba(255,255,255,.9);
-      border: 2.5px solid var(--teal);
+      border: 2px solid var(--teal);
       border-radius: 50%;
       width: 52px; height: 52px;
       font-size: 1.4rem;
