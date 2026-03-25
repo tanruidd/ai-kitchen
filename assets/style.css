@@ -478,7 +478,7 @@
     /* ── BGM 按钮 ── */
     .bgm-btn {
       position: fixed;
-      top: 80px;
+      top: 140px;
       right: 20px;
       z-index: 100;
       background: rgba(255,255,255,.9);
@@ -511,7 +511,7 @@
     /* ── BGM 曲目面板 ── */
     .bgm-panel {
       position: fixed;
-      top: 140px;
+      top: 200px;
       right: 20px;
       z-index: 99;
       background: rgba(255,255,255,.95);
@@ -581,7 +581,7 @@
 
     .history-toggle-btn {
       position: fixed;
-      top: 20px;
+      top: 80px;
       right: 20px;
       z-index: 100;
       background: rgba(255,255,255,.9);
@@ -1195,15 +1195,22 @@
         padding: 40px 20px 80px;
       }
       .bgm-btn {
-        top: 80px;
+        top: 140px;
         right: 16px;
         width: 46px; height: 46px;
         font-size: 1.2rem;
       }
       .history-toggle-btn {
-        top: 20px;
+        top: 80px;
         right: 16px;
         width: 46px; height: 46px;
+        font-size: 1.2rem;
+      }
+      .menu-toggle-btn {
+        top: 20px;
+        right: 16px;
+        width: 46px;
+        height: 46px;
         font-size: 1.2rem;
       }
       .card {
@@ -2504,10 +2511,10 @@
     .menu-toggle-btn {
       position: fixed;
       top: 20px;
-      right: 76px;
+      right: 20px;
       z-index: 100;
-      width: 46px;
-      height: 46px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: 2px solid #fff;
