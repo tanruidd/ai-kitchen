@@ -1348,6 +1348,7 @@
 
   const MAX_HISTORY = 100;  // 最多存100条
   const STORAGE_KEY = 'ai-kitchen-history';
+  const LAST_READ_KEY = 'ai-kitchen-last-read';
   let currentHistoryTab = 'history';
 
   // ── 存取 ──
@@ -1364,8 +1365,10 @@
 
   // 生成一条记录
   function createHistoryItem(input, mode, output) {
+    const ts = Date.now();
     return {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      id: ts.toString(36) + Math.random().toString(36).slice(2, 5),
+      ts,  // 毫秒时间戳，用于未读计数
       input: input.slice(0, 300),    // 截断防止 localStorage 爆掉
       mode,
       output,
@@ -1374,11 +1377,18 @@
     };
   }
 
-  // ── Badge 更新 ──
-  function updateHistoryBadge() {
+  // ── Badge 更新（未读数 = 上次打开之后新增的记录）──
+  function getUnreadCount() {
     const history = loadHistory();
+    const lastRead = parseInt(localStorage.getItem(LAST_READ_KEY) || '0', 10);
+    // 如果从未读过，全部显示
+    if (!lastRead) return history.length;
+    return history.filter(h => h.ts > lastRead).length;
+  }
+
+  function updateHistoryBadge() {
+    const count = getUnreadCount();
     const badge = document.getElementById('history-count');
-    const count = history.length;
     if (count > 0) {
       badge.textContent = count > 99 ? '99+' : count;
       badge.style.display = 'flex';
@@ -1399,6 +1409,9 @@
       panel.classList.add('open');
       overlay.classList.add('show');
       renderHistoryList();
+      // 打开面板 → 标记全部已读
+      localStorage.setItem(LAST_READ_KEY, Date.now().toString());
+      updateHistoryBadge();
     }
   }
 
