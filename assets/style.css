@@ -260,11 +260,6 @@
       border-color: var(--green);
       color: #fff;
     }
-    .action-btn.active {
-      background: var(--teal);
-      border-color: var(--teal);
-      color: #fff;
-    }
 
     /* ── 图片预览弹窗 ── */
     .preview-modal {

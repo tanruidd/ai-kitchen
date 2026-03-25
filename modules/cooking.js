@@ -8,9 +8,6 @@
 let currentMode = 'normal';
 let isCooking   = false;
 let cookAbortController = null;
-let currentRecipeFull = '';   // 完整版食谱
-let currentRecipeSimple = ''; // 简洁版食谱
-let isSimpleMode = false;     // 当前是否简洁模式
 
 /* ── 模式选择 ── */
 function initModeButtons() {
@@ -38,82 +35,6 @@ function copyRecipe() {
     showToast('📋 食谱已复制到剪贴板！');
     window.SFX?.copy();
   }).catch(() => showToast('复制失败，请手动选择复制~'));
-}
-
-/* ── 更新简洁版按钮状态 ── */
-function updateSimpleBtn() {
-  const btn = document.getElementById('simple-btn');
-  if (!btn) return;
-  if (isSimpleMode) {
-    btn.textContent = '📖 详细版';
-    btn.classList.add('active');
-  } else {
-    btn.textContent = '📝 简洁版';
-    btn.classList.remove('active');
-  }
-}
-
-/* ── 切换简洁/详细版 ── */
-async function toggleSimpleMode() {
-  const outputEl = document.getElementById('recipe-output');
-
-  // 如果当前是简洁版，切换回详细版
-  if (isSimpleMode) {
-    outputEl.innerHTML = marked.parse(currentRecipeFull);
-    isSimpleMode = false;
-    updateSimpleBtn();
-    return;
-  }
-
-  // 如果已经有简洁版缓存，直接显示
-  if (currentRecipeSimple) {
-    outputEl.innerHTML = marked.parse(currentRecipeSimple);
-    isSimpleMode = true;
-    updateSimpleBtn();
-    return;
-  }
-
-  // 否则调用 AI 生成简洁版
-  const btn = document.getElementById('simple-btn');
-  btn.textContent = '⏳ 生成中...';
-  btn.disabled = true;
-
-  try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'stepfun/step-3.5-flash:free',
-        messages: [
-          {
-            role: 'system',
-            content: '你是一位精简大师。请将用户给的食谱精简为最简洁的版本。\n\n【输出要求】\n1. 只保留：菜名、食材清单、步骤三部分\n2. 食材只列名称，不要用量和描述\n3. 步骤用最短的一句话概括，不要细节\n4. 去掉所有 emoji 和装饰性文字\n5. 用 Markdown 格式输出\n6. 整体不超过 200 字'
-          },
-          {
-            role: 'user',
-            content: currentRecipeFull
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 500,
-        stream: false,
-      }),
-    });
-
-    if (!response.ok) throw new Error('API 错误');
-    const data = await response.json();
-    currentRecipeSimple = data.choices?.[0]?.message?.content || '生成简洁版失败';
-
-    outputEl.innerHTML = marked.parse(currentRecipeSimple);
-    isSimpleMode = true;
-    updateSimpleBtn();
-    showToast('📝 已切换简洁版');
-  } catch (err) {
-    showToast('❌ 生成简洁版失败');
-  } finally {
-    btn.disabled = false;
-    updateSimpleBtn();
-  }
 }
 
 /* ── 主烹饪函数 ── */
@@ -213,12 +134,6 @@ async function startCooking() {
     document.getElementById('action-btns').style.display = 'flex';
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.SFX?.done();
-
-    // 保存完整版，清空简洁版
-    currentRecipeFull = fullText;
-    currentRecipeSimple = '';
-    isSimpleMode = false;
-    updateSimpleBtn();
 
     // 保存到历史记录
     saveCurrentResult(input, currentMode, fullText);
