@@ -131,6 +131,10 @@ async function startCooking() {
 
     // 最终完整渲染
     outputEl.innerHTML = marked.parse(fullText);
+
+    // 渲染配图
+    window.ImageModule?.renderImageSection(input, outputEl);
+
     document.getElementById('action-btns').style.display = 'flex';
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.SFX?.done();
