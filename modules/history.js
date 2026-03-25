@@ -184,9 +184,13 @@ function restoreHistory(id) {
   if (targetBtn) targetBtn.click();
 
   document.getElementById('result-section').style.display = 'block';
-  document.getElementById('recipe-output').innerHTML = marked.parse(item.output);
+  const outputEl = document.getElementById('recipe-output');
+  outputEl.innerHTML = marked.parse(item.output);
   document.getElementById('mode-badge').textContent   = window.MODE_LABELS[item.mode];
   document.getElementById('action-btns').style.display = 'flex';
+
+  // 恢复配图
+  window.ImageModule?.renderImageSection(item.input, outputEl);
 
   toggleHistory();
   document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
