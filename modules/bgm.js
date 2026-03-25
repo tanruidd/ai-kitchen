@@ -92,7 +92,7 @@ const BGM = (() => {
 
       const g = c.createGain();
       g.gain.setValueAtTime(0.0, c.currentTime);
-      g.gain.linearRampToValueAtTime(0.1, c.currentTime + 0.03);
+      g.gain.linearRampToValueAtTime(0.15, c.currentTime + 0.03);
       g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur / 1000 * 0.85);
 
       osc.connect(g);
@@ -106,7 +106,7 @@ const BGM = (() => {
       osc2.frequency.value = note * 2;
       const g2 = c.createGain();
       g2.gain.setValueAtTime(0.0, c.currentTime);
-      g2.gain.linearRampToValueAtTime(0.02, c.currentTime + 0.03);
+      g2.gain.linearRampToValueAtTime(0.04, c.currentTime + 0.03);
       g2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur / 1000 * 0.7);
 
       osc2.connect(g2);
@@ -140,7 +140,7 @@ const BGM = (() => {
 
   /* ══════════════════════════════
      🦀 蟹老板 — 紧张但柔和
-     用正弦波保持节奏感
+     用正弦波保持节奏感，加淡入避免刺耳
   ══════════════════════════════ */
   function startKrabs() {
     const c = getCtx();
@@ -161,14 +161,16 @@ const BGM = (() => {
       osc.type = 'sine';
       osc.frequency.value = freq;
 
+      // 加淡入避免刺耳
       const g = c.createGain();
-      g.gain.setValueAtTime(0.08, c.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.2);
+      g.gain.setValueAtTime(0.0, c.currentTime);
+      g.gain.linearRampToValueAtTime(0.12, c.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.25);
 
       osc.connect(g);
       g.connect(masterGain);
       osc.start(c.currentTime);
-      osc.stop(c.currentTime + 0.3);
+      osc.stop(c.currentTime + 0.35);
 
       scheduleTimer(bassNote, 300);
     }
@@ -184,14 +186,16 @@ const BGM = (() => {
       osc.type = 'sine';
       osc.frequency.value = freq;
 
+      // 加淡入避免刺耳
       const g = c.createGain();
-      g.gain.setValueAtTime(0.05, c.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
+      g.gain.setValueAtTime(0.0, c.currentTime);
+      g.gain.linearRampToValueAtTime(0.08, c.currentTime + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.18);
 
       osc.connect(g);
       g.connect(masterGain);
       osc.start(c.currentTime);
-      osc.stop(c.currentTime + 0.2);
+      osc.stop(c.currentTime + 0.25);
 
       scheduleTimer(melodyNote, 200);
     }
@@ -215,7 +219,7 @@ const BGM = (() => {
     const c = getCtx();
     masterGain.gain.cancelScheduledValues(c.currentTime);
     masterGain.gain.setValueAtTime(0.0, c.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.7, c.currentTime + duration);
+    masterGain.gain.linearRampToValueAtTime(1.0, c.currentTime + duration); // 调大到 1.0
   }
 
   function fadeOut(duration = 1) {
