@@ -8,7 +8,8 @@
 
 // 模型优先级列表（按顺序尝试）
 const MODEL_FALLBACKS = [
-  'stepfun/step-3.5-flash:free',      // 主模型：阶跃星辰
+  'stepfun/step-3.5-flash:free',           // 主模型：阶跃星辰
+  'arcee-ai/trinity-large-preview:free',   // 备用：Arcee Trinity
   'nvidia/nemotron-3-super-120b-a12b:free', // 备用：NVIDIA Nemotron
 ];
 
