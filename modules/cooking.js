@@ -145,6 +145,12 @@ async function startCooking() {
     // 增加盲盒计数
     window.GachaModule?.addCookCount();
 
+    // 更新排行榜
+    window.LeaderboardModule?.updateRecipeRank(input, currentMode);
+
+    // 检查成就
+    window.AchievementModule?.checkAchievements();
+
   } catch (err) {
     loading.style.display = 'none';
     // 用户主动离开页面 / 手动中断 → 静默，不报错

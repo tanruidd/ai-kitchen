@@ -28,6 +28,16 @@
   <span class="gacha-count" id="gacha-count" style="display:none;">0</span>
 </button>
 
+<!-- 成就按钮 -->
+<button class="achievement-toggle-btn" id="achievement-toggle-btn" onclick="AchievementModule.openAchievements()" title="成就">
+  🏆
+</button>
+
+<!-- 排行榜按钮 -->
+<button class="leaderboard-toggle-btn" id="leaderboard-toggle-btn" onclick="LeaderboardModule.openLeaderboard()" title="排行榜">
+  📊
+</button>
+
 <!-- BGM 按钮 -->
 <button class="bgm-btn" id="bgm-btn"
   onmousedown="window._bgmTimer=setTimeout(toggleBgmPanel,400)"
@@ -225,6 +235,26 @@
     <div class="premium-share-content" id="premium-share-content"></div>
   </div>
 
+  <!-- 成就面板 -->
+  <div class="achievement-overlay" id="achievement-overlay" onclick="AchievementModule.closeAchievements()"></div>
+  <div class="achievement-panel" id="achievement-panel">
+    <div class="achievement-panel-header">
+      <h3>🏆 成就</h3>
+      <button class="achievement-panel-close" onclick="AchievementModule.closeAchievements()">✕</button>
+    </div>
+    <div class="achievement-content" id="achievement-content"></div>
+  </div>
+
+  <!-- 排行榜面板 -->
+  <div class="leaderboard-overlay" id="leaderboard-overlay" onclick="LeaderboardModule.closeLeaderboard()"></div>
+  <div class="leaderboard-panel" id="leaderboard-panel">
+    <div class="leaderboard-panel-header">
+      <h3>📊 排行榜</h3>
+      <button class="leaderboard-panel-close" onclick="LeaderboardModule.closeLeaderboard()">✕</button>
+    </div>
+    <div class="leaderboard-content" id="leaderboard-content"></div>
+  </div>
+
   <footer>
     🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
   </footer>
@@ -240,6 +270,8 @@
 <script src="./modules/share.js"></script>
 <script src="./modules/gacha.js"></script>
 <script src="./modules/premium-share.js"></script>
+<script src="./modules/achievements.js"></script>
+<script src="./modules/leaderboard.js"></script>
 <script src="./modules/cooking.js"></script>
 <script>
   // ── 页面初始化 ──
