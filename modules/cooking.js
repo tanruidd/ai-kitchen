@@ -142,6 +142,9 @@ async function startCooking() {
     // 保存到历史记录
     saveCurrentResult(input, currentMode, fullText);
 
+    // 增加盲盒计数
+    window.GachaModule?.addCookCount();
+
   } catch (err) {
     loading.style.display = 'none';
     // 用户主动离开页面 / 手动中断 → 静默，不报错
@@ -175,4 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('pagehide', () => {
     if (cookAbortController) cookAbortController.abort();
   });
+
+  // 初始化盲盒角标
+  window.GachaModule?.updateGachaBadge();
 });
