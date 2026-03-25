@@ -38,6 +38,11 @@
   📊
 </button>
 
+<!-- 统计按钮 -->
+<button class="stats-toggle-btn" id="stats-toggle-btn" onclick="StatsModule.openStats()" title="统计">
+  📈
+</button>
+
 <!-- BGM 按钮 -->
 <button class="bgm-btn" id="bgm-btn"
   onmousedown="window._bgmTimer=setTimeout(toggleBgmPanel,400)"
@@ -255,6 +260,16 @@
     <div class="leaderboard-content" id="leaderboard-content"></div>
   </div>
 
+  <!-- 统计面板 -->
+  <div class="stats-overlay" id="stats-overlay" onclick="StatsModule.closeStats()"></div>
+  <div class="stats-panel" id="stats-panel">
+    <div class="stats-panel-header">
+      <h3>📈 统计数据</h3>
+      <button class="stats-panel-close" onclick="StatsModule.closeStats()">✕</button>
+    </div>
+    <div class="stats-content" id="stats-content"></div>
+  </div>
+
   <footer>
     🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
   </footer>
@@ -272,6 +287,7 @@
 <script src="./modules/premium-share.js"></script>
 <script src="./modules/achievements.js"></script>
 <script src="./modules/leaderboard.js"></script>
+<script src="./modules/stats.js"></script>
 <script src="./modules/cooking.js"></script>
 <script>
   // ── 页面初始化 ──
