@@ -52,7 +52,9 @@ vercel
 
 ```
 ai-kitchen/
-├── index.html              # 前端页面（纯 HTML + CSS，JS 只有 8 行初始化）
+├── index.html              # 前端页面（纯 HTML 结构，177 行）
+├── assets/
+│   └── style.css           # 全局样式（主题色、组件、响应式）
 ├── modules/
 │   ├── modes.js            # 烹饪模式配置（6种模式 + prompt 模板）
 │   ├── utils.js            # 通用工具（气泡、Toast、错误提示、HTML 转义）
@@ -73,6 +75,7 @@ ai-kitchen/
 - 加新烹饪模式 → 只改 `modules/modes.js`
 - 改历史记录逻辑 → 只改 `modules/history.js`
 - 加新功能模块 → 新建 `modules/xxx.js`，在 `index.html` 末尾加一行 `<script src="./modules/xxx.js">` 即可
+- 改样式 → 只改 `assets/style.css`，按注释分区找对应模块
 - **不要**往 `index.html` 的 `<script>` 块里直接写业务逻辑
 - Phase 2 云端同步 → 只替换 `history.js` 里的 `loadHistory / saveHistory` 存储层，UI 逻辑不动
 
