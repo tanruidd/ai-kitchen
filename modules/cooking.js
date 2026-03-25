@@ -33,6 +33,7 @@ function copyRecipe() {
       btn.classList.remove('copied');
     }, 2000);
     showToast('📋 食谱已复制到剪贴板！');
+    window.SFX?.copy();
   }).catch(() => showToast('复制失败，请手动选择复制~'));
 }
 
@@ -46,6 +47,7 @@ async function startCooking() {
 
   isCooking = true;
   cookAbortController = new AbortController();
+  window.SFX?.cook();
 
   const btn           = document.getElementById('cook-btn');
   const loading       = document.getElementById('loading');
@@ -131,6 +133,7 @@ async function startCooking() {
     outputEl.innerHTML = marked.parse(fullText);
     document.getElementById('action-btns').style.display = 'flex';
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.SFX?.done();
 
     // 保存到历史记录
     saveCurrentResult(input, currentMode, fullText);

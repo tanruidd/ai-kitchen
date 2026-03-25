@@ -62,6 +62,8 @@ function randomInspire() {
   const btn = document.getElementById('inspire-btn');
   btn.classList.add('spin');
   setTimeout(() => btn.classList.remove('spin'), 400);
+  // 音效
+  window.SFX?.dice();
 }
 
 /* ── 食材标签点击 ── */
@@ -80,6 +82,7 @@ function addIngredient(value) {
     textarea.value = cur.trimEnd() + `、${value}`;
   }
   textarea.focus();
+  window.SFX?.tag();
 }
 
 /* ── 渲染食材标签区 ── */
