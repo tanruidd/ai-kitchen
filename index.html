@@ -502,17 +502,25 @@
     }
     .history-list {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding: 12px 16px;
     }
     .history-empty {
+      display: none;
       text-align: center;
-      padding: 40px 20px;
       color: #bbb;
       font-size: .9rem;
       font-weight: 600;
+      padding: 0 20px;
+      /* 在 flex 容器中垂直居中 */
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
-    .history-empty .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+    .history-empty.show { display: flex; }
+    .history-empty .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
     .history-item {
       background: #fff;
       border: 2px solid #f0f0f0;
@@ -963,11 +971,10 @@
     <button class="history-tab active" id="tab-history" onclick="switchHistoryTab('history')">最近</button>
     <button class="history-tab" id="tab-fav" onclick="switchHistoryTab('fav')">⭐ 收藏</button>
   </div>
-  <div class="history-list" id="history-list">
-    <div class="history-empty" id="history-empty">
-      <span class="empty-icon">📭</span>
-      还没有生成过食谱<br/>快去创作第一道菜吧！
-    </div>
+  <div class="history-list" id="history-list"></div>
+  <div class="history-empty" id="history-empty">
+    <span class="empty-icon">📭</span>
+    还没有生成过食谱<br/>快去创作第一道菜吧！
   </div>
   <div class="history-panel-footer">
     <button class="history-footer-btn" onclick="exportHistory()">📥 导出</button>
@@ -1414,14 +1421,16 @@
 
     if (items.length === 0) {
       list.innerHTML = '';
-      empty.style.display = 'block';
+      empty.classList.remove('show');
       empty.innerHTML = currentHistoryTab === 'fav'
         ? '<span class="empty-icon">⭐</span>还没有收藏的食谱<br/>点击 ☆ 收藏你喜欢的食谱吧！'
         : '<span class="empty-icon">📭</span>还没有生成过食谱<br/>快去创作第一道菜吧！';
+      // 延迟加 show 让 flex 居中生效
+      requestAnimationFrame(() => empty.classList.add('show'));
       return;
     }
 
-    empty.style.display = 'none';
+    empty.classList.remove('show');
     list.innerHTML = items.map(item => `
       <div class="history-item" onclick="restoreHistory('${item.id}')">
         <div class="history-item-meta">
