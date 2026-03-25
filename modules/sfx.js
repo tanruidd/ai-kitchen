@@ -88,16 +88,19 @@ const SFX = (() => {
   }
 
   /* ══════════════════════════════
-     🍔 下锅滋滋 — 开始烹饪
-     白噪声模拟油锅声 + 低频轰鸣
+     🫧 气泡咕嘟 — 开始烹饪
+     水开的感觉，轻快的气泡声
   ══════════════════════════════ */
   function cook() {
-    // 油锅滋滋（白噪声）
-    playNoise({ duration: 0.6, gain: 0.25, gainEnd: 0.02, filterFreq: 1800 });
-    // 低频轰鸣
-    playOsc({ type: 'sawtooth', freq: 80, freqEnd: 60, duration: 0.4, gain: 0.12, gainEnd: 0 });
-    // 高频嗞嗞
-    playNoise({ duration: 0.3, gain: 0.1, gainEnd: 0, filterFreq: 5000, startDelay: 0.1 });
+    // 一串上升的气泡音
+    const bubbles = [280, 350, 420, 380, 500, 450, 580, 520];
+    bubbles.forEach((freq, i) => {
+      const delay = i * 0.06;
+      // 气泡主体
+      playOsc({ type: 'sine', freq, freqEnd: freq * 1.3, duration: 0.1, gain: 0.12, gainEnd: 0, startDelay: delay });
+      // 气泡破裂的 pop
+      playNoise({ duration: 0.04, gain: 0.04, gainEnd: 0, filterFreq: 3000, startDelay: delay + 0.06 });
+    });
   }
 
   /* ══════════════════════════════
