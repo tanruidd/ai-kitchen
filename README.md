@@ -52,13 +52,29 @@ vercel
 
 ```
 ai-kitchen/
-├── index.html              # 前端页面（无 API Key）
-├── modes.js                # 烹饪模式配置（6种模式 + prompt 模板）
+├── index.html              # 前端页面（纯 HTML + CSS，JS 只有 8 行初始化）
+├── modules/
+│   ├── modes.js            # 烹饪模式配置（6种模式 + prompt 模板）
+│   ├── utils.js            # 通用工具（气泡、Toast、错误提示、HTML 转义）
+│   ├── history.js          # 历史记录（存储/渲染/收藏/导出导入）
+│   ├── share.js            # 图片分享（html2canvas 截图）
+│   └── cooking.js          # 主烹饪逻辑（流式渲染 + API 调用）
 ├── api/
-│   └── chat.js            # Serverless 后端函数
-├── vercel.json            # Vercel 配置
-└── README.md              # 本文件
+│   └── chat.js             # Serverless 后端函数（代理 OpenRouter）
+├── screenshot.png          # 产品截图
+├── vercel.json             # Vercel 配置
+└── README.md               # 本文件
 ```
+
+## 🧱 开发规范
+
+**新增功能时遵循以下原则：**
+
+- 加新烹饪模式 → 只改 `modules/modes.js`
+- 改历史记录逻辑 → 只改 `modules/history.js`
+- 加新功能模块 → 新建 `modules/xxx.js`，在 `index.html` 末尾加一行 `<script src="./modules/xxx.js">` 即可
+- **不要**往 `index.html` 的 `<script>` 块里直接写业务逻辑
+- Phase 2 云端同步 → 只替换 `history.js` 里的 `loadHistory / saveHistory` 存储层，UI 逻辑不动
 
 ## 🔐 安全特性
 
