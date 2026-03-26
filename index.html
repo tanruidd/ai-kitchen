@@ -24,18 +24,6 @@
 <!-- 菜单按钮 -->
 <button class="menu-toggle-btn" id="menu-toggle-btn" onclick="MenuModule.toggleMenu()" title="菜单">☰</button>
 
-<!-- BGM 按钮 -->
-<button class="bgm-btn" id="bgm-btn"
-  onmousedown="window._bgmTimer=setTimeout(toggleBgmPanel,400)"
-  onmouseup="clearTimeout(window._bgmTimer)"
-  onmouseleave="clearTimeout(window._bgmTimer)"
-  ontouchstart="window._bgmTimer=setTimeout(toggleBgmPanel,400)"
-  ontouchend="clearTimeout(window._bgmTimer)"
-  onclick="BGM.toggle()"
-  title="开启背景音乐（长按切换曲目）">
-  🔇
-</button>
-
 <!-- 菜单面板 -->
 <div class="menu-overlay" id="menu-overlay" onclick="MenuModule.toggleMenu()"></div>
 <div class="main-menu" id="main-menu">
