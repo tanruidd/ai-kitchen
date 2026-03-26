@@ -366,22 +366,38 @@ const GachaModule = (() => {
     btn.disabled = true;
     btn.textContent = '✨ 正在开启...';
 
+    // 先移除可能存在的旧弹窗
+    const oldModal = document.querySelector('.gacha-recipe-card-modal');
+    if (oldModal) oldModal.remove();
+
     // 动画延迟
     setTimeout(() => {
-      const result = drawGacha();
-      if (!result) {
+      try {
+        const result = drawGacha();
+        if (!result) {
+          btn.disabled = false;
+          btn.textContent = '🎁 开启盲盒';
+          showToast('🎁 没有卡券了，继续烹饪获得更多！');
+          return;
+        }
+
+        // 显示抽奖结果
+        showDrawResult(result);
+
+        // 更新抽奖面板的卡券数
+        const ticketsEl = document.querySelector('.gacha-tickets-count');
+        if (ticketsEl) {
+          const data = loadGachaData();
+          ticketsEl.textContent = data.tickets;
+          btn.textContent = data.tickets > 0 ? '🎁 开启盲盒' : '🎁 没有卡券了';
+          btn.disabled = data.tickets <= 0;
+        }
+      } catch (err) {
+        console.error('抽奖失败:', err);
         btn.disabled = false;
         btn.textContent = '🎁 开启盲盒';
-        return;
+        showToast('😱 抽奖出错了，请重试！');
       }
-
-      // 显示抽奖结果
-      showDrawResult(result);
-
-      // 更新面板显示
-      renderGachaPanel();
-      btn.disabled = false;
-      btn.textContent = '🎁 开启盲盒';
     }, 1500);
   }
 
@@ -432,33 +448,49 @@ const GachaModule = (() => {
    * 展示食谱卡片（神秘模式，不显示 prompt）
    */
   function showRecipeCard(recipeId) {
-    const recipe = LIMITED_RECIPES.find(r => r.id === recipeId);
-    if (!recipe) return;
+    try {
+      // 先移除可能存在的旧弹窗
+      const oldModal = document.querySelector('.gacha-recipe-card-modal');
+      if (oldModal) oldModal.remove();
 
-    const config = RARITY_CONFIG[recipe.rarity];
-    const cardEl = document.createElement('div');
-    cardEl.className = 'gacha-recipe-card-modal';
-    cardEl.innerHTML = `
-      <div class="gacha-recipe-card" style="border-color: ${config.color}; box-shadow: 0 0 40px ${config.color}60">
-        <div class="gacha-card-rarity" style="background: ${config.color}">${config.label}</div>
-        <div class="gacha-card-icon">📜</div>
-        <div class="gacha-card-name">${recipe.name}</div>
-        <div class="gacha-card-desc">${recipe.desc}</div>
-        <div class="gacha-card-story">"${recipe.story}"</div>
-        <div class="gacha-card-mystery">🔮 神秘食谱 · 烹饪后揭晓完整内容</div>
-        <div class="gacha-card-actions">
-          <button class="gacha-card-cook-btn" onclick="GachaModule.startMysteryCooking('${recipe.id}'); this.closest('.gacha-recipe-card-modal').remove()">
-            🍳 立即烹饪
-          </button>
-          <button class="gacha-card-save-btn" onclick="this.closest('.gacha-recipe-card-modal').remove()">
-            💾 稍后再做
-          </button>
+      const recipe = LIMITED_RECIPES.find(r => r.id === recipeId);
+      if (!recipe) {
+        showToast('😱 食谱不存在');
+        return;
+      }
+
+      const config = RARITY_CONFIG[recipe.rarity];
+      const cardEl = document.createElement('div');
+      cardEl.className = 'gacha-recipe-card-modal';
+      cardEl.innerHTML = `
+        <div class="gacha-recipe-card" style="border-color: ${config.color}; box-shadow: 0 0 40px ${config.color}60">
+          <div class="gacha-card-rarity" style="background: ${config.color}">${config.label}</div>
+          <div class="gacha-card-icon">📜</div>
+          <div class="gacha-card-name">${recipe.name}</div>
+          <div class="gacha-card-desc">${recipe.desc}</div>
+          <div class="gacha-card-story">"${recipe.story}"</div>
+          <div class="gacha-card-mystery">🔮 神秘食谱 · 烹饪后揭晓完整内容</div>
+          <div class="gacha-card-actions">
+            <button class="gacha-card-cook-btn" onclick="GachaModule.startMysteryCooking('${recipe.id}'); document.querySelector('.gacha-recipe-card-modal')?.remove()">
+              🍳 立即烹饪
+            </button>
+            <button class="gacha-card-save-btn" onclick="document.querySelector('.gacha-recipe-card-modal')?.remove()">
+              💾 稍后再做
+            </button>
+          </div>
+          <button class="gacha-card-close" onclick="document.querySelector('.gacha-recipe-card-modal')?.remove()">✕</button>
         </div>
-        <button class="gacha-card-close" onclick="this.closest('.gacha-recipe-card-modal').remove()">✕</button>
-      </div>
-    `;
-    document.body.appendChild(cardEl);
-    cardEl.classList.add('show');
+      `;
+      document.body.appendChild(cardEl);
+      
+      // 延迟添加 show 类，确保 CSS 动画生效
+      requestAnimationFrame(() => {
+        cardEl.classList.add('show');
+      });
+    } catch (err) {
+      console.error('showRecipeCard 错误:', err);
+      showToast('😱 显示食谱卡失败');
+    }
   }
 
   /**
