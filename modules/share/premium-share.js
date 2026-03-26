@@ -90,15 +90,36 @@ const PremiumShareModule = (() => {
   }
 
   /**
+   * 获取当前食谱数据
+   */
+  function getRecipeData() {
+    // 优先从 window._currentRecipe 获取（cooking.js 生成后设置）
+    const saved = window._currentRecipe || window._currentGachaResult;
+    if (saved) {
+      return {
+        title: saved.input || saved.recipe?.name || '美味食谱',
+        modeLabel: saved.modeLabel || (saved.config && saved.config.label) || '🍳 普通模式',
+        markdown: saved.markdown || saved.fullText || '',
+      };
+    }
+    // 兜底：从 DOM 读取
+    const outputEl = document.getElementById('recipe-output');
+    return {
+      title: document.getElementById('user-input')?.value || '美味食谱',
+      modeLabel: document.getElementById('mode-badge')?.textContent || '🍳 普通模式',
+      markdown: outputEl ? outputEl.textContent : '',
+    };
+  }
+
+  /**
    * 渲染分享面板
    */
   function renderSharePanel() {
     const container = document.getElementById('premium-share-content');
     if (!container) return;
 
-    const recipeOutput = document.getElementById('recipe-output')?.textContent || '';
-    const userInput = document.getElementById('user-input')?.value || '';
-    const currentMode = document.querySelector('.mode-btn.active')?.dataset.mode || 'normal';
+    const recipe = getRecipeData();
+    const currentMode = window._currentRecipe?.mode || 'normal';
 
     container.innerHTML = `
       <div class="premium-share-styles">
@@ -145,21 +166,22 @@ const PremiumShareModule = (() => {
     `;
 
     // 生成预览
-    generatePreview(currentMode, userInput, recipeOutput);
+    generatePreview(currentMode, recipe.title, recipe.markdown);
   }
 
   /**
    * 生成预览
    */
-  function generatePreview(style, title, content) {
+  function generatePreview(style, title, markdown) {
     const canvas = document.getElementById('premium-share-canvas');
     if (!canvas) return;
 
     const styleConfig = SHARE_STYLES[style] || SHARE_STYLES.normal;
 
-    // 截断内容
-    const lines = content.split('\n').slice(0, 5);
-    const preview = lines.join('\n').slice(0, 200) + '...';
+    // 用 marked 渲染 markdown，截取合理长度
+    const html = typeof marked !== 'undefined' ? marked.parse(markdown) : markdown.replace(/\n/g, '<br/>');
+    // 截取前 ~300 字可见内容用于预览
+    const truncated = html.length > 600 ? html.slice(0, 600) + '<div style="opacity:0.5;margin-top:8px;">...更多内容见完整分享图</div>' : html;
 
     canvas.innerHTML = `
       <div class="premium-share-card" style="
@@ -172,7 +194,7 @@ const PremiumShareModule = (() => {
           <span class="premium-share-card-title">${title.slice(0, 30)}</span>
         </div>
         <div class="premium-share-card-content">
-          ${preview.slice(0, 150)}
+          ${truncated}
         </div>
         <div class="premium-share-card-footer">
           <span style="color: ${styleConfig.accentColor}">🍔 美味创意AI厨房</span>
@@ -190,9 +212,8 @@ const PremiumShareModule = (() => {
     });
     document.querySelector(`.premium-share-style-btn[data-style="${style}"]`)?.classList.add('active');
 
-    const userInput = document.getElementById('user-input')?.value || '';
-    const recipeOutput = document.getElementById('recipe-output')?.textContent || '';
-    generatePreview(style, userInput, recipeOutput);
+    const recipe = getRecipeData();
+    generatePreview(style, recipe.title, recipe.markdown);
   }
 
   /**
@@ -201,10 +222,12 @@ const PremiumShareModule = (() => {
   async function generateImage() {
     const selectedStyle = document.querySelector('.premium-share-style-btn.active')?.dataset.style || 'normal';
     const styleConfig = SHARE_STYLES[selectedStyle];
-    const userInput = document.getElementById('user-input')?.value || '美味食谱';
-    const recipeOutput = document.getElementById('recipe-output')?.textContent || '';
+    const recipe = getRecipeData();
     const addWatermark = document.getElementById('premium-share-watermark')?.checked;
     const addQRCode = document.getElementById('premium-share-qrcode')?.checked;
+
+    // 用 marked 渲染完整 markdown
+    const contentHtml = typeof marked !== 'undefined' ? marked.parse(recipe.markdown) : recipe.markdown.replace(/\n/g, '<br/>');
 
     // 创建临时容器
     const container = document.createElement('div');
@@ -213,16 +236,15 @@ const PremiumShareModule = (() => {
       left: -9999px;
       top: -9999px;
       width: 1080px;
-      height: 1440px;
       background: ${styleConfig.bgGradient};
       padding: 60px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       color: ${styleConfig.textColor};
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       border: 8px ${styleConfig.borderStyle} ${styleConfig.borderColor};
       box-sizing: border-box;
+      overflow: hidden;
     `;
 
     // 头部
@@ -231,27 +253,33 @@ const PremiumShareModule = (() => {
       <div style="text-align: center; margin-bottom: 40px;">
         <div style="font-size: 80px; margin-bottom: 20px;">${styleConfig.icon}</div>
         <div style="font-size: 48px; font-weight: bold; margin-bottom: 20px; color: ${styleConfig.accentColor};">
-          ${userInput.slice(0, 30)}
+          ${recipe.title.slice(0, 40)}
         </div>
         <div style="font-size: 24px; opacity: 0.8;">
-          ${window.MODE_LABELS[document.querySelector('.mode-btn.active')?.dataset.mode || 'normal']}
+          ${recipe.modeLabel}
         </div>
       </div>
     `;
 
-    // 内容
+    // 内容（完整渲染）
     const content = document.createElement('div');
-    const lines = recipeOutput.split('\n').slice(0, 12);
-    content.innerHTML = `
-      <div style="font-size: 28px; line-height: 1.8; opacity: 0.9;">
-        ${lines.join('<br/>').slice(0, 500)}...
-      </div>
-    `;
+    content.style.cssText = 'font-size: 28px; line-height: 1.8; opacity: 0.95; flex: 1; overflow: hidden;';
+    content.innerHTML = contentHtml;
+    // 样式化 markdown 元素
+    content.querySelectorAll('h1').forEach(el => { el.style.cssText = 'font-size: 40px; font-weight: bold; margin: 24px 0 16px; color: ' + styleConfig.accentColor; });
+    content.querySelectorAll('h2').forEach(el => { el.style.cssText = 'font-size: 34px; font-weight: bold; margin: 20px 0 12px; color: ' + styleConfig.accentColor; });
+    content.querySelectorAll('h3').forEach(el => { el.style.cssText = 'font-size: 30px; font-weight: bold; margin: 16px 0 10px;'; });
+    content.querySelectorAll('p').forEach(el => { el.style.cssText = 'margin: 8px 0;'; });
+    content.querySelectorAll('ul, ol').forEach(el => { el.style.cssText = 'padding-left: 32px; margin: 8px 0;'; });
+    content.querySelectorAll('li').forEach(el => { el.style.cssText = 'margin: 6px 0;'; });
+    content.querySelectorAll('strong').forEach(el => { el.style.cssText = 'font-weight: bold; color: ' + styleConfig.accentColor; });
+    content.querySelectorAll('hr').forEach(el => { el.style.cssText = 'border: none; border-top: 2px solid ' + styleConfig.accentColor + '33; margin: 20px 0;'; });
+    content.querySelectorAll('code').forEach(el => { el.style.cssText = 'background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 24px;'; });
 
     // 底部
     const footer = document.createElement('div');
     footer.innerHTML = `
-      <div style="text-align: center; border-top: 2px solid ${styleConfig.accentColor}; padding-top: 30px;">
+      <div style="text-align: center; border-top: 2px solid ${styleConfig.accentColor}; padding-top: 30px; margin-top: 30px;">
         <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px; color: ${styleConfig.accentColor};">
           🍔 美味创意 AI 厨房
         </div>
@@ -278,6 +306,8 @@ const PremiumShareModule = (() => {
         scale: 1,
         useCORS: true,
         allowTaint: true,
+        height: container.scrollHeight,
+        windowWidth: 1080,
       });
 
       // 保存到全局

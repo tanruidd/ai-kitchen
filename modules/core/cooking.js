@@ -139,6 +139,9 @@ async function startCooking() {
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.SFX?.done();
 
+    // 保存当前食谱数据（供分享图等模块使用）
+    window._currentRecipe = { input, mode: currentMode, markdown: fullText, modeLabel: window.MODE_LABELS[currentMode] };
+
     // 保存到历史记录
     saveCurrentResult(input, currentMode, fullText);
 
