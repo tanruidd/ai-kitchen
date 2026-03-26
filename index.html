@@ -168,7 +168,7 @@
           <button class="action-btn" id="copy-btn" onclick="copyRecipe()" title="复制食谱">
             📋 复制
           </button>
-          <button class="action-btn" id="share-btn" onclick="PremiumShareModule.openSharePanel()" title="高级分享图">
+          <button class="action-btn" id="share-btn" onclick="shareRecipe()" title="分享图片">
             🖼️ 分享图片
           </button>
         </div>
@@ -212,15 +212,7 @@
       <div class="share-card-footer">🍔 由美味创意 AI 厨房生成 · 每一道菜都是爱 ❤️</div>
     </div>
 
-    <!-- 高级分享图面板 -->
-    <div class="premium-share-overlay" id="premium-share-overlay" onclick="PremiumShareModule.closeSharePanel()"></div>
-    <div class="premium-share-panel" id="premium-share-panel">
-      <div class="premium-share-panel-header">
-        <h3>✨ 高级分享图</h3>
-        <button class="premium-share-panel-close" onclick="PremiumShareModule.closeSharePanel()">✕</button>
-      </div>
-      <div class="premium-share-content" id="premium-share-content"></div>
-    </div>
+
 
     <footer>
       🧽 由海绵宝宝 × 蟹老板联合出品 · 比奇堡 AI 厨房 · 每一道菜都是爱 ❤️
@@ -305,7 +297,7 @@
 <script src="./modules/features/gacha/data.js"></script>
   <script src="./modules/features/gacha/store.js"></script>
   <script src="./modules/features/gacha/index.js"></script>
-<script src="./modules/share/premium-share.js"></script>
+
 <script src="./modules/features/achievements.js"></script>
 <script src="./modules/features/leaderboard.js"></script>
 <script src="./modules/features/stats.js"></script>
