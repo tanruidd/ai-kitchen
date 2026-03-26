@@ -1566,6 +1566,202 @@
       color: #999;
     }
 
+    /* ── 收集进度条 ── */
+    .gacha-collection-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .gacha-collection-text {
+      font-size: 0.85rem;
+      color: #ccc;
+      white-space: nowrap;
+    }
+
+    .gacha-collection-text strong {
+      color: #f39c12;
+    }
+
+    .gacha-collection-progress {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .gacha-collection-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f39c12, #e74c3c);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .gacha-collection-pct {
+      font-size: 0.85rem;
+      color: #f39c12;
+      font-weight: 700;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* ── 食材图鉴：品类分组 ── */
+    .gacha-category-section {
+      margin-bottom: 16px;
+    }
+
+    .gacha-category-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #aaa;
+      padding: 6px 4px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 8px;
+    }
+
+    .gacha-category-count {
+      font-weight: 400;
+      color: #666;
+      font-size: 0.8rem;
+    }
+
+    .gacha-category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .gacha-ingredient-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .gacha-ingredient-card.owned {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .gacha-ingredient-card.locked {
+      opacity: 0.4;
+      filter: grayscale(0.8);
+    }
+
+    .gacha-ingredient-card-count {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 0.7rem;
+      color: #f39c12;
+      font-weight: 700;
+    }
+
+    .gacha-ingredient-card-name {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #ddd;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gacha-ingredient-card-rarity {
+      font-size: 0.65rem;
+      color: #888;
+      margin-bottom: 2px;
+    }
+
+    .gacha-ingredient-card-price {
+      font-size: 0.65rem;
+      color: #666;
+    }
+
+    /* ── 食谱食材需求列表 ── */
+    .gacha-card-ingredients {
+      margin: 12px 0 8px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+
+    .gacha-card-ingredients-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+
+    .gacha-ingredient-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 0.8rem;
+    }
+
+    .gacha-ingredient-item.owned { color: #ccc; }
+    .gacha-ingredient-item.missing { color: #888; }
+
+    .gacha-ingredient-status { flex-shrink: 0; width: 16px; text-align: center; }
+    .gacha-ingredient-name { flex: 1; }
+    .gacha-ingredient-info { flex-shrink: 0; font-size: 0.7rem; color: #888; }
+
+    .gacha-recipe-progress-mini {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin: 8px 0 4px;
+      text-align: center;
+    }
+
+    .gacha-card-price {
+      font-size: 0.85rem;
+      color: #f39c12;
+      margin: 6px 0;
+      font-weight: 600;
+    }
+
+    .gacha-card-save-btn.disabled {
+      background: #333 !important;
+      color: #666 !important;
+      cursor: not-allowed !important;
+      opacity: 0.6;
+    }
+
+    .gacha-recipe-cookable {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 0.7rem;
+      color: #f39c12;
+      font-weight: 600;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .gacha-recipe-record-ingredients {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .gacha-recipes-history-link {
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
     /* ── 盲盒食谱记录列表 ── */
     .gacha-recipes-list {
       display: flex;
@@ -1593,14 +1789,15 @@
 
     .gacha-recipe-record-left {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 4px;
       flex: 1;
       min-width: 0;
     }
 
     .gacha-recipe-record-badge {
-      flex-shrink: 0;
+      display: inline-block;
+      align-self: flex-start;
       padding: 2px 8px;
       border-radius: 6px;
       color: #fff;
