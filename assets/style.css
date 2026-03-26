@@ -2946,3 +2946,269 @@
         padding: 16px;
       }
     }
+
+    /* ════════════════════════════════════════
+       盲盒神秘卡片样式
+    ════════════════════════════════════════ */
+
+    .gacha-recipe-card-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .gacha-recipe-card-modal.show {
+      opacity: 1;
+    }
+
+    .gacha-recipe-card {
+      background: linear-gradient(145deg, #fff 0%, #f8f9fa 100%);
+      border-radius: 24px;
+      border: 3px solid;
+      padding: 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+      transform: scale(0.8) rotateY(90deg);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      animation: cardShine 2s ease-in-out infinite;
+    }
+
+    .gacha-recipe-card-modal.show .gacha-recipe-card {
+      transform: scale(1) rotateY(0deg);
+    }
+
+    @keyframes cardShine {
+      0%, 100% { box-shadow: 0 0 40px currentColor; }
+      50% { box-shadow: 0 0 60px currentColor, 0 0 80px currentColor; }
+    }
+
+    .gacha-card-rarity {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .gacha-card-icon {
+      font-size: 4rem;
+      margin: 16px 0;
+      animation: iconFloat 2s ease-in-out infinite;
+    }
+
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .gacha-card-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .gacha-card-desc {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .gacha-card-story {
+      font-size: 0.85rem;
+      color: #888;
+      font-style: italic;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border-left: 3px solid #ddd;
+    }
+
+    .gacha-card-mystery {
+      font-size: 0.8rem;
+      color: #9b59b6;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .gacha-card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .gacha-card-cook-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .gacha-card-cook-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .gacha-card-save-btn {
+      background: transparent;
+      color: #888;
+      border: 2px solid #ddd;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .gacha-card-save-btn:hover {
+      border-color: #aaa;
+      color: #555;
+    }
+
+    .gacha-card-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: #f0f0f0;
+      color: #888;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .gacha-card-close:hover {
+      background: #e0e0e0;
+      color: #555;
+    }
+
+    /* ════════════════════════════════════════
+       神秘烹饪界面
+    ════════════════════════════════════════ */
+
+    .mystery-cooking-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(145deg, rgba(20, 20, 40, 0.98) 0%, rgba(60, 20, 80, 0.98) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      backdrop-filter: blur(20px);
+    }
+
+    .mystery-cooking-content {
+      text-align: center;
+      color: #fff;
+    }
+
+    .mystery-cooking-icon {
+      font-size: 5rem;
+      margin-bottom: 24px;
+      animation: mysteryPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes mysteryPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .mystery-cooking-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .mystery-cooking-recipe {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 32px;
+    }
+
+    .mystery-cooking-progress {
+      width: 200px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      margin: 0 auto 16px;
+      overflow: hidden;
+    }
+
+    .mystery-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .mystery-cooking-hint {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.5);
+      animation: hintBlink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes hintBlink {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* ════════════════════════════════════════
+       盲盒结果头部样式
+    ════════════════════════════════════════ */
+
+    .gacha-result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%);
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .gacha-result-rarity-badge {
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .gacha-result-recipe-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #333;
+    }

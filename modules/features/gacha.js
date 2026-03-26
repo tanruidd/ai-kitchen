@@ -39,15 +39,34 @@ const GachaModule = (() => {
   ];
 
   // 限定食谱（稀有度越高越容易出现）
+  // 注意：prompt 不对用户展示，保持神秘感
   const LIMITED_RECIPES = [
-    { id: 'recipe-michelin-pasta', name: '✨ 米其林黑松露意面', rarity: 'rare', desc: '黑松露与帕玛森芝士的完美邂逅，米其林级别的意式优雅', prompt: '用黑松露、帕玛森芝士、新鲜意面创作一道米其林级别的意大利面。要求：精致、优雅、充满香气。' },
-    { id: 'recipe-wagyu-steak', name: '🥩 和牛牛排大师班', rarity: 'rare', desc: '日本顶级和牛，火候精准的艺术品级牛排', prompt: '用顶级和牛创作一道完美的牛排。要求：火候精准、配菜精致、摆盘艺术。' },
-    { id: 'recipe-foie-gras', name: '🦆 鹅肝盛宴', rarity: 'epic', desc: '法国经典美食的巅峰，丝滑细腻的鹅肝体验', prompt: '用鹅肝创作一道法国经典菜。要求：高端、优雅、充满法式风情。' },
-    { id: 'recipe-truffle-risotto', name: '🍚 松露烩饭', rarity: 'epic', desc: '香气四溢的松露与丝滑烩饭的绝妙组合', prompt: '用松露油和意大利米创作一道奶油烩饭。要求：香气扑鼻、口感顺滑、米粒分明。' },
-    { id: 'recipe-saffron-paella', name: '🍲 番红花海鲜饭', rarity: 'epic', desc: '西班牙国粹，番红花染就的金黄海洋盛宴', prompt: '用番红花、海鲜、西班牙米创作一道西班牙海鲜饭。要求：色香味俱全、海鲜新鲜、米粒饱满。' },
-    { id: 'recipe-miso-soup', name: '🍜 顶级味噌汤', rarity: 'uncommon', desc: '日本传统汤底的极致演绎，温暖入心', prompt: '用顶级味噌创作一道日本传统汤。要求：鲜香、温暖、营养丰富。' },
-    { id: 'recipe-olive-salad', name: '🥗 橄榄油沙拉', rarity: 'uncommon', desc: '地中海健康风情，特级初榨橄榄油的清香', prompt: '用特级初榨橄榄油创作一道地中海沙拉。要求：清爽、健康、橄榄油香气突出。' },
+    { id: 'recipe-michelin-pasta', name: '✨ 米其林黑松露意面', rarity: 'rare', desc: '黑松露与帕玛森芝士的完美邂逅', story: '传说这道菜源自意大利北部一个小村庄的百年老店...', prompt: '用黑松露、帕玛森芝士、新鲜意面创作一道米其林级别的意大利面。要求：精致、优雅、充满香气。' },
+    { id: 'recipe-wagyu-steak', name: '🥩 和牛牛排大师班', rarity: 'rare', desc: '日本顶级和牛，火候精准的艺术', story: '在日本神户，有一位老匠人用一生研究牛排的火候...', prompt: '用顶级和牛创作一道完美的牛排。要求：火候精准、配菜精致、摆盘艺术。' },
+    { id: 'recipe-foie-gras', name: '🦆 鹅肝盛宴', rarity: 'epic', desc: '法国经典美食的巅峰之作', story: '这道菜曾被法国国王路易十四赞为"天堂的味道"...', prompt: '用鹅肝创作一道法国经典菜。要求：高端、优雅、充满法式风情。' },
+    { id: 'recipe-truffle-risotto', name: '🍚 松露烩饭', rarity: 'epic', desc: '香气四溢的松露与丝滑烩饭', story: '在米兰郊外的一座古堡里，藏着这道传世秘方...', prompt: '用松露油和意大利米创作一道奶油烩饭。要求：香气扑鼻、口感顺滑、米粒分明。' },
+    { id: 'recipe-saffron-paella', name: '🍲 番红花海鲜饭', rarity: 'epic', desc: '西班牙国粹，金黄海洋盛宴', story: '瓦伦西亚的渔夫们用番红花染就了这道金色传奇...', prompt: '用番红花、海鲜、西班牙米创作一道西班牙海鲜饭。要求：色香味俱全、海鲜新鲜、米粒饱满。' },
+    { id: 'recipe-miso-soup', name: '🍜 顶级味噌汤', rarity: 'uncommon', desc: '日本传统汤底的极致演绎', story: '京都的一座百年味噌作坊，藏着这份温暖的秘密...', prompt: '用顶级味噌创作一道日本传统汤。要求：鲜香、温暖、营养丰富。' },
+    { id: 'recipe-olive-salad', name: '🥗 橄榄油沙拉', rarity: 'uncommon', desc: '地中海健康风情', story: '希腊橄榄园的女主人将阳光封进了这瓶油里...', prompt: '用特级初榨橄榄油创作一道地中海沙拉。要求：清爽、健康、橄榄油香气突出。' },
   ];
+
+  // 盲盒专属系统提示词（生成更奢华的内容）
+  const GACHA_SYSTEM_PROMPT = `你是一位神秘的美食大师，专门创作传说中的限定食谱。
+
+【输出格式要求】
+1. 使用 Markdown 格式输出
+2. 第一行用 # 写菜名（要吸引眼球）
+3. 必须包含以下章节（用 ## 分隔）：
+   - ## 📖 传奇故事（这道菜的起源传说或灵感来源，2-3句话）
+   - ## 🥄 品尝指南（最佳搭配、适合场景、氛围建议）
+   - ## 🎨 摆盘艺术（主色调、点缀建议、器皿推荐）
+   - ## 🥗 食材清单（精确用量）
+   - ## 👨‍🍳 烹饪步骤（详细步骤，关键温度时间用**粗体**）
+   - ## 🎲 隐藏彩蛋（一个创意变体或独门秘诀）
+4. 全文使用中文回复
+5. 多用 emoji 增加神秘感 ✨🌟💫
+6. 语气要神秘、高级、充满仪式感
+7. 段落之间空一行，保持优雅排版`;
 
   // 稀有度配置
   const RARITY_CONFIG = {
@@ -277,8 +296,8 @@ const GachaModule = (() => {
               <div class="gacha-item-desc">${item.desc}</div>
               <div class="gacha-item-count">×${count}</div>
               ${type === 'recipe' ? `
-                <button class="gacha-item-use-btn" onclick="GachaModule.useRecipe('${item.id}')">
-                  🍳 使用食谱
+                <button class="gacha-item-use-btn" onclick="GachaModule.showRecipeCard('${item.id}')">
+                  📜 查看神秘食谱
                 </button>
               ` : ''}
             </div>
@@ -360,25 +379,37 @@ const GachaModule = (() => {
   function showDrawResult(result) {
     const config = RARITY_CONFIG[result.rarity];
     const resultEl = document.createElement('div');
-    resultEl.className = 'gacha-result-modal';
+    resultEl.className = 'gacha-recipe-card-modal';
     resultEl.innerHTML = `
-      <div class="gacha-result-card" style="border-color: ${config.color}; box-shadow: 0 0 30px ${config.color}80">
-        <div class="gacha-result-rarity" style="background: ${config.color}">${config.label}</div>
-        <div class="gacha-result-content">
-          ${result.type === 'ingredient' ? `
-            <div class="gacha-result-icon">🍄</div>
-            <div class="gacha-result-name">${result.data.name}</div>
-            <div class="gacha-result-desc">${result.data.desc}</div>
-          ` : `
-            <div class="gacha-result-icon">🍳</div>
-            <div class="gacha-result-name">${result.data.name}</div>
-            <div class="gacha-result-desc">${result.data.desc}</div>
-            <button class="gacha-result-use-btn" onclick="GachaModule.useRecipe('${result.data.id}'); this.closest('.gacha-result-modal').remove()">
-              🍳 立即使用
+      <div class="gacha-recipe-card" style="border-color: ${config.color}; box-shadow: 0 0 40px ${config.color}60">
+        <div class="gacha-card-rarity" style="background: ${config.color}">${config.label}</div>
+        ${result.type === 'ingredient' ? `
+          <div class="gacha-card-icon">🍽️</div>
+          <div class="gacha-card-name">${result.data.name}</div>
+          <div class="gacha-card-desc">${result.data.desc}</div>
+          <div class="gacha-card-story">"${result.data.desc}，这是大自然的馈赠。"</div>
+          <div class="gacha-card-mystery">🌿 稀有食材 · 已存入背包</div>
+          <div class="gacha-card-actions">
+            <button class="gacha-card-save-btn" onclick="this.closest('.gacha-recipe-card-modal').remove()">
+              ✅ 我知道了
             </button>
-          `}
-        </div>
-        <button class="gacha-result-close" onclick="this.closest('.gacha-result-modal').remove()">✕</button>
+          </div>
+        ` : `
+          <div class="gacha-card-icon">📜</div>
+          <div class="gacha-card-name">${result.data.name}</div>
+          <div class="gacha-card-desc">${result.data.desc}</div>
+          <div class="gacha-card-story">"${result.data.story}"</div>
+          <div class="gacha-card-mystery">🔮 神秘食谱 · 烹饪后揭晓完整内容</div>
+          <div class="gacha-card-actions">
+            <button class="gacha-card-cook-btn" onclick="GachaModule.startMysteryCooking('${result.data.id}'); this.closest('.gacha-recipe-card-modal').remove()">
+              🍳 立即烹饪
+            </button>
+            <button class="gacha-card-save-btn" onclick="this.closest('.gacha-recipe-card-modal').remove()">
+              💾 稍后再做
+            </button>
+          </div>
+        `}
+        <button class="gacha-card-close" onclick="this.closest('.gacha-recipe-card-modal').remove()">✕</button>
       </div>
     `;
     document.body.appendChild(resultEl);
@@ -386,21 +417,183 @@ const GachaModule = (() => {
   }
 
   /**
-   * 使用限定食谱
+   * 展示食谱卡片（神秘模式，不显示 prompt）
    */
-  function useRecipe(recipeId) {
+  function showRecipeCard(recipeId) {
     const recipe = LIMITED_RECIPES.find(r => r.id === recipeId);
     if (!recipe) return;
 
-    // 填充输入框
-    document.getElementById('user-input').value = recipe.prompt;
-    // 切换到米其林模式
-    const michelin = document.querySelector('.mode-btn[data-mode="michelin"]');
-    if (michelin) michelin.click();
+    const config = RARITY_CONFIG[recipe.rarity];
+    const cardEl = document.createElement('div');
+    cardEl.className = 'gacha-recipe-card-modal';
+    cardEl.innerHTML = `
+      <div class="gacha-recipe-card" style="border-color: ${config.color}; box-shadow: 0 0 40px ${config.color}60">
+        <div class="gacha-card-rarity" style="background: ${config.color}">${config.label}</div>
+        <div class="gacha-card-icon">📜</div>
+        <div class="gacha-card-name">${recipe.name}</div>
+        <div class="gacha-card-desc">${recipe.desc}</div>
+        <div class="gacha-card-story">"${recipe.story}"</div>
+        <div class="gacha-card-mystery">🔮 神秘食谱 · 烹饪后揭晓完整内容</div>
+        <div class="gacha-card-actions">
+          <button class="gacha-card-cook-btn" onclick="GachaModule.startMysteryCooking('${recipe.id}'); this.closest('.gacha-recipe-card-modal').remove()">
+            🍳 立即烹饪
+          </button>
+          <button class="gacha-card-save-btn" onclick="this.closest('.gacha-recipe-card-modal').remove()">
+            💾 稍后再做
+          </button>
+        </div>
+        <button class="gacha-card-close" onclick="this.closest('.gacha-recipe-card-modal').remove()">✕</button>
+      </div>
+    `;
+    document.body.appendChild(cardEl);
+    cardEl.classList.add('show');
+  }
+
+  /**
+   * 神秘烹饪（盲盒专属流程）
+   */
+  async function startMysteryCooking(recipeId) {
+    const recipe = LIMITED_RECIPES.find(r => r.id === recipeId);
+    if (!recipe) return;
 
     // 返回主页
     window.MenuModule?.goBack();
-    showToast(`🍳 已加载限定食谱：${recipe.name}`);
+
+    // 显示神秘烹饪界面
+    const mainContainer = document.querySelector('.main-container');
+    const mysteryOverlay = document.createElement('div');
+    mysteryOverlay.className = 'mystery-cooking-overlay';
+    mysteryOverlay.innerHTML = `
+      <div class="mystery-cooking-content">
+        <div class="mystery-cooking-icon">🔮</div>
+        <div class="mystery-cooking-title">神秘料理正在施展...</div>
+        <div class="mystery-cooking-recipe">${recipe.name}</div>
+        <div class="mystery-cooking-progress">
+          <div class="mystery-progress-bar"></div>
+        </div>
+        <div class="mystery-cooking-hint">✨ 魔法即将完成...</div>
+      </div>
+    `;
+    document.body.appendChild(mysteryOverlay);
+
+    // 动画进度条
+    const progressBar = mysteryOverlay.querySelector('.mystery-progress-bar');
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 15;
+      if (progress > 90) progress = 90;
+      progressBar.style.width = progress + '%';
+    }, 500);
+
+    try {
+      // 调用 API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'stepfun/step-3.5-flash:free',
+          messages: [
+            { role: 'system', content: GACHA_SYSTEM_PROMPT },
+            { role: 'user', content: recipe.prompt },
+          ],
+          temperature: 0.95,
+          max_tokens: 2500,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 错误 ${response.status}`);
+      }
+
+      // 清除进度动画
+      clearInterval(progressInterval);
+      progressBar.style.width = '100%';
+
+      // 移除神秘界面
+      setTimeout(() => {
+        mysteryOverlay.remove();
+      }, 500);
+
+      // 流式输出到结果区域
+      const resultSection = document.getElementById('result-section');
+      const loading = document.getElementById('loading');
+      const outputEl = document.getElementById('recipe-output');
+
+      loading.style.display = 'none';
+      resultSection.style.display = 'block';
+      document.getElementById('mode-badge').textContent = `🎁 ${RARITY_CONFIG[recipe.rarity].label}食谱`;
+
+      // 添加稀有度装饰
+      const config = RARITY_CONFIG[recipe.rarity];
+      outputEl.innerHTML = `<div class="gacha-result-header" style="border-left: 4px solid ${config.color}">
+        <span class="gacha-result-rarity-badge" style="background: ${config.color}">${config.label}</span>
+        <span class="gacha-result-recipe-name">${recipe.name}</span>
+      </div>`;
+
+      // 流式读取
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+          try {
+            const json = JSON.parse(trimmed.slice(6));
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullText += delta;
+              outputEl.innerHTML = `<div class="gacha-result-header" style="border-left: 4px solid ${config.color}">
+                <span class="gacha-result-rarity-badge" style="background: ${config.color}">${config.label}</span>
+                <span class="gacha-result-recipe-name">${recipe.name}</span>
+              </div>` + marked.parse(fullText);
+            }
+          } catch (_) {}
+        }
+      }
+
+      // 显示操作按钮
+      document.getElementById('action-btns').style.display = 'flex';
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.SFX?.done();
+
+      // 保存到历史记录（标记为盲盒食谱）
+      saveCurrentResult(`[盲盒·${config.label}] ${recipe.name}`, 'gacha', fullText);
+
+      // 增加盲盒计数
+      addCookCount();
+
+      // 更新排行榜
+      window.LeaderboardModule?.updateRecipeRank(recipe.name, 'gacha');
+
+      // 检查成就
+      window.AchievementModule?.checkAchievements();
+
+      showToast(`✨ 传奇食谱已揭晓！`);
+
+    } catch (err) {
+      clearInterval(progressInterval);
+      mysteryOverlay.remove();
+      showToast(`😱 神秘料理失败了：${err.message}`);
+    }
+  }
+
+  /**
+   * 使用限定食谱（展示神秘卡片）
+   */
+  function useRecipe(recipeId) {
+    showRecipeCard(recipeId);
   }
 
   /**
@@ -431,6 +624,8 @@ const GachaModule = (() => {
     updateGachaBadge,
     switchGachaTab,
     useRecipe,
+    showRecipeCard,
+    startMysteryCooking,
     buyTickets,
     renderGachaPanel,
   };
