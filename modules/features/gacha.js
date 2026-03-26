@@ -239,9 +239,11 @@ const GachaModule = (() => {
 
     // 直接给每个 Tab 按钮绑定点击事件
     const tabs = container.querySelectorAll('.gacha-tab');
+    console.log('Found', tabs.length, 'gacha tabs');
     tabs.forEach(function(tab) {
       tab.addEventListener('click', function() {
         const tabName = this.getAttribute('data-tab');
+        console.log('Tab clicked:', tabName, 'Text:', this.textContent);
         switchGachaTab(tabName);
       });
     });
@@ -689,12 +691,23 @@ const GachaModule = (() => {
    * 切换 Tab
    */
   function switchGachaTab(tab) {
+    console.log('switchGachaTab called with:', tab);
     document.querySelectorAll('.gacha-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.gacha-tab[data-tab="${tab}"]`)?.classList.add('active');
+    const targetTab = document.querySelector(`.gacha-tab[data-tab="${tab}"]`);
+    if (targetTab) {
+      targetTab.classList.add('active');
+      console.log('Switched to tab:', tab);
+    } else {
+      console.error('Tab not found:', tab);
+    }
 
     const data = loadGachaData();
+    console.log('Rendering tab content, inventory length:', data.inventory.length);
     if (tab === 'draw') renderDrawTab(data);
-    else if (tab === 'inventory') renderInventoryTab(data);
+    else if (tab === 'inventory') {
+      console.log('Calling renderInventoryTab...');
+      renderInventoryTab(data);
+    }
     else if (tab === 'shop') renderShopTab(data);
   }
 
