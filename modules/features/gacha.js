@@ -81,9 +81,15 @@ const GachaModule = (() => {
    */
   function loadGachaData() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"tickets":0,"inventory":[]}');
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"tickets":0,"inventory":[]}');
+      // 新用户初始 5 张卡券
+      if (data.tickets === 0 && data.inventory.length === 0) {
+        data.tickets = 5;
+        saveGachaData(data);
+      }
+      return data;
     } catch {
-      return { tickets: 0, inventory: [] };
+      return { tickets: 5, inventory: [] };
     }
   }
 
@@ -571,9 +577,6 @@ const GachaModule = (() => {
       // 保存到历史记录（标记为盲盒食谱）
       saveCurrentResult(`[盲盒·${config.label}] ${recipe.name}`, 'gacha', fullText);
 
-      // 增加盲盒计数
-      addCookCount();
-
       // 更新排行榜
       window.LeaderboardModule?.updateRecipeRank(recipe.name, 'gacha');
 
@@ -585,6 +588,12 @@ const GachaModule = (() => {
     } catch (err) {
       clearInterval(progressInterval);
       mysteryOverlay.remove();
+      // 重置按钮状态
+      const btn = document.getElementById('cook-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
+      }
       showToast(`😱 神秘料理失败了：${err.message}`);
     }
   }
