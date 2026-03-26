@@ -111,14 +111,17 @@
 
     .gacha-tab {
       flex: 1;
-      padding: 16px 12px;
+      padding: 12px 6px;
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.78rem;
       color: #999;
       border-bottom: 3px solid transparent;
       transition: all 0.3s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .gacha-tab.active {
@@ -381,7 +384,7 @@
 
     .gacha-category-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       gap: 8px;
     }
 
@@ -389,10 +392,12 @@
       background: rgba(255,255,255,0.05);
       border: 1px solid;
       border-radius: 10px;
-      padding: 10px 8px;
+      padding: 10px 6px;
       text-align: center;
       transition: all 0.2s;
       position: relative;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .gacha-ingredient-card.owned {
