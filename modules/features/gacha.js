@@ -40,13 +40,13 @@ const GachaModule = (() => {
 
   // 限定食谱（稀有度越高越容易出现）
   const LIMITED_RECIPES = [
-    { id: 'recipe-michelin-pasta', name: '✨ 米其林黑松露意面', rarity: 'rare', prompt: '用黑松露、帕玛森芝士、新鲜意面创作一道米其林级别的意大利面。要求：精致、优雅、充满香气。' },
-    { id: 'recipe-wagyu-steak', name: '🥩 和牛牛排大师班', rarity: 'rare', prompt: '用顶级和牛创作一道完美的牛排。要求：火候精准、配菜精致、摆盘艺术。' },
-    { id: 'recipe-foie-gras', name: '🦆 鹅肝盛宴', rarity: 'epic', prompt: '用鹅肝创作一道法国经典菜。要求：高端、优雅、充满法式风情。' },
-    { id: 'recipe-truffle-risotto', name: '🍚 松露烩饭', rarity: 'epic', prompt: '用松露油和意大利米创作一道奶油烩饭。要求：香气扑鼻、口感顺滑、米粒分明。' },
-    { id: 'recipe-saffron-paella', name: '🍲 番红花海鲜饭', rarity: 'epic', prompt: '用番红花、海鲜、西班牙米创作一道西班牙海鲜饭。要求：色香味俱全、海鲜新鲜、米粒饱满。' },
-    { id: 'recipe-miso-soup', name: '🍜 顶级味噌汤', rarity: 'uncommon', prompt: '用顶级味噌创作一道日本传统汤。要求：鲜香、温暖、营养丰富。' },
-    { id: 'recipe-olive-salad', name: '🥗 橄榄油沙拉', rarity: 'uncommon', prompt: '用特级初榨橄榄油创作一道地中海沙拉。要求：清爽、健康、橄榄油香气突出。' },
+    { id: 'recipe-michelin-pasta', name: '✨ 米其林黑松露意面', rarity: 'rare', desc: '黑松露与帕玛森芝士的完美邂逅，米其林级别的意式优雅', prompt: '用黑松露、帕玛森芝士、新鲜意面创作一道米其林级别的意大利面。要求：精致、优雅、充满香气。' },
+    { id: 'recipe-wagyu-steak', name: '🥩 和牛牛排大师班', rarity: 'rare', desc: '日本顶级和牛，火候精准的艺术品级牛排', prompt: '用顶级和牛创作一道完美的牛排。要求：火候精准、配菜精致、摆盘艺术。' },
+    { id: 'recipe-foie-gras', name: '🦆 鹅肝盛宴', rarity: 'epic', desc: '法国经典美食的巅峰，丝滑细腻的鹅肝体验', prompt: '用鹅肝创作一道法国经典菜。要求：高端、优雅、充满法式风情。' },
+    { id: 'recipe-truffle-risotto', name: '🍚 松露烩饭', rarity: 'epic', desc: '香气四溢的松露与丝滑烩饭的绝妙组合', prompt: '用松露油和意大利米创作一道奶油烩饭。要求：香气扑鼻、口感顺滑、米粒分明。' },
+    { id: 'recipe-saffron-paella', name: '🍲 番红花海鲜饭', rarity: 'epic', desc: '西班牙国粹，番红花染就的金黄海洋盛宴', prompt: '用番红花、海鲜、西班牙米创作一道西班牙海鲜饭。要求：色香味俱全、海鲜新鲜、米粒饱满。' },
+    { id: 'recipe-miso-soup', name: '🍜 顶级味噌汤', rarity: 'uncommon', desc: '日本传统汤底的极致演绎，温暖入心', prompt: '用顶级味噌创作一道日本传统汤。要求：鲜香、温暖、营养丰富。' },
+    { id: 'recipe-olive-salad', name: '🥗 橄榄油沙拉', rarity: 'uncommon', desc: '地中海健康风情，特级初榨橄榄油的清香', prompt: '用特级初榨橄榄油创作一道地中海沙拉。要求：清爽、健康、橄榄油香气突出。' },
   ];
 
   // 稀有度配置
