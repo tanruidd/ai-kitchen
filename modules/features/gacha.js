@@ -5,6 +5,7 @@
  * - 每生成 3 道菜，获得 1 次盲盒抽奖机会
  * - 抽奖获得"食材"或"限定食谱"
  * - 支持付费购买盲盒卡券
+ * - 盲盒食谱专属神秘流程
  * - 本地存储盲盒数据
  *
  * 对外暴露：
@@ -12,6 +13,9 @@
  *   GachaModule.openGacha()        — 打开盲盒面板
  *   GachaModule.drawGacha()        — 执行抽奖
  *   GachaModule.updateGachaBadge() — 更新盲盒角标
+ *   GachaModule.showRecipeCard()   — 显示神秘食谱卡片
+ *   GachaModule.startMysteryCooking() — 开始神秘烹饪
+ *   GachaModule.closeGachaResult() — 关闭盲盒结果页
  */
 
 const GachaModule = (() => {
@@ -373,6 +377,8 @@ const GachaModule = (() => {
 
       // 显示抽奖结果
       showDrawResult(result);
+
+      // 更新面板显示
       renderGachaPanel();
       btn.disabled = false;
       btn.textContent = '🎁 开启盲盒';
@@ -457,18 +463,21 @@ const GachaModule = (() => {
 
   /**
    * 神秘烹饪（盲盒专属流程）
+   * 先完整获取结果，再展示精美结果页
    */
   async function startMysteryCooking(recipeId) {
     const recipe = LIMITED_RECIPES.find(r => r.id === recipeId);
     if (!recipe) return;
 
+    const config = RARITY_CONFIG[recipe.rarity];
+
     // 返回主页
     window.MenuModule?.goBack();
 
     // 显示神秘烹饪界面
-    const mainContainer = document.querySelector('.main-container');
     const mysteryOverlay = document.createElement('div');
     mysteryOverlay.className = 'mystery-cooking-overlay';
+    mysteryOverlay.id = 'mystery-overlay';
     mysteryOverlay.innerHTML = `
       <div class="mystery-cooking-content">
         <div class="mystery-cooking-icon">🔮</div>
@@ -492,7 +501,7 @@ const GachaModule = (() => {
     }, 500);
 
     try {
-      // 调用 API
+      // 调用 API（非流式）
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -504,7 +513,6 @@ const GachaModule = (() => {
           ],
           temperature: 0.95,
           max_tokens: 2500,
-          stream: true,
         }),
       });
 
@@ -512,97 +520,119 @@ const GachaModule = (() => {
         throw new Error(`API 错误 ${response.status}`);
       }
 
+      // 获取完整结果
+      const data = await response.json();
+      const fullText = data.choices?.[0]?.message?.content || '获取内容失败';
+
       // 清除进度动画
       clearInterval(progressInterval);
       progressBar.style.width = '100%';
 
-      // 移除神秘界面
+      // 显示揭晓动画
       setTimeout(() => {
         mysteryOverlay.remove();
-      }, 500);
-
-      // 流式输出到结果区域
-      const resultSection = document.getElementById('result-section');
-      const loading = document.getElementById('loading');
-      const outputEl = document.getElementById('recipe-output');
-
-      loading.style.display = 'none';
-      resultSection.style.display = 'block';
-      document.getElementById('mode-badge').textContent = `🎁 ${RARITY_CONFIG[recipe.rarity].label}食谱`;
-
-      // 添加稀有度装饰
-      const config = RARITY_CONFIG[recipe.rarity];
-      outputEl.innerHTML = `<div class="gacha-result-header" style="border-left: 4px solid ${config.color}">
-        <span class="gacha-result-rarity-badge" style="background: ${config.color}">${config.label}</span>
-        <span class="gacha-result-recipe-name">${recipe.name}</span>
-      </div>`;
-
-      // 流式读取
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-      let fullText = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed === 'data: [DONE]') continue;
-          if (!trimmed.startsWith('data: ')) continue;
-          try {
-            const json = JSON.parse(trimmed.slice(6));
-            const delta = json.choices?.[0]?.delta?.content;
-            if (delta) {
-              fullText += delta;
-              outputEl.innerHTML = `<div class="gacha-result-header" style="border-left: 4px solid ${config.color}">
-                <span class="gacha-result-rarity-badge" style="background: ${config.color}">${config.label}</span>
-                <span class="gacha-result-recipe-name">${recipe.name}</span>
-              </div>` + marked.parse(fullText);
-            }
-          } catch (_) {}
-        }
-      }
-
-      // 显示操作按钮
-      document.getElementById('action-btns').style.display = 'flex';
-      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.SFX?.done();
-
-      // 保存到历史记录（标记为盲盒食谱）
-      saveCurrentResult(`[盲盒·${config.label}] ${recipe.name}`, 'gacha', fullText);
-
-      // 更新排行榜
-      window.LeaderboardModule?.updateRecipeRank(recipe.name, 'gacha');
-
-      // 检查成就
-      window.AchievementModule?.checkAchievements();
-
-      showToast(`✨ 传奇食谱已揭晓！`);
+        showGachaResultPage(recipe, config, fullText);
+      }, 800);
 
     } catch (err) {
       clearInterval(progressInterval);
       mysteryOverlay.remove();
-      // 重置按钮状态
-      const btn = document.getElementById('cook-btn');
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
-      }
       showToast(`😱 神秘料理失败了：${err.message}`);
     }
   }
 
   /**
-   * 使用限定食谱（展示神秘卡片）
+   * 展示盲盒结果页（精美独立页面）
    */
-  function useRecipe(recipeId) {
-    showRecipeCard(recipeId);
+  function showGachaResultPage(recipe, config, fullText) {
+    window.SFX?.done();
+
+    // 隐藏主界面，显示结果页
+    const container = document.querySelector('.container');
+    if (container) container.style.display = 'none';
+
+    // 创建结果页
+    const resultPage = document.createElement('div');
+    resultPage.className = 'gacha-result-page';
+    resultPage.innerHTML = `
+      <div class="gacha-result-container">
+        <div class="gacha-result-banner" style="background: linear-gradient(135deg, ${config.color} 0%, ${config.color}99 100%)">
+          <div class="gacha-result-stars">${'⭐'.repeat(5 - ['common', 'uncommon', 'epic', 'rare'].indexOf(recipe.rarity))}</div>
+          <div class="gacha-result-reveal-title">✨ 食谱已揭晓 ✨</div>
+        </div>
+
+        <div class="gacha-result-card-float">
+          <div class="gacha-result-card-badge" style="background: ${config.color}">${config.label}</div>
+          <div class="gacha-result-card-icon">🍽️</div>
+          <div class="gacha-result-card-name">${recipe.name}</div>
+        </div>
+
+        <div class="gacha-result-content">
+          ${marked.parse(fullText)}
+        </div>
+
+        <div class="gacha-result-actions">
+          <button class="gacha-result-share-btn" onclick="GachaModule.shareGachaResult()">
+            📤 分享成果
+          </button>
+          <button class="gacha-result-back-btn" onclick="GachaModule.closeGachaResult()">
+            🏠 返回首页
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(resultPage);
+
+    // 动画入场
+    setTimeout(() => {
+      resultPage.classList.add('show');
+    }, 100);
+
+    // 保存到历史记录
+    saveCurrentResult(`[盲盒·${config.label}] ${recipe.name}`, 'gacha', fullText);
+
+    // 更新排行榜
+    window.LeaderboardModule?.updateRecipeRank(recipe.name, 'gacha');
+
+    // 检查成就
+    window.AchievementModule?.checkAchievements();
+
+    // 保存当前内容供分享使用
+    window._currentGachaResult = { recipe, config, fullText };
+  }
+
+  /**
+   * 关闭盲盒结果页，返回首页
+   */
+  function closeGachaResult() {
+    const resultPage = document.querySelector('.gacha-result-page');
+    if (resultPage) {
+      resultPage.classList.remove('show');
+      setTimeout(() => resultPage.remove(), 300);
+    }
+
+    const container = document.querySelector('.container');
+    if (container) container.style.display = 'block';
+
+    window._currentGachaResult = null;
+  }
+
+  /**
+   * 分享盲盒结果
+   */
+  function shareGachaResult() {
+    const { recipe, config, fullText } = window._currentGachaResult || {};
+    if (!fullText) {
+      showToast('分享内容不存在');
+      return;
+    }
+    // 复制食谱内容到剪贴板
+    const shareText = `🍳 ${recipe?.name || '神秘食谱'} [${config?.label || '稀有'}]\n\n${fullText}`;
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('📋 食谱已复制，快去分享吧！');
+    }).catch(() => {
+      showToast('分享失败，请手动复制');
+    });
   }
 
   /**
@@ -632,9 +662,10 @@ const GachaModule = (() => {
     performDraw,
     updateGachaBadge,
     switchGachaTab,
-    useRecipe,
     showRecipeCard,
     startMysteryCooking,
+    closeGachaResult,
+    shareGachaResult,
     buyTickets,
     renderGachaPanel,
   };
