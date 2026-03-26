@@ -492,6 +492,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: 1;
     }
     .bgm-btn:hover {
       transform: scale(1.08);
@@ -2521,22 +2522,12 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.3s ease;
       line-height: 1;
+      padding: 0;
     }
 
     .menu-toggle-btn:hover {
       transform: scale(1.1);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    .menu-toggle-btn::before {
-      content: '';
-      display: block;
-      width: 20px;
-      height: 14px;
-      background: 
-        linear-gradient(#fff 0%, #fff 100%) no-repeat center top / 100% 3px,
-        linear-gradient(#fff 0%, #fff 100%) no-repeat center / 100% 3px,
-        linear-gradient(#fff 0%, #fff 100%) no-repeat center bottom / 100% 3px;
     }
 
     .menu-overlay {
