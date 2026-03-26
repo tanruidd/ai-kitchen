@@ -70,11 +70,11 @@ function getUnreadCount() {
   const history  = loadHistory();
   const lastRead = parseInt(localStorage.getItem(LAST_READ_KEY) || '0', 10);
   if (!lastRead) return history.length;
-  return history.filter(h => h.ts > lastRead).count;
+  return history.filter(h => h.ts > lastRead).length;
 }
 
 function updateHistoryBadge() {
-  const count = loadHistory().length;
+  const count = getUnreadCount();
   const badge = document.getElementById('menu-history-badge');
   if (!badge) return;
   if (count > 0) {
