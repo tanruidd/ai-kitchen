@@ -20,8 +20,10 @@
 
 const GachaModule = (() => {
   const STORAGE_KEY = 'ai-kitchen-gacha';
+  const GACHA_HISTORY_KEY = 'ai-kitchen-gacha-history'; // 盲盒食谱历史（独立于普通历史）
   const COOK_COUNT_KEY = 'ai-kitchen-cook-count';
   const GACHA_INTERVAL = 3; // 每 3 次烹饪获得 1 次抽奖
+  const MAX_GACHA_HISTORY = 50;
 
   // 盲盒食材库
   const INGREDIENTS = [
@@ -117,6 +119,34 @@ const GachaModule = (() => {
    */
   function loadCookCount() {
     return parseInt(localStorage.getItem(COOK_COUNT_KEY) || '0', 10);
+  }
+
+  /* ── 盲盒食谱历史（独立于普通历史记录） ── */
+  function loadGachaHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(GACHA_HISTORY_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveGachaHistory(history) {
+    localStorage.setItem(GACHA_HISTORY_KEY, JSON.stringify(history.slice(0, MAX_GACHA_HISTORY)));
+  }
+
+  function saveGachaResult(recipe, rarity, fullText) {
+    const history = loadGachaHistory();
+    history.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      recipeId: recipe.id,
+      recipeName: recipe.name,
+      rarity: rarity,
+      output: fullText,
+      time: new Date().toLocaleString('zh-CN', {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      }),
+    });
+    saveGachaHistory(history);
   }
 
   /**
@@ -246,6 +276,7 @@ const GachaModule = (() => {
       <div class="gacha-tabs">
         <button class="gacha-tab active" data-tab="draw">🎁 抽奖</button>
         <button class="gacha-tab" data-tab="inventory">🎒 背包</button>
+        <button class="gacha-tab" data-tab="recipes">📜 食谱</button>
         <button class="gacha-tab" data-tab="shop">💳 商店</button>
       </div>
       <div class="gacha-content" id="gacha-content"></div>
@@ -340,6 +371,114 @@ const GachaModule = (() => {
         }).join('')}
       </div>
     `;
+  }
+
+  /**
+   * 渲染食谱 Tab（盲盒专属食谱历史）
+   */
+  function renderRecipesTab() {
+    const container = document.getElementById('gacha-content');
+    if (!container) return;
+
+    const history = loadGachaHistory();
+
+    if (history.length === 0) {
+      container.innerHTML = `
+        <div class="gacha-empty">
+          <span class="empty-icon">📜</span>
+          还没有烹饪过盲盒食谱<br/>快去抽个神秘食谱试试吧！
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="gacha-recipes-list">
+        ${history.map(item => {
+          const config = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+          return `
+            <div class="gacha-recipe-record" onclick="GachaModule.showRecipeDetail('${item.id}')">
+              <div class="gacha-recipe-record-left">
+                <div class="gacha-recipe-record-badge" style="background: ${config.color}">${config.label}</div>
+                <div class="gacha-recipe-record-name">${item.recipeName}</div>
+              </div>
+              <div class="gacha-recipe-record-right">
+                <span class="gacha-recipe-record-time">${item.time}</span>
+                <span class="gacha-recipe-record-arrow">→</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      ${history.length > 0 ? `
+        <div class="gacha-recipes-footer">
+          <button class="history-footer-btn danger" onclick="GachaModule.clearGachaHistory()">🗑️ 清空记录</button>
+        </div>
+      ` : ''}
+    `;
+  }
+
+  /**
+   * 查看盲盒食谱详情
+   */
+  function showRecipeDetail(recordId) {
+    const history = loadGachaHistory();
+    const record = history.find(h => h.id === recordId);
+    if (!record) {
+      showToast('😱 记录不存在');
+      return;
+    }
+
+    const config = RARITY_CONFIG[record.rarity] || RARITY_CONFIG.common;
+
+    // 在盲盒页面内容区域渲染详情，替换掉 Tab 面板
+    const container = document.getElementById('gacha-page-content');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="gacha-recipe-detail">
+        <div class="gacha-recipe-detail-header">
+          <button class="gacha-detail-back-btn" onclick="GachaModule.renderGachaPanel()">← 返回盲盒</button>
+          <div class="gacha-recipe-detail-meta">
+            <span class="gacha-recipe-detail-badge" style="background: ${config.color}">${config.label}</span>
+            <span class="gacha-recipe-detail-time">${record.time}</span>
+          </div>
+          <h2 class="gacha-recipe-detail-title">${record.recipeName}</h2>
+        </div>
+        <div class="gacha-result-content gacha-recipe-detail-body">
+          ${marked.parse(record.output)}
+        </div>
+        <div class="gacha-recipe-detail-footer">
+          <button class="gacha-result-share-btn" onclick="GachaModule.copyRecipeRecord('${record.id}')">📋 复制食谱</button>
+        </div>
+      </div>
+    `;
+
+    // 滚动到顶部
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /**
+   * 复制盲盒食谱记录
+   */
+  function copyRecipeRecord(recordId) {
+    const record = loadGachaHistory().find(h => h.id === recordId);
+    if (!record) return;
+    navigator.clipboard.writeText(record.output)
+      .then(() => showToast('📋 食谱已复制！'))
+      .catch(() => showToast('复制失败'));
+  }
+
+  /**
+   * 清空盲盒食谱历史
+   */
+  function clearGachaHistory() {
+    const history = loadGachaHistory();
+    if (history.length === 0) return;
+    if (!confirm(`确定清空全部 ${history.length} 条盲盒食谱记录？`)) return;
+    saveGachaHistory([]);
+    renderRecipesTab();
+    showToast('🗑️ 已清空盲盒食谱记录');
   }
 
   /**
@@ -652,8 +791,8 @@ const GachaModule = (() => {
       resultPage.classList.add('show');
     }, 100);
 
-    // 保存到历史记录
-    saveCurrentResult(`[盲盒·${config.label}] ${recipe.name}`, 'gacha', fullText);
+    // 保存到盲盒食谱历史（不存入普通历史）
+    saveGachaResult(recipe, recipe.rarity, fullText);
 
     // 更新排行榜
     window.LeaderboardModule?.updateRecipeRank(recipe.name, 'gacha');
@@ -720,6 +859,7 @@ const GachaModule = (() => {
     const data = loadGachaData();
     if (tab === 'draw') renderDrawTab(data);
     else if (tab === 'inventory') renderInventoryTab(data);
+    else if (tab === 'recipes') renderRecipesTab();
     else if (tab === 'shop') renderShopTab(data);
   }
 
@@ -730,6 +870,9 @@ const GachaModule = (() => {
     updateGachaBadge,
     switchGachaTab,
     showRecipeCard,
+    showRecipeDetail,
+    copyRecipeRecord,
+    clearGachaHistory,
     startMysteryCooking,
     closeGachaResult,
     shareGachaResult,
