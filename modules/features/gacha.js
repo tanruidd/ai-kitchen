@@ -237,16 +237,14 @@ const GachaModule = (() => {
       <div class="gacha-content" id="gacha-content"></div>
     `;
 
-    // 使用事件委托处理 Tab 点击
-    const tabsContainer = container.querySelector('.gacha-tabs');
-    if (tabsContainer) {
-      tabsContainer.addEventListener('click', (e) => {
-        const tabBtn = e.target.closest('.gacha-tab');
-        if (tabBtn && tabBtn.dataset.tab) {
-          switchGachaTab(tabBtn.dataset.tab);
-        }
+    // 直接给每个 Tab 按钮绑定点击事件
+    const tabs = container.querySelectorAll('.gacha-tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        switchGachaTab(tabName);
       });
-    }
+    });
 
     renderDrawTab(data);
   }
