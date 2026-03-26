@@ -16,13 +16,8 @@ const MODEL_FALLBACKS = [
 
 export default async function handler(req, res) {
   // ========== 安全检查 ==========
-  
-  // 1. 只允许 POST 请求
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
 
-  // 2. CORS 配置（只允许来自你的域名）
+  // 1. CORS 配置（只允许来自你的域名）
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5000',
@@ -30,7 +25,7 @@ export default async function handler(req, res) {
     'https://www.bikini-bottom.store',
     // 添加你的自定义域名
   ];
-  
+
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -38,9 +33,14 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 3. 处理 OPTIONS 预检请求
+  // 2. 处理 OPTIONS 预检请求（必须在其他检查之前）
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  // 3. 只允许 POST 请求
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   // 4. 输入验证

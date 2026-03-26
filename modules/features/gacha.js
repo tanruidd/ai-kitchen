@@ -91,6 +91,13 @@ const GachaModule = (() => {
         data.tickets = 5;
         saveGachaData(data);
       }
+      // 清理损坏的背包数据（旧版本 bug 可能产生 data 为 undefined 的条目）
+      const dirtyCount = data.inventory.filter(item => !item || !item.data).length;
+      if (dirtyCount > 0) {
+        data.inventory = data.inventory.filter(item => item && item.data);
+        saveGachaData(data);
+        console.log(`🧹 清理了 ${dirtyCount} 条损坏的背包数据`);
+      }
       return data;
     } catch {
       return { tickets: 5, inventory: [] };
@@ -168,11 +175,10 @@ const GachaModule = (() => {
     let result;
 
     if (isIngredient) {
-      // 按稀有度权重抽食材
-      const rarityWeights = Object.entries(RARITY_CONFIG).map(([rarity, config]) => ({
-        rarity,
-        weight: config.weight,
-      }));
+      // 按稀有度权重抽食材（只考虑有对应食材的稀有度）
+      const rarityWeights = Object.entries(RARITY_CONFIG)
+        .filter(([rarity]) => INGREDIENTS.some(ing => ing.rarity === rarity))
+        .map(([rarity, config]) => ({ rarity, weight: config.weight }));
       const selectedRarity = weightedRandom(rarityWeights).rarity;
       const candidates = INGREDIENTS.filter(ing => ing.rarity === selectedRarity);
       result = {
@@ -181,11 +187,10 @@ const GachaModule = (() => {
         rarity: selectedRarity,
       };
     } else {
-      // 按稀有度权重抽限定食谱
-      const rarityWeights = Object.entries(RARITY_CONFIG).map(([rarity, config]) => ({
-        rarity,
-        weight: config.weight,
-      }));
+      // 按稀有度权重抽限定食谱（只考虑有对应食谱的稀有度）
+      const rarityWeights = Object.entries(RARITY_CONFIG)
+        .filter(([rarity]) => LIMITED_RECIPES.some(recipe => recipe.rarity === rarity))
+        .map(([rarity, config]) => ({ rarity, weight: config.weight }));
       const selectedRarity = weightedRandom(rarityWeights).rarity;
       const candidates = LIMITED_RECIPES.filter(recipe => recipe.rarity === selectedRarity);
       result = {
@@ -193,6 +198,15 @@ const GachaModule = (() => {
         data: candidates[Math.floor(Math.random() * candidates.length)],
         rarity: selectedRarity,
       };
+    }
+
+    // 安全检查：确保抽到了有效物品
+    if (!result || !result.data) {
+      console.error('盲盒抽奖异常：未能抽到有效物品', result);
+      // 退还卡券
+      data.tickets += 1;
+      saveGachaData(data);
+      return null;
     }
 
     // 添加到背包
@@ -295,7 +309,9 @@ const GachaModule = (() => {
 
     const grouped = {};
     data.inventory.forEach(item => {
-      const key = item.type === 'ingredient' ? item.data.id : item.data.id;
+      // 跳过损坏的数据（旧版本 bug 可能产生 data 为 undefined 的条目）
+      if (!item || !item.data || !item.data.id) return;
+      const key = item.data.id;
       if (!grouped[key]) {
         grouped[key] = { item: item.data, type: item.type, rarity: item.rarity, count: 0 };
       }
@@ -542,10 +558,14 @@ const GachaModule = (() => {
     }, 500);
 
     try {
-      // 调用 API（非流式）
+      // 调用 API（非流式），30 秒超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           model: 'stepfun/step-3.5-flash:free',
           messages: [
@@ -557,6 +577,8 @@ const GachaModule = (() => {
           stream: false, // 显式禁用流式
         }),
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`API 错误 ${response.status}`);
