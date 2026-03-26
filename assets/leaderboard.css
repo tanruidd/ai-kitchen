@@ -1,0 +1,187 @@
+/* leaderboard.css — 排行榜系统样式 */
+    /* ════════════════════════════════════════
+       排行榜系统样式
+    ════════════════════════════════════════ */
+
+    .leaderboard-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 196px;
+      z-index: 100;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      border: 2px solid #fff;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .leaderboard-toggle-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .leaderboard-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .leaderboard-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .leaderboard-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      z-index: 210;
+      max-height: 80vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .leaderboard-panel.open {
+      transform: translateY(0);
+    }
+
+    .leaderboard-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      background: #fff;
+    }
+
+    .leaderboard-panel-header h3 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .leaderboard-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .leaderboard-content {
+      padding: 24px;
+    }
+
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+      transition: all 0.3s ease;
+    }
+
+    .leaderboard-item:hover {
+      background: #f0f0f0;
+      transform: translateX(4px);
+    }
+
+    .leaderboard-rank {
+      font-size: 1.5rem;
+      font-weight: bold;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .leaderboard-info {
+      flex: 1;
+    }
+
+    .leaderboard-recipe {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .leaderboard-mode {
+      font-size: 0.8rem;
+      background: #3498db;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .leaderboard-input {
+      font-size: 0.9rem;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .leaderboard-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .leaderboard-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .leaderboard-score {
+      margin-left: auto;
+      font-weight: bold;
+      color: #f39c12;
+    }
+
+    .leaderboard-empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #999;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 16px;
+    }
+
+
+    /* 移动端适配 */
+    @media (max-width: 480px) {
+      .leaderboard-item { padding: 12px; gap: 12px; }
+      .leaderboard-rank { font-size: 1.2rem; min-width: 32px; }
+      .leaderboard-mode { font-size: 0.7rem; padding: 2px 6px; }
+      .leaderboard-input { font-size: 0.8rem; }
+      .leaderboard-stats { font-size: 0.7rem; gap: 8px; }
+      .leaderboard-score { font-size: 0.75rem; }
+    }

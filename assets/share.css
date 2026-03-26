@@ -1,0 +1,203 @@
+/* share.css — 高级分享图样式 */
+    /* ════════════════════════════════════════
+       高级分享图样式
+    ════════════════════════════════════════ */
+
+    .premium-share-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .premium-share-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .premium-share-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      z-index: 210;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .premium-share-panel.open {
+      transform: translateY(0);
+    }
+
+    .premium-share-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      background: #fff;
+    }
+
+    .premium-share-panel-header h3 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .premium-share-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .premium-share-content {
+      padding: 24px;
+    }
+
+    .premium-share-styles {
+      margin-bottom: 24px;
+    }
+
+    .premium-share-styles-label {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .premium-share-styles-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .premium-share-style-btn {
+      aspect-ratio: 1;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .premium-share-style-btn:hover {
+      border-color: #667eea;
+      background: #f0f0ff;
+    }
+
+    .premium-share-style-btn.active {
+      border-color: #667eea;
+      background: #667eea;
+      color: #fff;
+    }
+
+    .premium-share-preview {
+      margin-bottom: 24px;
+    }
+
+    .premium-share-preview-label {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .premium-share-preview-canvas {
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .premium-share-card {
+      width: 100%;
+      padding: 24px;
+      border-radius: 12px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .premium-share-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .premium-share-card-icon {
+      font-size: 2rem;
+    }
+
+    .premium-share-card-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .premium-share-card-content {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      opacity: 0.9;
+    }
+
+    .premium-share-card-footer {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .premium-share-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .premium-share-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .premium-share-checkbox input {
+      cursor: pointer;
+    }
+
+    .premium-share-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .premium-share-action-btn {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .premium-share-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    }
+

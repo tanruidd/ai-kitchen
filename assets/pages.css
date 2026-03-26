@@ -1,0 +1,65 @@
+/* pages.css — 页面系统样式 */
+    /* ════════════════════════════════════════
+       页面系统样式
+    ════════════════════════════════════════ */
+
+    .app-page {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .app-page.active {
+      display: block;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      border-radius: 24px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #667eea;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      transform: translateX(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .sub-page-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    .sub-page-header {
+      margin-bottom: 24px;
+    }
+
+    .sub-page-header h2 {
+      font-size: 1.5rem;
+      color: #333;
+      margin: 0;
+    }
+
+    .sub-page-content {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+
+    /* 移动端适配 */
+    @media (max-width: 480px) {
+      .sub-page-container { padding: 70px 16px 80px; }
+      .sub-page-content { padding: 16px; }
+    }

@@ -1,0 +1,203 @@
+/* achievements.css — 成就系统样式 */
+    /* ════════════════════════════════════════
+       成就系统样式
+    ════════════════════════════════════════ */
+
+    .achievement-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 136px;
+      z-index: 100;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      border: 2px solid #fff;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .achievement-toggle-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .achievement-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .achievement-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .achievement-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      z-index: 210;
+      max-height: 80vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .achievement-panel.open {
+      transform: translateY(0);
+    }
+
+    .achievement-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      background: #fff;
+    }
+
+    .achievement-panel-header h3 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .achievement-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .achievement-content {
+      padding: 24px;
+    }
+
+    .achievement-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .achievement-stat {
+      text-align: center;
+      padding: 16px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+
+    .achievement-stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #f39c12;
+      margin-bottom: 4px;
+    }
+
+    .achievement-stat-label {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    .achievement-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .achievement-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+      transition: width 0.3s ease;
+    }
+
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .achievement-item {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: #f9f9f9;
+    }
+
+    .achievement-item.unlocked {
+      border-color: #f39c12;
+      background: #fffbf0;
+    }
+
+    .achievement-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .achievement-item-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .achievement-item-name {
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    .achievement-item-desc {
+      font-size: 0.7rem;
+      color: #999;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .achievement-item-date {
+      font-size: 0.65rem;
+      color: #f39c12;
+    }
+
+    .achievement-item-locked {
+      font-size: 0.7rem;
+      color: #999;
+    }
+
+    .achievement-empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #999;
+    }
+
+
+    /* 移动端适配 */
+    @media (max-width: 480px) {
+      .achievement-item { padding: 10px; }
+      .achievement-item-icon { font-size: 1.5rem; }
+      .achievement-item-name { font-size: 0.75rem; }
+      .achievement-item-desc { font-size: 0.65rem; }
+      .achievement-item-date,
+      .achievement-item-locked { font-size: 0.6rem; }
+      .achievement-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+    }
