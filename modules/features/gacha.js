@@ -230,12 +230,23 @@ const GachaModule = (() => {
 
     container.innerHTML = `
       <div class="gacha-tabs">
-        <button class="gacha-tab active" data-tab="draw" onclick="GachaModule.switchGachaTab('draw')">🎁 抽奖</button>
-        <button class="gacha-tab" data-tab="inventory" onclick="GachaModule.switchGachaTab('inventory')">🎒 背包</button>
-        <button class="gacha-tab" data-tab="shop" onclick="GachaModule.switchGachaTab('shop')">💳 商店</button>
+        <button class="gacha-tab active" data-tab="draw">🎁 抽奖</button>
+        <button class="gacha-tab" data-tab="inventory">🎒 背包</button>
+        <button class="gacha-tab" data-tab="shop">💳 商店</button>
       </div>
       <div class="gacha-content" id="gacha-content"></div>
     `;
+
+    // 使用事件委托处理 Tab 点击
+    const tabsContainer = container.querySelector('.gacha-tabs');
+    if (tabsContainer) {
+      tabsContainer.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.gacha-tab');
+        if (tabBtn && tabBtn.dataset.tab) {
+          switchGachaTab(tabBtn.dataset.tab);
+        }
+      });
+    }
 
     renderDrawTab(data);
   }
