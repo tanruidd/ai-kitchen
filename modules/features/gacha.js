@@ -513,6 +513,7 @@ const GachaModule = (() => {
           ],
           temperature: 0.95,
           max_tokens: 2500,
+          stream: false, // 显式禁用流式
         }),
       });
 
