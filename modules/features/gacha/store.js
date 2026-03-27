@@ -37,7 +37,7 @@ window.GachaStore = (() => {
 
       // 新用户初始 5 张卡券
       if (data.tickets === 0 && data.inventory.length === 0 && Object.values(data.ingredients).every(v => v === 0)) {
-        data.tickets = 5;
+        data.tickets = 99;
         saveGachaData(data);
       }
 
