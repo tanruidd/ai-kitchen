@@ -229,7 +229,7 @@ const AccountModule = (() => {
 
     const user = getUser();
     const days = Math.floor((Date.now() - user.createdAt) / 86400000);
-    const levelInfo = window.LevelModule?.getLevelInfo?.() || { level: 1, title: '厨房学徒', icon: '🥄' };
+    const levelInfo = window.LevelModule?.getLevelInfo?.() || { level: 1, title: '厨房学徒', icon: '🥄', percent: 0, currentExp: 0, neededExp: 100 };
 
     container.innerHTML = `
       <div class="account-profile-card">
@@ -237,11 +237,51 @@ const AccountModule = (() => {
         <div class="account-profile-info">
           <div class="account-profile-name">${escapeHtml(user.nickname)}</div>
           <div class="account-profile-id">ID: ${user.id}</div>
-          <div class="account-profile-level" id="account-level-display">
-            <span class="level-badge">${levelInfo.icon} Lv.${levelInfo.level}</span>
-            <span class="level-title">${levelInfo.title}</span>
-          </div>
           <div class="account-profile-days">🎨 已加入 ${days} 天</div>
+        </div>
+      </div>
+
+      <div class="account-level-card" onclick="AccountModule.toggleLevelDetail()">
+        <div class="account-level-header">
+          <div class="account-level-icon">${levelInfo.icon}</div>
+          <div class="account-level-info">
+            <div class="account-level-title">
+              <span class="level-number">Lv.${levelInfo.level}</span>
+              <span class="level-name">${levelInfo.title}</span>
+            </div>
+            <div class="account-level-exp-bar">
+              <div class="account-level-exp-fill" style="width: ${levelInfo.percent}%"></div>
+            </div>
+            <div class="account-level-exp-text">
+              ${levelInfo.level >= 50 ? '🌟 已达最高等级！' : `还需 ${levelInfo.neededExp - levelInfo.currentExp} EXP 升级`}
+            </div>
+          </div>
+          <div class="account-level-arrow" id="level-detail-arrow">▼</div>
+        </div>
+        <div class="account-level-detail" id="level-detail-content" style="display:none;">
+          <div class="level-detail-section">
+            <h5>📊 经验宝典</h5>
+            <div class="level-detail-grid">
+              <div class="level-detail-item"><span>🍳</span>烹饪 +10</div>
+              <div class="level-detail-item"><span>🎁</span>盲盒 +5</div>
+              <div class="level-detail-item"><span>✅</span>任务 +20</div>
+              <div class="level-detail-item"><span>✨</span>稀有 +15</div>
+              <div class="level-detail-item"><span>🌟</span>史诗 +30</div>
+              <div class="level-detail-item"><span>🏆</span>传说 +50</div>
+            </div>
+          </div>
+          <div class="level-detail-section">
+            <h5>🎖️ 称号殿堂</h5>
+            <div class="level-titles-mini">
+              <div class="level-title-mini ${levelInfo.level >= 1 ? 'unlocked' : ''}"><span>🥄</span>学徒</div>
+              <div class="level-title-mini ${levelInfo.level >= 6 ? 'unlocked' : ''}"><span>👨‍🍳</span>新手</div>
+              <div class="level-title-mini ${levelInfo.level >= 11 ? 'unlocked' : ''}"><span>🔥</span>达人</div>
+              <div class="level-title-mini ${levelInfo.level >= 21 ? 'unlocked' : ''}"><span>👨‍🍳⭐</span>大厨</div>
+              <div class="level-title-mini ${levelInfo.level >= 31 ? 'unlocked' : ''}"><span>🌟</span>主厨</div>
+              <div class="level-title-mini ${levelInfo.level >= 41 ? 'unlocked' : ''}"><span>🏆</span>厨神</div>
+            </div>
+          </div>
+          <div class="level-detail-tip">💡 每升一级获得 1 张盲盒券！</div>
         </div>
       </div>
 
@@ -358,6 +398,23 @@ const AccountModule = (() => {
     showToast('🔄 账号已重置，欢迎新厨师！');
   }
 
+  /**
+   * 展开/收起等级详情
+   */
+  function toggleLevelDetail() {
+    const content = document.getElementById('level-detail-content');
+    const arrow = document.getElementById('level-detail-arrow');
+    if (!content || !arrow) return;
+
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      arrow.textContent = '▲';
+    } else {
+      content.style.display = 'none';
+      arrow.textContent = '▼';
+    }
+  }
+
   return {
     init,
     getUser,
@@ -368,6 +425,7 @@ const AccountModule = (() => {
     saveAvatar,
     closeModal,
     renderAccountPage,
+    toggleLevelDetail,
     copyId,
     resetAccount,
     confirmReset,

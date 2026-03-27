@@ -219,6 +219,170 @@
   color: #667eea;
 }
 
+/* ════════════════════════════════════════
+   账号等级卡片
+════════════════════════════════════════ */
+
+.account-level-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.account-level-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.account-level-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.account-level-icon {
+  font-size: 40px;
+  animation: levelFloat 3s ease-in-out infinite;
+}
+
+@keyframes levelFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.account-level-info {
+  flex: 1;
+}
+
+.account-level-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.account-level-title .level-number {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.account-level-title .level-name {
+  font-size: 14px;
+  opacity: 0.9;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.account-level-exp-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.account-level-exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffec8b);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.account-level-exp-text {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.account-level-arrow {
+  font-size: 14px;
+  opacity: 0.7;
+  transition: transform 0.3s;
+}
+
+/* 等级详情展开区 */
+.account-level-detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.level-detail-section {
+  margin-bottom: 14px;
+}
+
+.level-detail-section h5 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  opacity: 0.95;
+}
+
+.level-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.level-detail-item {
+  background: rgba(255,255,255,0.15);
+  padding: 8px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.level-detail-item span {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.level-titles-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.level-title-mini {
+  background: rgba(255,255,255,0.15);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.level-title-mini.unlocked {
+  background: rgba(255,255,255,0.25);
+  opacity: 1;
+}
+
+.level-title-mini span {
+  font-size: 14px;
+}
+
+.level-detail-tip {
+  font-size: 12px;
+  opacity: 0.8;
+  text-align: center;
+  padding-top: 8px;
+}
+
 /* 复制按钮 */
 .account-copy-btn {
   padding: 6px 14px;
