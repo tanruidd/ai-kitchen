@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="./assets/menu.css">
   <link rel="stylesheet" href="./assets/pages.css">
   <link rel="stylesheet" href="./assets/settings.css">
+  <link rel="stylesheet" href="./assets/account.css">
 </head>
 <body>
 
@@ -38,6 +39,11 @@
   <div class="menu-header">
     <div class="menu-avatar">🦀</div>
     <div class="menu-title">蟹堡王 AI 厨房</div>
+  </div>
+  <div class="menu-user-info" onclick="MenuModule.navigateTo('account')">
+    <div class="menu-user-avatar" id="menu-user-avatar">🧽</div>
+    <div class="menu-user-name" id="menu-user-name">加载中...</div>
+    <span class="menu-user-arrow">→</span>
   </div>
   <div class="menu-items">
     <button class="menu-item" onclick="MenuModule.navigateTo('history')">
@@ -281,6 +287,16 @@
   </div>
 </div>
 
+<!-- 账号页面 -->
+<div class="app-page" id="page-account">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>👤 我的账号</h2>
+    </div>
+    <div class="sub-page-content" id="account-page-content"></div>
+  </div>
+</div>
+
 <!-- 盲盒抽奖结果弹窗 -->
 <div class="gacha-result-modal" id="gacha-result-modal"></div>
 
@@ -301,6 +317,7 @@
 <script src="./modules/features/achievements.js"></script>
 <script src="./modules/features/leaderboard.js"></script>
 <script src="./modules/features/stats.js"></script>
+<script src="./modules/features/account.js"></script>
 <script src="./modules/ui/settings.js"></script>
 <script src="./modules/ui/menu.js"></script>
 <script src="./modules/core/cooking.js"></script>
@@ -308,6 +325,7 @@
   // ── 页面初始化 ──
   spawnBubbles();
   window.addEventListener('DOMContentLoaded', () => {
+    AccountModule.init();
     updateHistoryBadge();
     // 更新菜单盲盒角标
     const gachaData = JSON.parse(localStorage.getItem('ai-kitchen-gacha') || '{"tickets":0}');
