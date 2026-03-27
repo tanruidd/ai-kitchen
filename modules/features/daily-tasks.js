@@ -227,6 +227,9 @@ const DailyTaskModule = (() => {
     updateMenuBadge();
     renderTaskPage();
 
+    // 增加经验
+    window.LevelModule?.onTaskComplete();
+
     showToast(`🎉 获得 ${task.reward} 张盲盒券！`);
     window.SFX?.done();
 

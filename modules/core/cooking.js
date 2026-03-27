@@ -157,6 +157,9 @@ async function startCooking() {
     // 更新每日任务
     window.DailyTaskModule?.onCook(currentMode);
 
+    // 增加经验
+    window.LevelModule?.onCook();
+
   } catch (err) {
     loading.style.display = 'none';
     // 用户主动离开页面 / 手动中断 → 静默，不报错

@@ -229,6 +229,7 @@ const AccountModule = (() => {
 
     const user = getUser();
     const days = Math.floor((Date.now() - user.createdAt) / 86400000);
+    const levelInfo = window.LevelModule?.getLevelInfo?.() || { level: 1, title: '厨房学徒', icon: '🥄' };
 
     container.innerHTML = `
       <div class="account-profile-card">
@@ -236,6 +237,10 @@ const AccountModule = (() => {
         <div class="account-profile-info">
           <div class="account-profile-name">${escapeHtml(user.nickname)}</div>
           <div class="account-profile-id">ID: ${user.id}</div>
+          <div class="account-profile-level" id="account-level-display">
+            <span class="level-badge">${levelInfo.icon} Lv.${levelInfo.level}</span>
+            <span class="level-title">${levelInfo.title}</span>
+          </div>
           <div class="account-profile-days">🎨 已加入 ${days} 天</div>
         </div>
       </div>

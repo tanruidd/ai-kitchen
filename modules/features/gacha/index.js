@@ -87,6 +87,12 @@ const GachaModule = (() => {
       window.DailyTaskModule?.onGachaRarity(result.rarity);
     }
 
+    // 增加经验
+    window.LevelModule?.onGacha();
+    if (result.rarity === 'rare' || result.rarity === 'epic' || result.rarity === 'legendary') {
+      window.LevelModule?.onGachaRarity(result.rarity);
+    }
+
     return result;
   }
 
