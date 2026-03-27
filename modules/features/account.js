@@ -395,6 +395,8 @@ const AccountModule = (() => {
     localStorage.removeItem('ai-kitchen-settings');
     localStorage.removeItem('ai-kitchen-daily-tasks');
     localStorage.removeItem('ai-kitchen-level');
+    localStorage.removeItem('ai-kitchen-recipe-rank');
+    localStorage.removeItem('ai-kitchen-user-rank');
 
     const user = createUser();
     updateMenuHeader(user);
