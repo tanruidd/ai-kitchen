@@ -80,6 +80,13 @@ const GachaModule = (() => {
     result.timestamp = new Date().toLocaleString('zh-CN');
     data.inventory.push(result);
     saveGachaData(data);
+
+    // 触发每日任务
+    window.DailyTaskModule?.onGacha();
+    if (result.rarity === 'rare' || result.rarity === 'epic' || result.rarity === 'legendary') {
+      window.DailyTaskModule?.onGachaRarity(result.rarity);
+    }
+
     return result;
   }
 

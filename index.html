@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="./assets/pages.css">
   <link rel="stylesheet" href="./assets/settings.css">
   <link rel="stylesheet" href="./assets/account.css">
+  <link rel="stylesheet" href="./assets/daily-tasks.css">
 </head>
 <body>
 
@@ -46,6 +47,12 @@
     <span class="menu-user-arrow">→</span>
   </div>
   <div class="menu-items">
+    <button class="menu-item" onclick="MenuModule.navigateTo('tasks')">
+      <span class="menu-item-icon">📋</span>
+      <span class="menu-item-label">每日任务</span>
+      <span class="menu-item-badge" id="menu-tasks-badge" style="display:none;">0</span>
+      <span class="menu-item-arrow">→</span>
+    </button>
     <button class="menu-item" onclick="MenuModule.navigateTo('history')">
       <span class="menu-item-icon">📜</span>
       <span class="menu-item-label">历史记录</span>
@@ -297,6 +304,16 @@
   </div>
 </div>
 
+<!-- 每日任务页面 -->
+<div class="app-page" id="page-tasks">
+  <div class="sub-page-container">
+    <div class="sub-page-header">
+      <h2>📋 每日任务</h2>
+    </div>
+    <div class="sub-page-content" id="tasks-page-content"></div>
+  </div>
+</div>
+
 <!-- 盲盒抽奖结果弹窗 -->
 <div class="gacha-result-modal" id="gacha-result-modal"></div>
 
@@ -317,6 +334,7 @@
 <script src="./modules/features/achievements.js"></script>
 <script src="./modules/features/leaderboard.js"></script>
 <script src="./modules/features/stats.js"></script>
+<script src="./modules/features/daily-tasks.js"></script>
 <script src="./modules/features/account.js"></script>
 <script src="./modules/ui/settings.js"></script>
 <script src="./modules/ui/menu.js"></script>
@@ -326,6 +344,7 @@
   spawnBubbles();
   window.addEventListener('DOMContentLoaded', () => {
     AccountModule.init();
+    DailyTaskModule.init();
     updateHistoryBadge();
     // 更新菜单盲盒角标
     const gachaData = JSON.parse(localStorage.getItem('ai-kitchen-gacha') || '{"tickets":0}');

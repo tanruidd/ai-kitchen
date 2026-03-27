@@ -92,6 +92,7 @@ const MenuModule = (() => {
       'stats': '📈 数据统计',
       'settings': '⚙️ 设置',
       'account': '👤 我的账号',
+      'tasks': '📋 每日任务',
     };
 
     document.title = titles[page] || '美味创意 AI 厨房';
@@ -122,6 +123,9 @@ const MenuModule = (() => {
         break;
       case 'account':
         window.AccountModule?.renderAccountPage?.();
+        break;
+      case 'tasks':
+        window.DailyTaskModule?.renderTaskPage?.();
         break;
     }
   }

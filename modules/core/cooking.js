@@ -154,6 +154,9 @@ async function startCooking() {
     // 检查成就
     window.AchievementModule?.checkAchievements();
 
+    // 更新每日任务
+    window.DailyTaskModule?.onCook(currentMode);
+
   } catch (err) {
     loading.style.display = 'none';
     // 用户主动离开页面 / 手动中断 → 静默，不报错
