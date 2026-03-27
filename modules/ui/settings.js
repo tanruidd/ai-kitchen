@@ -123,10 +123,7 @@ const SettingsModule = (() => {
           <div class="settings-about-desc">
             由海绵宝宝 × 蟹老板 × 派大星 × 章鱼哥联合打造的 AI 食谱生成器
           </div>
-          <div class="settings-about-links">
-            <a href="https://www.bikini-bottom.store/" target="_blank">🌐 官网</a>
-            <a href="https://github.com/tanruidd/ai-kitchen" target="_blank">📦 GitHub</a>
-          </div>
+
         </div>
       </div>
 
