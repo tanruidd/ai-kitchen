@@ -387,10 +387,14 @@ const AccountModule = (() => {
     closeModal();
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem('ai-kitchen-gacha');
+    localStorage.removeItem('ai-kitchen-gacha-history');
+    localStorage.removeItem('ai-kitchen-cook-count');
     localStorage.removeItem('ai-kitchen-history');
     localStorage.removeItem('ai-kitchen-achievements');
     localStorage.removeItem('ai-kitchen-stats');
     localStorage.removeItem('ai-kitchen-settings');
+    localStorage.removeItem('ai-kitchen-daily-tasks');
+    localStorage.removeItem('ai-kitchen-level');
 
     const user = createUser();
     updateMenuHeader(user);
