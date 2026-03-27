@@ -344,15 +344,15 @@ const LevelModule = (() => {
         <div class="level-exp-bar">
           <div class="level-exp-fill" style="width: ${info.percent}%"></div>
         </div>
-        <div class="level-exp-text">
+        <div class="level-exp-text ${info.level >= info.maxLevel ? 'max-level' : ''}">
           ${info.level >= info.maxLevel 
-            ? '🌟 已达最高等级！' 
-            : `${info.currentExp} / ${info.neededExp} EXP (${info.percent}%)`}
+            ? '🌟 已达最高等级！传奇厨神就是你！' 
+            : `还需 ${info.neededExp - info.currentExp} EXP 升级`}
         </div>
       </div>
 
       <div class="level-section">
-        <h4>🎖️ 称号进度</h4>
+        <h4>🎖️ 称号殿堂</h4>
         <div class="level-titles-list">
           ${titleProgress.map(t => `
             <div class="level-title-item ${t.unlocked ? 'unlocked' : ''} ${t.current ? 'current' : ''}">
@@ -362,7 +362,7 @@ const LevelModule = (() => {
                 <div class="level-title-range">Lv.${t.min} - ${t.max}</div>
               </div>
               <div class="level-title-status">
-                ${t.current ? '✅ 当前' : t.unlocked ? '✓' : '🔒'}
+                ${t.current ? '✨ 当前' : t.unlocked ? '✓ 已解锁' : '🔒 未解锁'}
               </div>
             </div>
           `).join('')}
@@ -370,51 +370,66 @@ const LevelModule = (() => {
       </div>
 
       <div class="level-section">
-        <h4>📊 经验来源</h4>
+        <h4>📊 经验宝典</h4>
         <div class="level-exp-sources">
           <div class="exp-source-item">
             <span class="exp-source-icon">🍳</span>
             <span class="exp-source-name">烹饪美食</span>
-            <span class="exp-source-amount">+10 EXP</span>
+            <span class="exp-source-amount">+10</span>
           </div>
           <div class="exp-source-item">
             <span class="exp-source-icon">🎁</span>
             <span class="exp-source-name">抽取盲盒</span>
-            <span class="exp-source-amount">+5 EXP</span>
+            <span class="exp-source-amount">+5</span>
           </div>
           <div class="exp-source-item">
             <span class="exp-source-icon">✅</span>
             <span class="exp-source-name">完成任务</span>
-            <span class="exp-source-amount">+20 EXP</span>
+            <span class="exp-source-amount">+20</span>
           </div>
           <div class="exp-source-item">
             <span class="exp-source-icon">✨</span>
             <span class="exp-source-name">稀有食材</span>
-            <span class="exp-source-amount">+15 EXP</span>
+            <span class="exp-source-amount">+15</span>
           </div>
           <div class="exp-source-item">
             <span class="exp-source-icon">🌟</span>
             <span class="exp-source-name">史诗食材</span>
-            <span class="exp-source-amount">+30 EXP</span>
+            <span class="exp-source-amount">+30</span>
           </div>
           <div class="exp-source-item">
             <span class="exp-source-icon">🏆</span>
             <span class="exp-source-name">传说食材</span>
-            <span class="exp-source-amount">+50 EXP</span>
+            <span class="exp-source-amount">+50</span>
           </div>
           <div class="exp-source-item">
-            <span class="exp-source-icon">🏅</span>
-            <span class="exp-source-name">解锁成就</span>
-            <span class="exp-source-amount">+10~50 EXP</span>
+            <span class="exp-source-icon">🥉</span>
+            <span class="exp-source-name">铜牌成就</span>
+            <span class="exp-source-amount">+10</span>
+          </div>
+          <div class="exp-source-item">
+            <span class="exp-source-icon">🥈</span>
+            <span class="exp-source-name">银牌成就</span>
+            <span class="exp-source-amount">+25</span>
+          </div>
+          <div class="exp-source-item">
+            <span class="exp-source-icon">🥇</span>
+            <span class="exp-source-name">金牌成就</span>
+            <span class="exp-source-amount">+50</span>
+          </div>
+          <div class="exp-source-item">
+            <span class="exp-source-icon">⬆️</span>
+            <span class="exp-source-name">升级奖励</span>
+            <span class="exp-source-amount">🎁 盲盒券</span>
           </div>
         </div>
       </div>
 
       <div class="level-section">
-        <h4>📜 最近获得经验</h4>
+        <h4>📜 经验记录</h4>
         <div class="level-history-list">
           ${data.history.length === 0 
-            ? '<div class="level-history-empty">暂无记录</div>'
+            ? '<div class="level-history-empty">🚀 开始烹饪、抽盲盒来获取经验吧！</div>'
             : data.history.slice(0, 10).map(h => `
               <div class="level-history-item">
                 <span class="history-reason">${h.reason}</span>
@@ -425,7 +440,7 @@ const LevelModule = (() => {
       </div>
 
       <div class="level-tips">
-        💡 提示：升级可以获得盲盒券奖励！
+        💡 每升一级可获得 1 张盲盒券，最高 Lv.50 传奇厨神！
       </div>
     `;
   }
