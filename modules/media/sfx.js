@@ -11,10 +11,17 @@
 
 const SFX = (() => {
   let ctx = null;
+  const SETTINGS_KEY = 'ai-kitchen-settings';
+
+  function isEnabled() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      return s.sfxEnabled !== false; // 默认开启
+    } catch { return true; }
+  }
 
   function getCtx() {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // 某些浏览器需要用户交互后才能 resume
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
   }
@@ -72,6 +79,7 @@ const SFX = (() => {
      几个短促的随机音调，像骰子弹跳
   ══════════════════════════════ */
   function dice() {
+    if (!isEnabled()) return;
     const notes = [400, 520, 380, 600, 440];
     notes.forEach((freq, i) => {
       playOsc({ type: 'triangle', freq, freqEnd: freq * 0.85, duration: 0.07, gain: 0.18, gainEnd: 0, startDelay: i * 0.06 });
@@ -83,6 +91,7 @@ const SFX = (() => {
      短促的 pop 声
   ══════════════════════════════ */
   function tag() {
+    if (!isEnabled()) return;
     playOsc({ type: 'sine', freq: 880, freqEnd: 660, duration: 0.08, gain: 0.15, gainEnd: 0 });
     playNoise({ duration: 0.04, gain: 0.06, gainEnd: 0, filterFreq: 3000 });
   }
@@ -92,6 +101,7 @@ const SFX = (() => {
      水开的感觉，轻快的气泡声
   ══════════════════════════════ */
   function cook() {
+    if (!isEnabled()) return;
     // 一串上升的气泡音
     const bubbles = [280, 350, 420, 380, 500, 450, 580, 520];
     bubbles.forEach((freq, i) => {
@@ -108,6 +118,7 @@ const SFX = (() => {
      清脆的三音上升和弦
   ══════════════════════════════ */
   function done() {
+    if (!isEnabled()) return;
     [523, 659, 784].forEach((freq, i) => {
       playOsc({ type: 'sine', freq, freqEnd: freq * 1.02, duration: 0.5, gain: 0.2, gainEnd: 0, startDelay: i * 0.1 });
     });
@@ -118,6 +129,7 @@ const SFX = (() => {
      两声短促上升音
   ══════════════════════════════ */
   function copy() {
+    if (!isEnabled()) return;
     playOsc({ type: 'sine', freq: 660, freqEnd: 880, duration: 0.1, gain: 0.15, gainEnd: 0 });
     playOsc({ type: 'sine', freq: 880, freqEnd: 1100, duration: 0.1, gain: 0.12, gainEnd: 0, startDelay: 0.12 });
   }

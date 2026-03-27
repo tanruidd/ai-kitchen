@@ -304,7 +304,23 @@ const BGM = (() => {
     ).join('');
   }
 
-  document.addEventListener('DOMContentLoaded', renderTrackList);
+  document.addEventListener('DOMContentLoaded', () => {
+    renderTrackList();
+
+    // 刷新页面后，如果 BGM 是开启状态，在用户首次交互时自动恢复播放
+    try {
+      const s = JSON.parse(localStorage.getItem('ai-kitchen-settings') || '{}');
+      if (s.bgmEnabled) {
+        const resumeOnce = () => {
+          document.removeEventListener('click', resumeOnce);
+          document.removeEventListener('touchstart', resumeOnce);
+          if (!isPlaying) start();
+        };
+        document.addEventListener('click', resumeOnce);
+        document.addEventListener('touchstart', resumeOnce);
+      }
+    } catch {}
+  });
 
   return {
     toggle,
