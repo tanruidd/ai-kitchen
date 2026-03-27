@@ -104,13 +104,6 @@ const SettingsModule = (() => {
             </div>
             <span class="settings-item-arrow">→</span>
           </div>
-          <div class="settings-item" onclick="StatsModule.clearAllData()">
-            <div class="settings-item-info">
-              <span class="settings-item-label danger">清空数据</span>
-              <span class="settings-item-desc">删除所有历史记录和设置</span>
-            </div>
-            <span class="settings-item-arrow">→</span>
-          </div>
         </div>
       </div>
 
