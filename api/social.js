@@ -6,15 +6,49 @@ import { createClient } from 'redis';
 
 // 全局 Redis 客户端，避免每次请求都创建新连接
 let redis = null;
+let connecting = false;
 
 async function getRedis() {
-  if (!redis) {
+  // 如果已连接，直接返回
+  if (redis && redis.isOpen) {
+    return redis;
+  }
+
+  // 如果正在连接，等待
+  if (connecting) {
+    let attempts = 0;
+    while (connecting && attempts < 50) {
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+    if (redis && redis.isOpen) return redis;
+  }
+
+  // 创建新连接
+  connecting = true;
+  try {
+    if (!process.env.REDIS_URL) {
+      throw new Error('REDIS_URL environment variable not set');
+    }
+
     redis = createClient({
-      url: process.env.REDIS_URL
+      url: process.env.REDIS_URL,
+      socket: {
+        reconnectStrategy: (retries) => Math.min(retries * 50, 500)
+      }
     });
+
     redis.on('error', (err) => console.error('Redis Client Error', err));
     await redis.connect();
+    console.log('Redis connected successfully');
+  } catch (error) {
+    console.error('Failed to connect to Redis:', error);
+    redis = null;
+    throw error;
+  } finally {
+    connecting = false;
   }
+
   return redis;
 }
 
@@ -57,7 +91,7 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Social API Error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }
 

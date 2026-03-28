@@ -44,8 +44,8 @@ const FriendsModule = (() => {
   function renderFriendsPage() {
     console.log('renderFriendsPage called');
     try {
-    // 注册用户到 Redis
-    FriendsModule.initUser();
+    // 异步注册用户到 Redis（不阻塞 UI）
+    FriendsModule.initUser().catch(e => console.log('User registration skipped:', e.message));
     
     const container = document.getElementById('friends-page-content');
     if (!container) {
@@ -459,14 +459,28 @@ const FriendsModule = (() => {
 // 初始化时注册用户到 Redis
 async function initUser() {
   const user = AccountModule?.getUser?.();
-  if (!user || !user.id) return;
+  if (!user || !user.id) {
+    console.log('User not ready for registration');
+    return;
+  }
   
   try {
-    await fetch('/api/social?action=register', {
+    const response = await fetch('/api/social?action=register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user })
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const result = await response.json();
+    if (result.success) {
+      console.log('User registered to Redis:', user.id);
+    } else {
+      console.warn('User registration failed:', result.error);
+    }
   } catch (e) {
     console.log('User registration skipped:', e.message);
   }
