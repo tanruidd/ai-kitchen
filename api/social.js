@@ -2,21 +2,10 @@
  * 社交系统 API
  */
 
-import Redis from 'ioredis';
+import { kv } from '@vercel/kv';
 
-const getRedisClient = () => {
-  const redisUrl = process.env.REDIS_URL || process.env.KV_REST_API_URL;
-  if (!redisUrl) return null;
-  
-  try {
-    return new Redis(redisUrl);
-  } catch (e) {
-    console.error('Redis connection error:', e);
-    return null;
-  }
-};
-
-const redis = getRedisClient();
+// Vercel KV 自动读取环境变量：KV_REST_API_URL + KV_REST_API_TOKEN
+const redis = kv;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
