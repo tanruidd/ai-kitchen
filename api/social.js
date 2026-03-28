@@ -5,16 +5,11 @@
 import Redis from 'ioredis';
 
 const getRedisClient = () => {
-  if (!process.env.KV_REST_API_URL) return null;
+  const redisUrl = process.env.REDIS_URL || process.env.KV_REST_API_URL;
+  if (!redisUrl) return null;
   
   try {
-    // 解析 Redis URL
-    const url = new URL(process.env.KV_REST_API_URL.replace('redis://:', 'redis://'));
-    return new Redis(url.hostname, {
-      port: parseInt(url.port) || 6379,
-      password: url.password || undefined,
-      tls: url.protocol === 'rediss:' ? {} : undefined
-    });
+    return new Redis(redisUrl);
   } catch (e) {
     console.error('Redis connection error:', e);
     return null;
@@ -90,7 +85,6 @@ async function searchUser({ userId, keyword }, res) {
     });
   }
 
-  // 遍历所有用户
   const users = [];
   let cursor = '0';
   do {
