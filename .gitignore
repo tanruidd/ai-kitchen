@@ -2,3 +2,6 @@
 .env
 .env.local
 .DS_Store
+
+# Dependencies
+node_modules/
