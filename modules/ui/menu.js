@@ -89,6 +89,7 @@ const MenuModule = (() => {
       'gacha': '🎁 食材盲盒',
       'achievements': '🏆 成就系统',
       'leaderboard': '📊 排行榜',
+      'friends': '👥 好友',
       'stats': '📈 数据统计',
       'settings': '⚙️ 设置',
       'account': '👤 我的账号',
@@ -126,6 +127,9 @@ const MenuModule = (() => {
         break;
       case 'tasks':
         window.DailyTaskModule?.renderTaskPage?.();
+        break;
+      case 'friends':
+        window.FriendsModule?.renderFriendsPage?.();
         break;
     }
   }
