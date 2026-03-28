@@ -36,6 +36,7 @@ const FriendsModule = (() => {
 
   // ============== 渲染好友页面 ==============
   function renderFriendsPage() {
+    console.log('renderFriendsPage called');
     // 注册用户到 Redis
     FriendsModule.initUser();
     
