@@ -2,10 +2,6 @@
   "name": "ai-kitchen",
   "version": "1.0.0",
   "description": "美味创意AI厨房 - 比奇堡蟹堡王特供",
-  "scripts": {
-    "start": "vercel dev",
-    "build": "echo 'No build required'"
-  },
   "dependencies": {
     "ioredis": "^5.10.1"
   }
