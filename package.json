@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "美味创意AI厨房 - 比奇堡蟹堡王特供",
   "dependencies": {
-    "@vercel/kv": "^3.0.0"
+    "@upstash/redis": "^1.34.0"
   }
 }
