@@ -9,6 +9,12 @@
  * - 访问好友主页数据
  */
 
+import Redis from 'ioredis';
+
+const redis = process.env.KV_REST_API_URL?.startsWith('redis://')
+  ? new Redis(process.env.KV_REST_API_URL)
+  : null;
+
 export default async function handler(req, res) {
   // 设置 CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,21 +31,21 @@ export default async function handler(req, res) {
   try {
     switch (action) {
       case 'search':
-        return await searchUser(body);
+        return await searchUser(body, res);
       case 'add':
-        return await addFriend(body);
+        return await addFriend(body, res);
       case 'remove':
-        return await removeFriend(body);
+        return await removeFriend(body, res);
       case 'list':
-        return await getFriends(body);
+        return await getFriends(body, res);
       case 'send':
-        return await sendGift(body);
+        return await sendGift(body, res);
       case 'profile':
-        return await getFriendProfile(body);
+        return await getFriendProfile(body, res);
       case 'gift-received':
-        return await getReceivedGifts(body);
+        return await getReceivedGifts(body, res);
       case 'daily-gift-status':
-        return await getDailyGiftStatus(body);
+        return await getDailyGiftStatus(body, res);
       default:
         return res.status(400).json({ error: 'Unknown action' });
     }
@@ -49,30 +55,9 @@ export default async function handler(req, res) {
   }
 }
 
-// ============== Vercel KV 客户端 ==============
-// 注意：需要先安装 @vercel/kv 并配置 KV_REST_API_URL 和 KV_REST_API_TOKEN
-
-let kv = null;
-
-async function getKV() {
-  if (kv) return kv;
-  
-  try {
-    const { kv: kvClient } = await import('@vercel/kv');
-    kv = kvClient;
-    return kv;
-  } catch (e) {
-    console.warn('Vercel KV not configured, using mock mode');
-    return null;
-  }
-}
-
 // ============== 用户搜索 ==============
-async function searchUser({ userId, keyword }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
-    // Mock 模式
+async function searchUser({ userId, keyword }, res) {
+  if (!redis) {
     return res.json({
       success: true,
       users: [
@@ -82,83 +67,61 @@ async function searchUser({ userId, keyword }) {
     });
   }
 
-  // 搜索用户（通过昵称或 ID）
-  const pattern = `user:*${keyword}*`;
-  const users = await kvClient.keys(pattern);
-  
-  const results = await Promise.all(
-    users.slice(0, 10).map(async (key) => {
-      const user = await kvClient.get(key);
-      return {
-        id: user.id,
-        nickname: user.nickname,
-        avatar: user.avatar,
-        level: user.level || 1
-      };
-    })
-  );
+  // 搜索用户
+  const users = [];
+  for await (const key of redis.scanStream({ match: `user:*${keyword}*`, count: 10 })) {
+    const user = await redis.get(key);
+    if (user) {
+      const u = JSON.parse(user);
+      users.push({ id: u.id, nickname: u.nickname, avatar: u.avatar, level: u.level || 1 });
+    }
+  }
 
-  return res.json({ success: true, users: results });
+  return res.json({ success: true, users: users.slice(0, 10) });
 }
 
 // ============== 添加好友 ==============
-async function addFriend({ userId, friendId }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
-    return res.json({ success: true, message: 'Mock: Friend added' });
+async function addFriend({ userId, friendId }, res) {
+  if (!redis) {
+    return res.json({ success: true, message: 'Redis not configured' });
+  }
+
+  if (userId === friendId) {
+    return res.json({ success: false, error: '不能添加自己为好友' });
   }
 
   // 获取当前用户的好友列表
   const friendsKey = `friends:${userId}`;
-  let friends = await kvClient.get(friendsKey) || [];
+  let friends = await redis.smembers(friendsKey) || [];
   
   if (friends.includes(friendId)) {
-    return res.json({ success: false, error: 'Already friends' });
+    return res.json({ success: false, error: '已经是好友了' });
   }
   
-  friends.push(friendId);
-  await kvClient.set(friendsKey, friends);
+  await redis.sadd(friendsKey, friendId);
 
   // 同时添加到对方的好友列表
   const friendKey = `friends:${friendId}`;
-  let friendList = await kvClient.get(friendKey) || [];
-  if (!friendList.includes(userId)) {
-    friendList.push(userId);
-    await kvClient.set(friendKey, friendList);
-  }
+  await redis.sadd(friendKey, userId);
 
   return res.json({ success: true });
 }
 
 // ============== 删除好友 ==============
-async function removeFriend({ userId, friendId }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
-    return res.json({ success: true, message: 'Mock: Friend removed' });
+async function removeFriend({ userId, friendId }, res) {
+  if (!redis) {
+    return res.json({ success: true, message: 'Redis not configured' });
   }
 
-  // 从当前用户好友列表中删除
-  const friendsKey = `friends:${userId}`;
-  let friends = await kvClient.get(friendsKey) || [];
-  friends = friends.filter(id => id !== friendId);
-  await kvClient.set(friendsKey, friends);
-
-  // 从对方好友列表中删除
-  const friendKey = `friends:${friendId}`;
-  let friendList = await kvClient.get(friendKey) || [];
-  friendList = friendList.filter(id => id !== userId);
-  await kvClient.set(friendKey, friendList);
+  await redis.srem(`friends:${userId}`, friendId);
+  await redis.srem(`friends:${friendId}`, userId);
 
   return res.json({ success: true });
 }
 
 // ============== 获取好友列表 ==============
-async function getFriends({ userId }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
+async function getFriends({ userId }, res) {
+  if (!redis) {
     return res.json({
       success: true,
       friends: [
@@ -168,66 +131,62 @@ async function getFriends({ userId }) {
     });
   }
 
-  const friendsKey = `friends:${userId}`;
-  const friendIds = await kvClient.get(friendsKey) || [];
+  const friendIds = await redis.smembers(`friends:${userId}`) || [];
   
-  const friends = await Promise.all(
-    friendIds.map(async (fid) => {
-      const user = await kvClient.get(`user:${fid}`);
-      if (!user) return null;
-      return {
-        id: user.id,
-        nickname: user.nickname,
-        avatar: user.avatar,
-        level: user.level || 1,
-        lastActive: user.lastActive || Date.now()
-      };
-    })
-  );
+  const friends = [];
+  for (const fid of friendIds) {
+    const userData = await redis.get(`user:${fid}`);
+    if (userData) {
+      const u = JSON.parse(userData);
+      friends.push({
+        id: u.id,
+        nickname: u.nickname,
+        avatar: u.avatar,
+        level: u.level || 1,
+        lastActive: u.lastActive || Date.now()
+      });
+    }
+  }
 
-  return res.json({ success: true, friends: friends.filter(Boolean) });
+  return res.json({ success: true, friends });
 }
 
 // ============== 送礼物 ==============
-async function sendGift({ userId, friendId, giftType, amount }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
-    return res.json({ success: true, message: 'Mock: Gift sent' });
+async function sendGift({ userId, friendId, giftType, amount }, res) {
+  if (!redis) {
+    return res.json({ success: true, message: 'Redis not configured' });
   }
 
-  // 检查今日是否已送礼
   const today = new Date().toISOString().split('T')[0];
   const dailyKey = `daily_gift:${userId}:${friendId}:${today}`;
-  const alreadySent = await kvClient.get(dailyKey);
+  const alreadySent = await redis.get(dailyKey);
   
   if (alreadySent) {
-    return res.json({ success: false, error: 'Already sent gift today' });
+    return res.json({ success: false, error: '今天已经送过礼物了' });
   }
 
   // 记录送礼
-  await kvClient.set(dailyKey, { type: giftType, amount, timestamp: Date.now() });
+  await redis.set(dailyKey, JSON.stringify({ type: giftType, amount, timestamp: Date.now() }));
+  await redis.expire(dailyKey, 86400 * 2); // 2天过期
 
   // 添加到对方收礼列表
   const receiveKey = `gifts:${friendId}`;
-  let gifts = await kvClient.get(receiveKey) || [];
-  gifts.push({
+  const giftData = JSON.stringify({
     from: userId,
     type: giftType,
     amount,
     timestamp: Date.now(),
     date: today
   });
-  await kvClient.set(receiveKey, gifts);
+  await redis.lpush(receiveKey, giftData);
+  await redis.ltrim(receiveKey, 0, 99); // 只保留最近100条
 
   return res.json({ success: true });
 }
 
 // ============== 获取好友主页数据 ==============
-async function getFriendProfile({ userId, friendId }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
+async function getFriendProfile({ userId, friendId }, res) {
+  if (!redis) {
     return res.json({
       success: true,
       profile: {
@@ -244,13 +203,14 @@ async function getFriendProfile({ userId, friendId }) {
     });
   }
 
-  const user = await kvClient.get(`user:${friendId}`);
-  if (!user) {
-    return res.json({ success: false, error: 'User not found' });
+  const userData = await redis.get(`user:${friendId}`);
+  if (!userData) {
+    return res.json({ success: false, error: '用户不存在' });
   }
 
-  // 获取统计
-  const stats = await kvClient.get(`stats:${friendId}`) || {};
+  const user = JSON.parse(userData);
+  const statsData = await redis.get(`stats:${friendId}`);
+  const stats = statsData ? JSON.parse(statsData) : {};
 
   return res.json({
     success: true,
@@ -269,10 +229,8 @@ async function getFriendProfile({ userId, friendId }) {
 }
 
 // ============== 获取收到的礼物 ==============
-async function getReceivedGifts({ userId }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
+async function getReceivedGifts({ userId }, res) {
+  if (!redis) {
     return res.json({
       success: true,
       gifts: [
@@ -281,34 +239,31 @@ async function getReceivedGifts({ userId }) {
     });
   }
 
-  const receiveKey = `gifts:${userId}`;
-  const gifts = await kvClient.get(receiveKey) || [];
+  const giftsData = await redis.lrange(`gifts:${userId}`, 0, 19);
   
-  // 转换用户 ID 为昵称
-  const results = await Promise.all(
-    gifts.slice(-20).reverse().map(async (gift) => {
-      const fromUser = await kvClient.get(`user:${gift.from}`);
-      return {
-        ...gift,
-        fromNickname: fromUser?.nickname || '未知用户'
-      };
-    })
-  );
+  const gifts = [];
+  for (const giftStr of giftsData) {
+    const gift = JSON.parse(giftStr);
+    const fromUserData = await redis.get(`user:${gift.from}`);
+    const fromUser = fromUserData ? JSON.parse(fromUserData) : { nickname: '未知用户' };
+    gifts.push({
+      ...gift,
+      fromNickname: fromUser.nickname
+    });
+  }
 
-  return res.json({ success: true, gifts: results });
+  return res.json({ success: true, gifts });
 }
 
 // ============== 获取今日送礼状态 ==============
-async function getDailyGiftStatus({ userId, friendId }) {
-  const kvClient = await getKV();
-  
-  if (!kvClient) {
+async function getDailyGiftStatus({ userId, friendId }, res) {
+  if (!redis) {
     return res.json({ success: true, sent: false });
   }
 
   const today = new Date().toISOString().split('T')[0];
   const dailyKey = `daily_gift:${userId}:${friendId}:${today}`;
-  const sent = await kvClient.get(dailyKey);
+  const sent = await redis.get(dailyKey);
 
   return res.json({ success: true, sent: !!sent });
 }
