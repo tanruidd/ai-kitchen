@@ -36,6 +36,9 @@ const FriendsModule = (() => {
 
   // ============== 渲染好友页面 ==============
   function renderFriendsPage() {
+    // 注册用户到 Redis
+    FriendsModule.initUser();
+    
     const app = document.getElementById('app');
     app.innerHTML = `
       <div class="page friends-page">
@@ -439,3 +442,22 @@ const FriendsModule = (() => {
     closeModal
   };
 })();
+
+// 初始化时注册用户到 Redis
+async function initUser() {
+  const user = AccountModule?.getUser?.();
+  if (!user || !user.id) return;
+  
+  try {
+    await fetch('/api/social?action=register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user })
+    });
+  } catch (e) {
+    console.log('User registration skipped:', e.message);
+  }
+}
+
+// 暴露到全局
+window.FriendsModule.initUser = initUser;
