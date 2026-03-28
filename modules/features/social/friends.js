@@ -456,6 +456,9 @@ const FriendsModule = (() => {
   };
 })();
 
+// 暴露到全局
+window.FriendsModule = FriendsModule;
+
 // 初始化时注册用户到 Redis
 async function initUser() {
   const user = AccountModule?.getUser?.();
@@ -486,5 +489,5 @@ async function initUser() {
   }
 }
 
-// 暴露到全局
+// 暴露 initUser 到全局
 window.FriendsModule.initUser = initUser;
