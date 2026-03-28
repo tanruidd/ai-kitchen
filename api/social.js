@@ -108,11 +108,11 @@ async function registerUser(client, { user }, res) {
 // 用户搜索
 async function searchUser(client, { userId, keyword }, res) {
   const users = [];
-  let cursor = 0;
+  let cursor = '0';
   
   do {
     const reply = await client.scan(cursor, { MATCH: 'user:*', COUNT: 50 });
-    cursor = reply.cursor;
+    cursor = reply.cursor.toString();
     
     for (const key of reply.keys) {
       const data = await client.get(key);
@@ -123,7 +123,7 @@ async function searchUser(client, { userId, keyword }, res) {
         }
       }
     }
-  } while (cursor !== 0 && users.length < 10);
+  } while (cursor !== '0' && users.length < 10);
 
   return res.json({ success: true, users: users.slice(0, 10) });
 }
