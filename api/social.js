@@ -2,13 +2,21 @@
  * 社交系统 API
  */
 
-import { Redis } from '@upstash/redis';
+import { createClient } from 'redis';
 
-// Upstash Redis - 从环境变量自动读取 UPSTASH_REDIS_REST_URL 和 UPSTASH_REDIS_REST_TOKEN
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
-});
+// 全局 Redis 客户端，避免每次请求都创建新连接
+let redis = null;
+
+async function getRedis() {
+  if (!redis) {
+    redis = createClient({
+      url: process.env.REDIS_URL
+    });
+    redis.on('error', (err) => console.error('Redis Client Error', err));
+    await redis.connect();
+  }
+  return redis;
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,25 +31,27 @@ export default async function handler(req, res) {
   const body = req.body || {};
 
   try {
+    const client = await getRedis();
+    
     switch (action) {
       case 'search':
-        return await searchUser(body, res);
+        return await searchUser(client, body, res);
       case 'add':
-        return await addFriend(body, res);
+        return await addFriend(client, body, res);
       case 'remove':
-        return await removeFriend(body, res);
+        return await removeFriend(client, body, res);
       case 'list':
-        return await getFriends(body, res);
+        return await getFriends(client, body, res);
       case 'send':
-        return await sendGift(body, res);
+        return await sendGift(client, body, res);
       case 'profile':
-        return await getFriendProfile(body, res);
+        return await getFriendProfile(client, body, res);
       case 'gift-received':
-        return await getReceivedGifts(body, res);
+        return await getReceivedGifts(client, body, res);
       case 'daily-gift-status':
-        return await getDailyGiftStatus(body, res);
+        return await getDailyGiftStatus(client, body, res);
       case 'register':
-        return await registerUser(body, res);
+        return await registerUser(client, body, res);
       default:
         return res.status(400).json({ error: 'Unknown action' });
     }
@@ -52,39 +62,26 @@ export default async function handler(req, res) {
 }
 
 // 注册用户
-async function registerUser({ user }, res) {
-  if (!redis) {
-    return res.json({ success: false, error: 'Redis not connected' });
-  }
-  
+async function registerUser(client, { user }, res) {
   if (!user || !user.id) {
     return res.json({ success: false, error: 'Invalid user data' });
   }
   
-  await redis.set(`user:${user.id}`, JSON.stringify(user));
+  await client.set(`user:${user.id}`, JSON.stringify(user));
   return res.json({ success: true });
 }
 
 // 用户搜索
-async function searchUser({ userId, keyword }, res) {
-  if (!redis) {
-    return res.json({
-      success: true,
-      users: [
-        { id: 'chef_test001', nickname: '海绵宝宝', avatar: '🧽' },
-        { id: 'chef_test002', nickname: '派大星', avatar: '⭐' },
-      ]
-    });
-  }
-
+async function searchUser(client, { userId, keyword }, res) {
   const users = [];
-  let cursor = '0';
+  let cursor = 0;
+  
   do {
-    const [newCursor, keys] = await redis.scan(cursor, 'MATCH', 'user:*', 'COUNT', 50);
-    cursor = newCursor;
+    const reply = await client.scan(cursor, { MATCH: 'user:*', COUNT: 50 });
+    cursor = reply.cursor;
     
-    for (const key of keys) {
-      const data = await redis.get(key);
+    for (const key of reply.keys) {
+      const data = await client.get(key);
       if (data) {
         const u = JSON.parse(data);
         if (u.nickname?.includes(keyword) || u.id?.includes(keyword)) {
@@ -92,63 +89,45 @@ async function searchUser({ userId, keyword }, res) {
         }
       }
     }
-  } while (cursor !== '0' && users.length < 10);
+  } while (cursor !== 0 && users.length < 10);
 
   return res.json({ success: true, users: users.slice(0, 10) });
 }
 
 // 添加好友
-async function addFriend({ userId, friendId }, res) {
-  if (!redis) {
-    return res.json({ success: false, error: 'Redis not connected' });
-  }
-
+async function addFriend(client, { userId, friendId }, res) {
   if (userId === friendId) {
     return res.json({ success: false, error: '不能添加自己为好友' });
   }
 
   const friendsKey = `friends:${userId}`;
-  let friends = await redis.smembers(friendsKey);
-  friends = friends || [];
+  const friends = await client.sMembers(friendsKey);
   
   if (friends.includes(friendId)) {
     return res.json({ success: false, error: '已经是好友了' });
   }
   
-  await redis.sadd(friendsKey, friendId);
-  await redis.sadd(`friends:${friendId}`, userId);
+  await client.sAdd(friendsKey, friendId);
+  await client.sAdd(`friends:${friendId}`, userId);
 
   return res.json({ success: true });
 }
 
 // 删除好友
-async function removeFriend({ userId, friendId }, res) {
-  if (!redis) {
-    return res.json({ success: false, error: 'Redis not connected' });
-  }
-
-  await redis.srem(`friends:${userId}`, friendId);
-  await redis.srem(`friends:${friendId}`, userId);
+async function removeFriend(client, { userId, friendId }, res) {
+  await client.sRem(`friends:${userId}`, friendId);
+  await client.sRem(`friends:${friendId}`, userId);
 
   return res.json({ success: true });
 }
 
 // 获取好友列表
-async function getFriends({ userId }, res) {
-  if (!redis) {
-    return res.json({
-      success: true,
-      friends: [
-        { id: 'chef_test001', nickname: '海绵宝宝', avatar: '🧽', level: 5 },
-      ]
-    });
-  }
-
-  const friendIds = await redis.smembers(`friends:${userId}`);
+async function getFriends(client, { userId }, res) {
+  const friendIds = await client.sMembers(`friends:${userId}`);
   const friends = [];
   
   for (const fid of (friendIds || [])) {
-    const data = await redis.get(`user:${fid}`);
+    const data = await client.get(`user:${fid}`);
     if (data) {
       const u = JSON.parse(data);
       friends.push({
@@ -164,42 +143,27 @@ async function getFriends({ userId }, res) {
 }
 
 // 送礼物
-async function sendGift({ userId, friendId, giftType, amount }, res) {
-  if (!redis) {
-    return res.json({ success: false, error: 'Redis not connected' });
-  }
-
+async function sendGift(client, { userId, friendId, giftType, amount }, res) {
   const today = new Date().toISOString().split('T')[0];
   const dailyKey = `daily_gift:${userId}:${friendId}:${today}`;
-  const alreadySent = await redis.get(dailyKey);
+  const alreadySent = await client.get(dailyKey);
   
   if (alreadySent) {
     return res.json({ success: false, error: '今天已经送过礼物了' });
   }
 
-  await redis.set(dailyKey, JSON.stringify({ type: giftType, amount, timestamp: Date.now() }));
-  await redis.expire(dailyKey, 86400 * 2);
+  await client.set(dailyKey, JSON.stringify({ type: giftType, amount, timestamp: Date.now() }), { EX: 86400 * 2 });
 
   const giftData = JSON.stringify({ from: userId, type: giftType, amount, timestamp: Date.now(), date: today });
-  await redis.lpush(`gifts:${friendId}`, giftData);
-  await redis.ltrim(`gifts:${friendId}`, 0, 99);
+  await client.lPush(`gifts:${friendId}`, giftData);
+  await client.lTrim(`gifts:${friendId}`, 0, 99);
 
   return res.json({ success: true });
 }
 
 // 获取好友主页
-async function getFriendProfile({ userId, friendId }, res) {
-  if (!redis) {
-    return res.json({
-      success: true,
-      profile: {
-        id: 'chef_test001', nickname: '海绵宝宝', avatar: '🧽',
-        level: 5, totalCooks: 128, totalGacha: 50, achievements: 12
-      }
-    });
-  }
-
-  const userData = await redis.get(`user:${friendId}`);
+async function getFriendProfile(client, { userId, friendId }, res) {
+  const userData = await client.get(`user:${friendId}`);
   if (!userData) {
     return res.json({ success: false, error: '用户不存在' });
   }
@@ -215,17 +179,13 @@ async function getFriendProfile({ userId, friendId }, res) {
 }
 
 // 获取收到的礼物
-async function getReceivedGifts({ userId }, res) {
-  if (!redis) {
-    return res.json({ success: true, gifts: [] });
-  }
-
-  const giftsData = await redis.lrange(`gifts:${userId}`, 0, 19);
+async function getReceivedGifts(client, { userId }, res) {
+  const giftsData = await client.lRange(`gifts:${userId}`, 0, 19);
   const gifts = [];
   
   for (const giftStr of (giftsData || [])) {
     const gift = JSON.parse(giftStr);
-    const fromData = await redis.get(`user:${gift.from}`);
+    const fromData = await client.get(`user:${gift.from}`);
     const fromUser = fromData ? JSON.parse(fromData) : { nickname: '未知' };
     gifts.push({ ...gift, fromNickname: fromUser.nickname });
   }
@@ -234,14 +194,10 @@ async function getReceivedGifts({ userId }, res) {
 }
 
 // 今日送礼状态
-async function getDailyGiftStatus({ userId, friendId }, res) {
-  if (!redis) {
-    return res.json({ success: true, sent: false });
-  }
-
+async function getDailyGiftStatus(client, { userId, friendId }, res) {
   const today = new Date().toISOString().split('T')[0];
   const dailyKey = `daily_gift:${userId}:${friendId}:${today}`;
-  const sent = await redis.get(dailyKey);
+  const sent = await client.get(dailyKey);
 
   return res.json({ success: true, sent: !!sent });
 }
