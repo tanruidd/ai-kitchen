@@ -14,7 +14,13 @@
  * - HistoryModule 金币
  */
 
+// 全局调试
+window.FriendsModuleReady = false;
+
 const FriendsModule = (() => {
+  console.log('FriendsModule initializing');
+  window.FriendsModuleReady = true;
+  
   const API_BASE = '/api/social';
   
   // 礼物配置
@@ -37,12 +43,14 @@ const FriendsModule = (() => {
   // ============== 渲染好友页面 ==============
   function renderFriendsPage() {
     console.log('renderFriendsPage called');
+    try {
     // 注册用户到 Redis
     FriendsModule.initUser();
     
     const container = document.getElementById('friends-page-content');
     if (!container) {
       console.error('friends-page-content not found');
+      alert('friends-page-content not found!');
       return;
     }
     
@@ -85,6 +93,10 @@ const FriendsModule = (() => {
     // 显示我的好友码
     const user = AccountModule?.getUser?.();
     document.getElementById('my-friend-code').textContent = user?.id || '未登录';
+    } catch(e) {
+      console.error('renderFriendsPage error:', e);
+      alert('Error: ' + e.message);
+    }
   }
 
   // ============== 加载好友列表 ==============
