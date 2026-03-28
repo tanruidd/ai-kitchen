@@ -1,5 +1,11 @@
 {
   "rewrites": [
-    { "source": "/api/chat", "destination": "/api/chat.js" }
-  ]
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/api/social", "destination": "/api/social.js" },
+    { "source": "/api/image", "destination": "/api/image.js" }
+  ],
+  "build": {
+    "command": "echo 'Build complete'"
+  },
+  "outputDirectory": "."
 }
