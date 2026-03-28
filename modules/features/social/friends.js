@@ -39,14 +39,14 @@ const FriendsModule = (() => {
     // 注册用户到 Redis
     FriendsModule.initUser();
     
-    const app = document.getElementById('app');
-    app.innerHTML = `
+    const container = document.getElementById('friends-page-content');
+    if (!container) {
+      console.error('friends-page-content not found');
+      return;
+    }
+    
+    container.innerHTML = `
       <div class="page friends-page">
-        <div class="page-header">
-          <button class="back-btn" onclick="App.navigate('home')">← 返回</button>
-          <h1>👥 好友</h1>
-        </div>
-        
         <div class="friends-code-section">
           <div class="friends-code-card">
             <div class="code-label">我的好友码</div>
