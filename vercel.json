@@ -1,11 +1,9 @@
 {
   "rewrites": [
-    { "source": "/api/chat", "destination": "/api/chat.js" },
-    { "source": "/api/social", "destination": "/api/social.js" },
-    { "source": "/api/image", "destination": "/api/image.js" }
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
-  "build": {
-    "command": "echo 'Build complete'"
-  },
-  "outputDirectory": "."
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
+  ]
 }
