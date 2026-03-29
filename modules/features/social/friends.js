@@ -25,7 +25,7 @@ const FriendsModule = (() => {
   
   // 礼物配置
   const GIFTS = {
-    coins: { name: '金币', icon: '🪙', amount: 100 },
+    coins: { name: '金币', icon: '🪙', amount: 5 },
     coupon: { name: '盲盒券', icon: '🎫', amount: 1 }
   };
 
@@ -550,9 +550,9 @@ const FriendsModule = (() => {
           </div>
           
           <div class="gift-options">
-            <button class="gift-option" onclick="FriendsModule.sendGift('${friendId}', 'coins', 100)">
+            <button class="gift-option" onclick="FriendsModule.sendGift('${friendId}', 'coins', 5)">
               <div class="gift-icon">🪙</div>
-              <div class="gift-name">金币 x100</div>
+              <div class="gift-name">金币 x5</div>
             </button>
             <button class="gift-option" onclick="FriendsModule.sendGift('${friendId}', 'coupon', 1)">
               <div class="gift-icon">🎫</div>

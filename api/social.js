@@ -344,8 +344,8 @@ async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks' }, r
 // 被偷日志：steal_log:{userId} → list
 
 const STEAL_COOLDOWN = 12 * 3600 * 1000; // 12小时冷却
-const STEAL_AMOUNT_MIN = 8;
-const STEAL_AMOUNT_MAX = 30;
+const STEAL_AMOUNT_MIN = 5;
+const STEAL_AMOUNT_MAX = 15;
 const DAILY_STEALS = 5; // 每天最多偷5个不同好友
 const DAILY_STEAL_KEY_TTL = 86400 * 2; // Redis key 过期秒数
 
