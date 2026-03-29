@@ -37,6 +37,15 @@ const GachaModule = (() => {
     return items[items.length - 1];
   }
 
+  // 金币奖励池配置
+  const COIN_PRIZES = [
+    { min: 1,   max: 5,   weight: 35, label: '小红包', desc: '聊胜于无的小红包 🤏' },
+    { min: 5,   max: 15,  weight: 30, label: '铜币袋', desc: '蟹老板偷偷塞的小铜币 💰' },
+    { min: 15,  max: 30,  weight: 20, label: '银币袋', desc: '发财了发财了！✨' },
+    { min: 30,  max: 80,  weight: 12, label: '金币袋', desc: '蟹堡王的神秘小金库 🏦' },
+    { min: 80,  max: 200, weight: 3,  label: '宝箱！', desc: '传说中蟹堡王的私房钱！👑' },
+  ];
+
   function drawGacha() {
     const data = loadGachaData();
     if (data.tickets <= 0) {
@@ -45,23 +54,35 @@ const GachaModule = (() => {
     }
     data.tickets -= 1;
 
-    const isIngredient = Math.random() < 0.5;
+    // 三种结果：食材 40%、食谱 25%、金币 35%
+    const rand = Math.random();
     let result;
 
-    if (isIngredient) {
+    if (rand < 0.4) {
+      // 抽食材
       const rarityWeights = Object.entries(RARITY_CONFIG)
         .filter(([rarity]) => INGREDIENTS.some(ing => ing.rarity === rarity))
         .map(([rarity, config]) => ({ rarity, weight: config.weight }));
       const selectedRarity = weightedRandom(rarityWeights).rarity;
       const candidates = INGREDIENTS.filter(ing => ing.rarity === selectedRarity);
       result = { type: 'ingredient', data: candidates[Math.floor(Math.random() * candidates.length)], rarity: selectedRarity };
-    } else {
+    } else if (rand < 0.65) {
+      // 抽食谱
       const rarityWeights = Object.entries(RARITY_CONFIG)
         .filter(([rarity]) => LIMITED_RECIPES.some(recipe => recipe.rarity === rarity))
         .map(([rarity, config]) => ({ rarity, weight: config.weight }));
       const selectedRarity = weightedRandom(rarityWeights).rarity;
       const candidates = LIMITED_RECIPES.filter(recipe => recipe.rarity === selectedRarity);
       result = { type: 'recipe', data: candidates[Math.floor(Math.random() * candidates.length)], rarity: selectedRarity };
+    } else {
+      // 抽金币
+      const prize = weightedRandom(COIN_PRIZES);
+      const amount = Math.floor(Math.random() * (prize.max - prize.min + 1)) + prize.min;
+      result = {
+        type: 'coins',
+        data: { amount, label: prize.label, desc: prize.desc },
+        rarity: 'common',
+      };
     }
 
     if (!result || !result.data) {
@@ -74,6 +95,11 @@ const GachaModule = (() => {
     // 食材：增加持有计数
     if (result.type === 'ingredient' && data.ingredients) {
       data.ingredients[result.data.id] = (data.ingredients[result.data.id] || 0) + 1;
+    }
+
+    // 金币：直接加到账户
+    if (result.type === 'coins') {
+      AccountModule?.addCoins?.(result.data.amount);
     }
 
     result.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
@@ -153,7 +179,7 @@ const GachaModule = (() => {
         </button>
         <div class="gacha-tips">
           💡 每生成 3 道菜获得 1 张盲券<br/>
-          🍳 食谱需要收集对应食材才能烹饪<br/>
+          🍽️ 食材 40% · 📜 食谱 25% · 🪙 金币 35%<br/>
           🪙 没有卡券了？去「偷菜」赚金币，再到商店购买
         </div>
       </div>
@@ -480,6 +506,15 @@ const GachaModule = (() => {
         <div class="gacha-card-mystery">🌿 稀有食材 · 已存入背包</div>
         <div class="gacha-card-actions">
           <button class="gacha-card-save-btn" onclick="this.closest('.gacha-recipe-card-modal').remove()">✅ 我知道了</button>
+        </div>
+      `;
+    } else if (result.type === 'coins') {
+      inner += `
+        <div class="gacha-coin-result-icon">🪙</div>
+        <div class="gacha-coin-amount">+${result.data.amount} 金币</div>
+        <div class="gacha-coin-desc">${result.data.label} — ${result.data.desc}</div>
+        <div class="gacha-card-actions">
+          <button class="gacha-card-save-btn" onclick="this.closest('.gacha-recipe-card-modal').remove()">💰 收下啦！</button>
         </div>
       `;
     } else {

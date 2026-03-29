@@ -191,6 +191,18 @@
       text-align: center;
     }
 
+    /* 抽奖页金币显示条 */
+    .gacha-coins-strip {
+      text-align: center;
+      background: #fef9e7;
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 16px;
+      color: #555;
+      font-size: 14px;
+    }
+    .gacha-coins-strip strong { color: #f39c12; }
+
     .gacha-inventory {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -263,23 +275,23 @@
     }
 
     .gacha-shop-coins {
-      background: rgba(255,255,255,0.08);
+      background: #fef9e7;
       border-radius: 10px;
       padding: 12px 16px;
       text-align: center;
-      color: rgba(255,255,255,0.8);
+      color: #555;
       font-size: 14px;
     }
 
     .gacha-shop-coins strong {
-      color: #fee140;
+      color: #f39c12;
     }
 
     .gacha-shop-item {
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid #eee;
       border-radius: 12px;
       padding: 16px;
-      background: rgba(255,255,255,0.06);
+      background: #f9f9f9;
       transition: background 0.2s;
     }
 
@@ -297,18 +309,18 @@
     .gacha-shop-item-name {
       font-weight: bold;
       font-size: 0.95rem;
-      color: white;
+      color: #333;
     }
 
     .gacha-shop-item-price {
-      color: #fee140;
+      color: #f39c12;
       font-weight: bold;
       font-size: 1rem;
     }
 
     .gacha-shop-item-desc {
       font-size: 0.8rem;
-      color: rgba(255,255,255,0.5);
+      color: #888;
       margin-bottom: 12px;
     }
 
@@ -331,7 +343,7 @@
     }
 
     .gacha-shop-buy-btn.disabled {
-      background: #555;
+      background: #ccc;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
@@ -339,7 +351,7 @@
 
     .gacha-shop-tip {
       text-align: center;
-      color: rgba(255,255,255,0.35);
+      color: #aaa;
       font-size: 12px;
       padding: 8px 0;
     }
@@ -1312,18 +1324,42 @@
     }
 
 /* ========== 深色主题适配 ========== */
-.gacha-tickets-label { color: rgba(255,255,255,0.5); }
-.gacha-tips { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4); }
-.gacha-draw-btn { transition: all 0.3s ease; }
-.gacha-draw-btn.disabled { background: #555; opacity: 0.5; cursor: not-allowed; }
+/* 仅在深色容器内生效的文字覆盖，避免污染白底面板 */
 
-.gacha-coins-strip {
-  text-align: center;
-  background: rgba(254, 225, 64, 0.1);
-  border-radius: 8px;
-  padding: 8px;
-  margin-bottom: 16px;
-  color: rgba(255,255,255,0.7);
-  font-size: 14px;
+/* --- 深色容器：商店 tab (.gacha-shop) --- */
+/* 商店样式已在主 CSS 块中定义（白底 + 深色文字），此处仅确保深色面板兼容 */
+
+/* --- 深色容器：结果页 (.gacha-result-page) 内复用 --- */
+.gacha-result-page .gacha-tickets-label,
+.gacha-result-page .gacha-tips {
+  color: rgba(255,255,255,0.5);
 }
-.gacha-coins-strip strong { color: #fee140; }
+
+/* --- 抽奖金币结果弹窗样式 --- */
+.gacha-coin-result-icon {
+  font-size: 4rem;
+  margin-bottom: 12px;
+  animation: coinSpin 1s ease-in-out;
+}
+
+@keyframes coinSpin {
+  0% { transform: rotateY(0deg) scale(0.3); opacity: 0; }
+  50% { transform: rotateY(180deg) scale(1.2); opacity: 1; }
+  100% { transform: rotateY(360deg) scale(1); }
+}
+
+.gacha-coin-amount {
+  font-size: 2.2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f7b733, #fc4a1a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 8px 0;
+}
+
+.gacha-coin-desc {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 16px;
+}
