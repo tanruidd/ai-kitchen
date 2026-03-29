@@ -171,15 +171,15 @@ const AccountModule = (() => {
   }
 
   /**
-   * 初始化
+   * 初始化（同步）
    */
-  async function init() {
-    // 先同步显示本地账号（如果有）
-    const localUser = getUser();
-    updateMenuHeader(localUser);
+  function init() {
+    // 同步显示本地账号
+    const user = getUser();
+    updateMenuHeader(user);
     
-    // 然后异步检查设备，尝试恢复云端账号
-    await checkDeviceAndRestore();
+    // 异步检查设备（不等待）
+    checkDeviceAndRestore();
   }
 
   /**
