@@ -96,13 +96,23 @@ const AccountModule = (() => {
   }
 
   /**
-   * 获取当前用户
-   * 优先从本地读取，不存在则尝试从云端恢复（根据设备指纹）
+   * 获取当前用户（同步）
    */
-  async function getUser() {
+  function getUser() {
     let user = loadUser();
+    if (!user) {
+      user = createUser();
+    }
+    return user;
+  }
+  
+  /**
+   * 检查设备是否已注册，自动恢复账号（异步）
+   */
+  async function checkDeviceAndRestore() {
+    const user = loadUser();
     if (user) {
-      return user;
+      return user; // 本地已有账号
     }
     
     // 本地没有用户，检查设备是否已在云端注册
@@ -117,44 +127,33 @@ const AccountModule = (() => {
       
       if (result.success && result.user) {
         // 设备已注册，恢复账号
-        user = result.user;
-        saveUser(user);
-        console.log('✅ 设备已注册，自动恢复账号:', user.nickname);
-        return user;
+        saveUser(result.user);
+        console.log('✅ 设备已注册，自动恢复账号:', result.user.nickname);
+        updateMenuHeader(result.user);
+        return result.user;
       }
     } catch (e) {
-      console.log('设备检查失败，创建新账号');
+      console.log('设备检查失败');
     }
     
-    // 设备未注册，创建新用户
-    user = createUser();
+    // 设备未注册，创建新用户并关联设备
+    const newUser = createUser();
     
-    // 将设备 ID 和用户 ID 关联，保存到云端
     try {
       await fetch('/api/social?action=register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          user: { ...user, deviceId },
+          user: { ...newUser, deviceId },
           userId: deviceId  // 用设备 ID 作为 key
         })
       });
+      console.log('✅ 新设备已注册');
     } catch (e) {
       console.log('设备注册失败');
     }
     
-    return user;
-  }
-  
-  /**
-   * 同步获取用户（不等待云端）
-   */
-  function getUserSync() {
-    let user = loadUser();
-    if (!user) {
-      user = createUser();
-    }
-    return user;
+    return newUser;
   }
 
   /**
@@ -175,8 +174,12 @@ const AccountModule = (() => {
    * 初始化
    */
   async function init() {
-    const user = await getUser();
-    updateMenuHeader(user);
+    // 先同步显示本地账号（如果有）
+    const localUser = getUser();
+    updateMenuHeader(localUser);
+    
+    // 然后异步检查设备，尝试恢复云端账号
+    await checkDeviceAndRestore();
   }
 
   /**
