@@ -719,7 +719,8 @@ const GachaModule = (() => {
     setTimeout(() => { resultPage.classList.add('show'); }, 100);
 
     saveGachaResult(recipe, recipe.rarity, fullText);
-    window.LeaderboardModule?.updateRecipeRank(recipe.name, 'gacha');
+    // 全局排行榜已移除，改为好友排行榜
+    window.FriendsModule?.updateFriendRank?.('cook', 1);
     window.AchievementModule?.checkAchievements();
     window._currentGachaResult = { recipe, config, fullText };
   }

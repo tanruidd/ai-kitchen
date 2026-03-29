@@ -88,7 +88,7 @@ const MenuModule = (() => {
       'history': '📜 历史记录',
       'gacha': '🎁 食材盲盒',
       'achievements': '🏆 成就系统',
-      'leaderboard': '📊 排行榜',
+
       'friends': '👥 好友',
       'stats': '📈 数据统计',
       'settings': '⚙️ 设置',
@@ -113,9 +113,7 @@ const MenuModule = (() => {
       case 'achievements':
         window.AchievementModule?.renderAchievementPanel?.();
         break;
-      case 'leaderboard':
-        window.LeaderboardModule?.renderLeaderboard?.();
-        break;
+
       case 'stats':
         window.StatsModule?.renderStatsPanel?.();
         break;
