@@ -146,7 +146,7 @@ async function startCooking() {
     saveCurrentResult(input, currentMode, fullText);
 
     // 增加盲盒计数
-    window.GachaModule?.addCookCount();
+    // 盲盒券不再通过烹饪获得，改为金币购买
 
     // 更新排行榜
     window.LeaderboardModule?.updateRecipeRank(input, currentMode);
