@@ -180,6 +180,10 @@ const AccountModule = (() => {
    * 初始化
    */
   function init() {
+    // 检查本地是否有用户，没有则创建
+    if (!loadUser()) {
+      createUser();
+    }
     updateMenuDisplay();
   }
   
@@ -216,103 +220,12 @@ const AccountModule = (() => {
   }
 
   /**
-   * 获取用户展示 HTML
+   * 获取用户展示信息（昵称+头像）
    */
   function getUserDisplay() {
-    const user = getUserSync();
+    const user = loadUser();
+    if (!user) return { avatar: '👤', nickname: '未登录', id: '' };
     return { avatar: user.avatar, nickname: user.nickname, id: user.id };
-  }
-  
-  /**
-   * 显示 ID 登录弹窗
-   */
-  function showLoginModal() {
-    const existing = document.getElementById('account-modal');
-    if (existing) existing.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'account-modal';
-    modal.className = 'account-modal';
-    modal.innerHTML = `
-      <div class="account-modal-content">
-        <h3>🔐 ID 登录</h3>
-        <p style="color:#666;font-size:14px;margin-bottom:16px;">输入您的用户 ID，在新设备上恢复账号</p>
-        <input type="text" id="login-user-id" placeholder="请输入用户 ID" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;box-sizing:border-box;">
-        <div class="account-modal-actions" style="margin-top:16px;">
-          <button class="account-modal-btn cancel" onclick="AccountModule.closeModal()">取消</button>
-          <button class="account-modal-btn" onclick="AccountModule.doLogin()">登录</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  }
-
-  /**
-   * 执行 ID 登录
-   */
-  async function doLogin() {
-    const input = document.getElementById('login-user-id');
-    const userId = input?.value?.trim();
-    
-    if (!userId) {
-      showToast('请输入用户 ID');
-      return;
-    }
-
-    try {
-      showToast('🔄 正在登录...');
-      
-      const response = await fetch('/api/social?action=login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success && result.user) {
-        // 保存用户数据到本地
-        saveUser(result.user);
-        updateMenuHeader(result.user);
-        closeModal();
-        renderAccountPage();
-        showToast('✅ 登录成功！欢迎回来，' + result.user.nickname);
-      } else {
-        showToast('❌ ' + (result.error || '登录失败'));
-      }
-    } catch (e) {
-      showToast('❌ 登录失败: ' + e.message);
-    }
-  }
-
-  /**
-   * 同步数据到云端
-   */
-  async function syncToCloud() {
-    const user = getUser();
-    
-    try {
-      showToast('🔄 正在同步...');
-      
-      const response = await fetch('/api/social?action=sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        showToast('✅ 数据已同步到云端！');
-      } else {
-        showToast('❌ ' + (result.error || '同步失败'));
-      }
-    } catch (e) {
-      showToast('❌ 同步失败: ' + e.message);
-    }
-  }
-
-  return { avatar: user.avatar, nickname: user.nickname, id: user.id };
   }
 
   /**
@@ -748,16 +661,17 @@ const AccountModule = (() => {
     updateMenuDisplay,
     updateNickname,
     selectAvatar,
+    updateAvatar: selectAvatar,  // 别名，保持 API 兼容性
     saveNickname,
     saveAvatar,
     closeModal,
     renderAccountPage,
-    showRegisterModal,
-    doRegister,
+    copyId,
+    resetAccount,
+    confirmReset,
+    toggleLevelDetail,
     showLoginModal,
     doLogin,
-    logout,
-    copyId,
     syncToCloud,
   };
 })();
