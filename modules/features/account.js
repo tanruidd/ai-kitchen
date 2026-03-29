@@ -96,14 +96,17 @@ const AccountModule = (() => {
   }
 
   /**
-   * 获取当前用户（同步）
+   * 检查是否已登录
+   */
+  function isLoggedIn() {
+    return !!loadUser();
+  }
+
+  /**
+   * 获取当前用户（同步，可能为 null）
    */
   function getUser() {
-    let user = loadUser();
-    if (!user) {
-      user = createUser();
-    }
-    return user;
+    return loadUser();
   }
   
   /**
@@ -174,15 +177,32 @@ const AccountModule = (() => {
   }
 
   /**
-   * 初始化（同步）
+   * 初始化
    */
   function init() {
-    // 同步显示本地账号
-    const user = getUser();
-    updateMenuHeader(user);
+    updateMenuDisplay();
+  }
+  
+  /**
+   * 更新菜单显示（根据登录状态）
+   */
+  function updateMenuDisplay() {
+    const user = loadUser();
+    const avatarEl = document.getElementById('menu-user-avatar');
+    const nameEl = document.getElementById('menu-user-name');
+    const levelEl = document.getElementById('menu-user-level');
     
-    // 异步检查设备（不等待）
-    checkDeviceAndRestore();
+    if (user) {
+      // 已登录
+      if (avatarEl) avatarEl.textContent = user.avatar;
+      if (nameEl) nameEl.textContent = user.nickname;
+      if (levelEl) levelEl.textContent = 'Lv.' + (user.level || 1);
+    } else {
+      // 未登录
+      if (avatarEl) avatarEl.textContent = '👤';
+      if (nameEl) nameEl.textContent = '未登录';
+      if (levelEl) levelEl.textContent = '点击登录';
+    }
   }
 
   /**
@@ -723,19 +743,21 @@ const AccountModule = (() => {
   return {
     init,
     getUser,
+    isLoggedIn,
     getUserDisplay,
+    updateMenuDisplay,
     updateNickname,
     selectAvatar,
     saveNickname,
     saveAvatar,
     closeModal,
     renderAccountPage,
-    toggleLevelDetail,
-    copyId,
-    resetAccount,
-    confirmReset,
+    showRegisterModal,
+    doRegister,
     showLoginModal,
     doLogin,
+    logout,
+    copyId,
     syncToCloud,
   };
 })();
