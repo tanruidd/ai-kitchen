@@ -205,6 +205,7 @@ const AccountModule = (() => {
       createdAt: Date.now(),
     };
     saveUser(user);
+    localStorage.setItem(COINS_KEY, '50'); // 初始金币 50
     return user;
   }
 

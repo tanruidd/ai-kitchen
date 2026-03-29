@@ -533,8 +533,7 @@ const FriendsModule = (() => {
     // 获取当前盲盒券（从 GachaStore 获取）
     const gachaData = window.GachaStore?.loadGachaData?.() || { tickets: 0 };
     const coupons = gachaData.tickets || 0;
-    // 金币暂时设为 999999（后续可以接入金币系统）
-    const coins = 999999;
+    const coins = AccountModule?.getCoins?.() ?? 0;
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -585,7 +584,7 @@ const FriendsModule = (() => {
       if (result.success) {
         // 扣减发送者资源
         if (giftType === 'coins') {
-          // 金币扣减（后续接入金币系统）
+          AccountModule?.deductCoins?.(amount);
         } else if (giftType === 'coupon') {
           // 扣减盲盒券
           const STORAGE_KEY = 'ai-kitchen-gacha';

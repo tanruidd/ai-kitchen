@@ -136,8 +136,12 @@ const GachaModule = (() => {
   function renderDrawTab(data) {
     const container = document.getElementById('gacha-content');
     if (!container) return;
+    const coins = AccountModule?.getCoins?.() ?? 0;
     container.innerHTML = `
       <div class="gacha-draw-section">
+        <div class="gacha-coins-strip">
+          🪙 <strong>${coins}</strong> 金币
+        </div>
         <div class="gacha-tickets-display">
           <div class="gacha-tickets-count">${data.tickets}</div>
           <div class="gacha-tickets-label">张卡券</div>
@@ -150,7 +154,7 @@ const GachaModule = (() => {
         <div class="gacha-tips">
           💡 每生成 3 道菜获得 1 张盲券<br/>
           🍳 食谱需要收集对应食材才能烹饪<br/>
-          💳 也可以在商店购买卡券
+          🪙 没有卡券了？去「偷菜」赚金币，再到商店购买
         </div>
       </div>
     `;
@@ -371,32 +375,31 @@ const GachaModule = (() => {
   function renderShopTab() {
     const container = document.getElementById('gacha-content');
     if (!container) return;
+    const coins = AccountModule?.getCoins?.() ?? 0;
+    const prices = { 1: 10, 5: 45, 10: 80 }; // 金币定价
     container.innerHTML = `
       <div class="gacha-shop">
-        <div class="gacha-shop-item">
-          <div class="gacha-shop-item-header">
-            <span class="gacha-shop-item-name">🎁 单张盲盒卡券</span>
-            <span class="gacha-shop-item-price">¥0.99</span>
-          </div>
-          <div class="gacha-shop-item-desc">获得 1 张盲盒卡券，可抽取稀有食材或限定食谱</div>
-          <button class="gacha-shop-buy-btn" onclick="GachaModule.buyTickets(1)">购买</button>
+        <div class="gacha-shop-coins">
+          🪙 我的金币：<strong>${coins}</strong>
         </div>
-        <div class="gacha-shop-item">
-          <div class="gacha-shop-item-header">
-            <span class="gacha-shop-item-name">🎁 盲盒 5 连</span>
-            <span class="gacha-shop-item-price">¥3.99</span>
+        ${[1, 5, 10].map(n => `
+          <div class="gacha-shop-item ${coins < prices[n] ? 'gacha-shop-item-disabled' : ''}">
+            <div class="gacha-shop-item-header">
+              <span class="gacha-shop-item-name">🎫 盲盒券 ×${n}</span>
+              <span class="gacha-shop-item-price">🪙 ${prices[n]}</span>
+            </div>
+            <div class="gacha-shop-item-desc">
+              获得 ${n} 张盲盒券
+              ${n === 5 ? '（省 5 金币）' : n === 10 ? '（省 20 金币）' : ''}
+            </div>
+            <button class="gacha-shop-buy-btn ${coins < prices[n] ? 'disabled' : ''}"
+              ${coins < prices[n] ? 'disabled' : ''}
+              onclick="GachaModule.buyTickets(${n})">
+              ${coins < prices[n] ? '金币不足' : '购买'}
+            </button>
           </div>
-          <div class="gacha-shop-item-desc">获得 5 张盲盒卡券，享受 20% 优惠</div>
-          <button class="gacha-shop-buy-btn" onclick="GachaModule.buyTickets(5)">购买</button>
-        </div>
-        <div class="gacha-shop-item">
-          <div class="gacha-shop-item-header">
-            <span class="gacha-shop-item-name">🎁 盲盒 10 连</span>
-            <span class="gacha-shop-item-price">¥6.99</span>
-          </div>
-          <div class="gacha-shop-item-desc">获得 10 张盲盒卡券，享受 30% 优惠</div>
-          <button class="gacha-shop-buy-btn" onclick="GachaModule.buyTickets(10)">购买</button>
-        </div>
+        `).join('')}
+        <div class="gacha-shop-tip">💡 每烹饪 3 道菜可获得 1 张盲盒券，也可以用金币购买</div>
       </div>
     `;
   }
@@ -706,7 +709,28 @@ const GachaModule = (() => {
   }
 
   function buyTickets(count) {
-    showToast(`💳 跳转到支付页面... (购买 ${count} 张卡券)`);
+    const price = count === 1 ? 10 : count === 5 ? 45 : 80;
+    const coins = AccountModule?.getCoins?.() ?? 0;
+
+    if (coins < price) {
+      showToast('❌ 金币不足，快去偷菜赚钱吧！');
+      return;
+    }
+
+    const ok = AccountModule?.deductCoins?.(price);
+    if (!ok) {
+      showToast('❌ 金币扣除失败');
+      return;
+    }
+
+    const data = loadGachaData();
+    data.tickets = (data.tickets || 0) + count;
+    saveGachaData(data);
+    updateGachaBadge();
+
+    showToast(`✅ 购买成功！+${count} 张盲盒券`);
+    // 刷新商店
+    renderShopTab();
   }
 
   // 获取盲盒券数量
