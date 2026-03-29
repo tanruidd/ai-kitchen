@@ -68,6 +68,10 @@ export default async function handler(req, res) {
     const client = await getRedis();
     
     switch (action) {
+      case 'login':
+        return await loginUser(client, body, res);
+      case 'sync':
+        return await syncUser(client, body, res);
       case 'search':
         return await searchUser(client, body, res);
       case 'add':
@@ -103,6 +107,42 @@ async function registerUser(client, { user }, res) {
   
   await client.set(`user:${user.id}`, JSON.stringify(user));
   return res.json({ success: true });
+}
+
+// ID 登录
+async function loginUser(client, { userId }, res) {
+  if (!userId) {
+    return res.json({ success: false, error: '请输入用户 ID' });
+  }
+  
+  const userData = await client.get(`user:${userId}`);
+  if (!userData) {
+    return res.json({ success: false, error: '用户不存在，请检查 ID 是否正确' });
+  }
+  
+  const user = JSON.parse(userData);
+  return res.json({ success: true, user });
+}
+
+// 同步用户数据到云端
+async function syncUser(client, { user }, res) {
+  if (!user || !user.id) {
+    return res.json({ success: false, error: 'Invalid user data' });
+  }
+  
+  // 合并现有数据
+  const existingData = await client.get(`user:${user.id}`);
+  let mergedUser = user;
+  
+  if (existingData) {
+    const existing = JSON.parse(existingData);
+    mergedUser = { ...existing, ...user, updatedAt: Date.now() };
+  } else {
+    mergedUser.updatedAt = Date.now();
+  }
+  
+  await client.set(`user:${user.id}`, JSON.stringify(mergedUser));
+  return res.json({ success: true, user: mergedUser });
 }
 
 // 用户搜索
