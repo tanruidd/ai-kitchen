@@ -178,9 +178,8 @@ const GachaModule = (() => {
           ${data.tickets > 0 ? '🎁 开启盲盒' : '🎁 没有卡券了'}
         </button>
         <div class="gacha-tips">
-          💡 每生成 3 道菜获得 1 张盲券<br/>
           🍽️ 食材 40% · 📜 食谱 25% · 🪙 金币 35%<br/>
-          🪙 没有卡券了？去「偷菜」赚金币，再到商店购买
+          💰 金币不够？去「偷菜」赚金币，再到商店购买盲盒券
         </div>
       </div>
     `;
@@ -425,7 +424,7 @@ const GachaModule = (() => {
             </button>
           </div>
         `).join('')}
-        <div class="gacha-shop-tip">💡 每烹饪 3 道菜可获得 1 张盲盒券，也可以用金币购买</div>
+        <div class="gacha-shop-tip">💡 盲盒券只能通过金币购买，快去偷菜赚钱吧！</div>
       </div>
     `;
   }
