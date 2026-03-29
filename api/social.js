@@ -92,6 +92,10 @@ export default async function handler(req, res) {
         return await registerUser(client, body, res);
       case 'friend-leaderboard':
         return await getFriendLeaderboard(client, body, res);
+      case 'steal-status':
+        return await getStealStatus(client, body, res);
+      case 'steal':
+        return await doSteal(client, body, res);
       default:
         return res.status(400).json({ error: 'Unknown action' });
     }
@@ -332,4 +336,161 @@ async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks' }, r
   const meRank = players.findIndex(p => p.id === userId) + 1;
 
   return res.json({ success: true, players: players.slice(0, 20), myRank: meRank });
+}
+
+// ==================== 偷菜系统 ====================
+// 金币仓库：user:coins:{id} → number
+// 偷窃冷却：steal_cd:{userId}:{targetId} → timestamp
+// 被偷日志：steal_log:{userId} → list
+
+const STEAL_COOLDOWN = 12 * 3600 * 1000; // 12小时冷却
+const STEAL_AMOUNT_MIN = 8;
+const STEAL_AMOUNT_MAX = 30;
+const DAILY_STEALS = 5; // 每天最多偷5个不同好友
+const DAILY_STEAL_KEY_TTL = 86400 * 2; // Redis key 过期秒数
+
+// 获取某用户的"厨房金币"（玩家可被偷的库存）
+async function getUserKitchenCoins(client, userId) {
+  const raw = await client.get(`user:coins:${userId}`);
+  return raw ? parseInt(raw, 10) : 0;
+}
+
+// 获取偷窃状态（所有好友的可偷状态）
+async function getStealStatus(client, { userId }, res) {
+  if (!userId) return res.json({ success: false, error: '请先登录' });
+
+  const friendIds = await client.sMembers(`friends:${userId}`);
+  const today = new Date().toISOString().split('T')[0];
+  const now = Date.now();
+
+  const results = [];
+  for (const fid of (friendIds || [])) {
+    // 查 Redis 金币余额
+    const kitchenCoins = await getUserKitchenCoins(client, fid);
+
+    // 检查冷却（被偷过）
+    const cdKey = `steal_cd:${fid}:${today}`;
+    const lastStolenAt = await client.get(cdKey);
+    const isOnCooldown = !!lastStolenAt;
+
+    // 检查我自己今天有没有偷过此人
+    const myStealKey = `steal_log:${userId}:${fid}:${today}`;
+    const iStolen = !!(await client.get(myStealKey));
+
+    // 获取好友基本信息
+    const userData = await client.get(`user:${fid}`);
+    let nickname = '神秘好友', avatar = '👤';
+    if (userData) {
+      const u = JSON.parse(userData);
+      nickname = u.nickname;
+      avatar = u.avatar;
+    }
+
+    results.push({
+      id: fid,
+      nickname,
+      avatar,
+      kitchenCoins,
+      isOnCooldown,
+      iStolen,
+      canSteal: !isOnCooldown && !iStolen && kitchenCoins > 0,
+    });
+  }
+
+  // 统计今天已偷人数
+  let stolenCount = 0;
+  for (const r of results) { if (r.iStolen) stolenCount++; }
+
+  return res.json({ success: true, friends: results, stolenCount, dailyLimit: DAILY_STEALS });
+}
+
+// 执行偷菜
+async function doSteal(client, { userId, targetId }, res) {
+  if (!userId || !targetId) {
+    return res.json({ success: false, error: '参数错误' });
+  }
+  if (userId === targetId) {
+    return res.json({ success: false, error: '不能偷自己的厨房哦' });
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const now = Date.now();
+
+  // 检查是否已经是好友
+  const isFriend = await client.sIsMember(`friends:${userId}`, targetId);
+  if (!isFriend) {
+    return res.json({ success: false, error: '只能偷好友的厨房哦' });
+  }
+
+  // 检查目标今日是否可偷
+  const cdKey = `steal_cd:${targetId}:${today}`;
+  const lastStolenAt = await client.get(cdKey);
+  if (lastStolenAt) {
+    const remainingMs = STEAL_COOLDOWN - (now - parseInt(lastStolenAt, 10));
+    if (remainingMs > 0) {
+      const remainingMin = Math.ceil(remainingMs / 60000);
+      return res.json({ success: false, error: `该好友刚被偷过，需等 ${remainingMin} 分钟后才能再偷` });
+    }
+  }
+
+  // 检查我自己今天有没有偷过此人
+  const myStealKey = `steal_log:${userId}:${targetId}:${today}`;
+  if (await client.get(myStealKey)) {
+    return res.json({ success: false, error: '今天已经偷过这个好友了' });
+  }
+
+  // 检查今日偷人数量上限
+  const myStealCountKey = `steal_count:${userId}:${today}`;
+  const myStealCount = parseInt(await client.get(myStealCountKey) || '0', 10);
+  if (myStealCount >= DAILY_STEALS) {
+    return res.json({ success: false, error: `今天偷人次数用完了（${DAILY_STEALS}/${DAILY_STEALS}），明天再来吧！` });
+  }
+
+  // 检查目标厨房金币
+  let kitchenCoins = await getUserKitchenCoins(client, targetId);
+  // 如果 Redis 没有，读本地 account.js 的金币
+  if (kitchenCoins === 0) {
+    // 厨房初始有 500 金币，后续随烹饪积累
+    kitchenCoins = 500;
+  }
+
+  // 随机偷窃金额
+  const stealAmount = Math.floor(Math.random() * (STEAL_AMOUNT_MAX - STEAL_AMOUNT_MIN + 1)) + STEAL_AMOUNT_MIN;
+  const actualSteal = Math.min(stealAmount, kitchenCoins);
+
+  if (actualSteal === 0) {
+    return res.json({ success: false, error: '好友厨房空空如也，没东西可偷...' });
+  }
+
+  // 扣减目标厨房金币
+  await client.set(`user:coins:${targetId}`, String(Math.max(0, kitchenCoins - actualSteal)));
+
+  // 写冷却
+  await client.set(cdKey, String(now), { EX: DAILY_STEAL_KEY_TTL });
+
+  // 记录我偷过此人
+  await client.set(myStealKey, String(now), { EX: DAILY_STEAL_KEY_TTL });
+
+  // 计数 +1
+  await client.set(myStealCountKey, String(myStealCount + 1), { EX: DAILY_STEAL_KEY_TTL });
+
+  // 偷窃记录（对方可见）
+  const logKey = `steal_notify:${targetId}`;
+  const logEntry = JSON.stringify({
+    from: userId, amount: actualSteal, timestamp: now, date: today,
+  });
+  await client.lPush(logKey, logEntry);
+  await client.lTrim(logKey, 0, 49);
+
+  // 返回结果
+  const fromData = await client.get(`user:${targetId}`);
+  const fromName = fromData ? JSON.parse(fromData).nickname : '神秘好友';
+
+  return res.json({
+    success: true,
+    amount: actualSteal,
+    fromName,
+    stolenCount: myStealCount + 1,
+    dailyLimit: DAILY_STEALS,
+  });
 }

@@ -77,6 +77,9 @@ const FriendsModule = (() => {
           <button class="friends-tab" id="tab-rank" onclick="FriendsModule.switchTab('rank')">
             🏆 排行
           </button>
+          <button class="friends-tab" id="tab-steal" onclick="FriendsModule.switchTab('steal')">
+            🍳 偷菜
+          </button>
           <button class="friends-tab" id="tab-gift" onclick="FriendsModule.switchTab('gift')">
             🎁 礼物
           </button>
@@ -104,6 +107,14 @@ const FriendsModule = (() => {
             <div class="loading">加载中...</div>
           </div>
           <div class="my-rank-bar" id="my-rank-bar"></div>
+        </div>
+
+        <div class="friends-steal-section tab-content" id="content-steal" style="display:none;">
+          <div class="steal-header-tip">🍳 好友的厨房每天可偷一次！每次偷 8~30 金币</div>
+          <div id="steal-count-bar"></div>
+          <div class="steal-list" id="steal-list">
+            <div class="loading">加载中...</div>
+          </div>
         </div>
 
         <div class="gift-history-section tab-content" id="content-gift" style="display:none;">
@@ -137,6 +148,8 @@ const FriendsModule = (() => {
 
     if (tab === 'rank') {
       loadFriendLeaderboard('totalCooks');
+    } else if (tab === 'steal') {
+      loadStealStatus();
     }
   }
 
@@ -163,7 +176,6 @@ const FriendsModule = (() => {
       const me = result.players.find(p => p.id === myId);
       const myRank = me ? result.players.indexOf(me) + 1 : null;
 
-      // 渲染排行
       listEl.innerHTML = result.players.map((player, index) => {
         const rank = index + 1;
         const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="rank-num">${rank}</span>`;
@@ -183,7 +195,6 @@ const FriendsModule = (() => {
         `;
       }).join('');
 
-      // 我的排名条
       if (myRank) {
         myRankEl.innerHTML = `
           <div class="my-rank-info">
@@ -204,6 +215,92 @@ const FriendsModule = (() => {
     document.querySelectorAll('.rank-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('rank-tab-' + sortBy)?.classList.add('active');
     loadFriendLeaderboard(sortBy);
+  }
+
+  // ============== 偷菜系统 ==============
+  function renderStealPage() {
+    const container = document.getElementById('steal-list');
+    if (!container) return;
+    container.innerHTML = '<div class="loading">加载中...</div>';
+    loadStealStatus();
+  }
+
+  async function loadStealStatus() {
+    const listEl = document.getElementById('steal-list');
+    const countEl = document.getElementById('steal-count-bar');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="loading">加载中...</div>';
+
+    try {
+      const result = await apiCall('steal-status', {});
+
+      if (!result.success) {
+        listEl.innerHTML = `<div class="error">${result.error || '加载失败'}</div>`;
+        return;
+      }
+
+      const { friends, stolenCount, dailyLimit } = result;
+
+      // 今日计数
+      if (countEl) {
+        countEl.innerHTML = `
+          <div class="steal-count-bar">
+            <span>🎯 今日偷取：<strong>${stolenCount}</strong> / ${dailyLimit}</span>
+            <div class="steal-progress"><div class="steal-progress-fill" style="width:${(stolenCount/dailyLimit)*100}%"></div></div>
+          </div>`;
+      }
+
+      if (!friends.length) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🍳</div>
+            <div>还没有好友，快去添加吧！</div>
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = friends.map(f => {
+        const statusText = f.iStolen ? '✅ 已偷' : f.isOnCooldown ? '⏳ 冷却中' : f.kitchenCoins <= 0 ? '😢 空空' : '';
+        const canClick = f.canSteal;
+        const coins = AccountModule?.getCoins?.() ?? 0;
+
+        return `
+          <div class="steal-item ${canClick ? 'steal-able' : 'steal-disabled'}"
+               onclick="${canClick ? `FriendsModule.doSteal('${f.id}')` : ''}">
+            <div class="steal-avatar">${f.avatar}</div>
+            <div class="steal-info">
+              <div class="steal-name">${escapeHtml(f.nickname)}</div>
+              <div class="steal-coins">🪙 厨房金币: ${f.kitchenCoins}</div>
+            </div>
+            <div class="steal-status">${statusText}</div>
+            ${canClick ? '<button class="steal-btn">🍳 偷!</button>' : ''}
+          </div>
+        `;
+      }).join('');
+
+    } catch (e) {
+      listEl.innerHTML = `<div class="error">加载失败: ${e.message}</div>`;
+    }
+  }
+
+  async function doSteal(targetId) {
+    try {
+      const result = await apiCall('steal', { targetId });
+
+      if (result.success) {
+        const coins = AccountModule?.addCoins?.(result.amount) ?? 0;
+        const msg = `🎉 偷到了 ${result.amount} 金币！`;
+        showToast(msg);
+        loadStealStatus(); // 刷新列表
+      } else {
+        showToast('❌ ' + (result.error || '偷窃失败'));
+        if (result.error?.includes('今天') || result.error?.includes('次数')) {
+          loadStealStatus(); // 刷新状态
+        }
+      }
+    } catch (e) {
+      showToast('❌ ' + e.message);
+    }
   }
 
   // ============== 加载好友列表 ==============
@@ -565,6 +662,12 @@ const FriendsModule = (() => {
   }
 
   // ============== 导出 ==============
+  // ============== 工具 ==============
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
   return {
     renderFriendsPage,
     copyFriendCode,
@@ -579,7 +682,9 @@ const FriendsModule = (() => {
     switchTab,
     loadFriendLeaderboard,
     switchRankTab,
-    initUser
+    loadStealStatus,
+    doSteal,
+    initUser,
   };
 })();
 

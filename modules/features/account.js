@@ -22,6 +22,7 @@
 const AccountModule = (() => {
   const USER_KEY = 'ai-kitchen-user';
   const DEVICE_KEY = 'ai-kitchen-device-id';
+  const COINS_KEY = 'ai-kitchen-coins';
 
   // 可选头像列表
   const AVATARS = ['🧽', '🦀', '🐙', '⭐', '🍕', '🍔', '🌮', '🍣', '🧁', '🍩', '🥐', '🍜', '🍳', '🍬', '🥩', '🍗', '🌮', '🥗', '🍉', '🧀'];
@@ -93,6 +94,37 @@ const AccountModule = (() => {
    */
   function saveUser(user) {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
+  /**
+   * 获取金币（同步）
+   */
+  function getCoins() {
+    return parseInt(localStorage.getItem(COINS_KEY) || '0', 10);
+  }
+
+  /**
+   * 增加金币
+   * @param {number} amount 正数
+   * @returns {number} 增加后的金币
+   */
+  function addCoins(amount) {
+    const current = getCoins();
+    const next = Math.max(0, current + amount);
+    localStorage.setItem(COINS_KEY, String(next));
+    return next;
+  }
+
+  /**
+   * 扣减金币
+   * @param {number} amount 要扣减的数量
+   * @returns {boolean} 是否扣减成功（余额不足返回false）
+   */
+  function deductCoins(amount) {
+    const current = getCoins();
+    if (current < amount) return false;
+    localStorage.setItem(COINS_KEY, String(current - amount));
+    return true;
   }
 
   /**
@@ -658,6 +690,9 @@ const AccountModule = (() => {
     getUser,
     isLoggedIn,
     getUserDisplay,
+    getCoins,
+    addCoins,
+    deductCoins,
     updateMenuDisplay,
     updateNickname,
     selectAvatar,
