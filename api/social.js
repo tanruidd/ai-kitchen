@@ -100,12 +100,14 @@ export default async function handler(req, res) {
 }
 
 // 注册用户
-async function registerUser(client, { user }, res) {
-  if (!user || !user.id) {
+async function registerUser(client, { user, userId }, res) {
+  // userId 可以是用户 ID 或设备 ID
+  const key = userId || user?.id;
+  if (!key || !user) {
     return res.json({ success: false, error: 'Invalid user data' });
   }
   
-  await client.set(`user:${user.id}`, JSON.stringify(user));
+  await client.set(`user:${key}`, JSON.stringify(user));
   return res.json({ success: true });
 }
 

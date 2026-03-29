@@ -1,11 +1,12 @@
 /**
- * account.js — 匿名账号系统
+ * account.js — 智能账号系统
  *
  * 功能：
+ * - 设备指纹识别，避免同一设备重复注册
  * - 首次访问自动生成用户 ID + 随机昵称
- * - 用户可修改昵称
- * - 用户可修改头像 emoji
- * - 所有数据存 localStorage
+ * - 用户可修改昵称和头像
+ * - ID 登录：在新设备恢复账号
+ * - 云端同步：数据保存到 Redis
  *
  * 对外暴露：
  *   AccountModule.getUser()        — 获取当前用户信息
@@ -14,10 +15,13 @@
  *   AccountModule.updateAvatar()   — 切换头像
  *   AccountModule.renderAccountPage() — 渲染账号页面
  *   AccountModule.getUserDisplay() — 获取用户展示信息（昵称+头像）
+ *   AccountModule.showLoginModal() — 显示 ID 登录弹窗
+ *   AccountModule.syncToCloud()    — 同步数据到云端
  */
 
 const AccountModule = (() => {
   const USER_KEY = 'ai-kitchen-user';
+  const DEVICE_KEY = 'ai-kitchen-device-id';
 
   // 可选头像列表
   const AVATARS = ['🧽', '🦀', '🐙', '⭐', '🍕', '🍔', '🌮', '🍣', '🧁', '🍩', '🥐', '🍜', '🍳', '🍬', '🥩', '🍗', '🌮', '🥗', '🍉', '🧀'];
@@ -29,6 +33,42 @@ const AccountModule = (() => {
     '美食探险家', '料理小白', '深夜食堂', '味蕾冒险家', '食谱收藏家',
     '厨房魔法师', '吃货达人', '美食猎人', '料理忍者', '甜品控',
   ];
+
+  /**
+   * 生成设备指纹
+   * 基于：浏览器信息 + 屏幕信息 + 时区 + 语言
+   */
+  function generateDeviceId() {
+    const components = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.platform,
+    ];
+    const raw = components.join('|');
+    // 简单 hash
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      const char = raw.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return 'device_' + Math.abs(hash).toString(36);
+  }
+
+  /**
+   * 获取设备 ID（持久化到 localStorage）
+   */
+  function getDeviceId() {
+    let deviceId = localStorage.getItem(DEVICE_KEY);
+    if (!deviceId) {
+      deviceId = generateDeviceId();
+      localStorage.setItem(DEVICE_KEY, deviceId);
+    }
+    return deviceId;
+  }
 
   /**
    * 生成短 ID
@@ -56,9 +96,60 @@ const AccountModule = (() => {
   }
 
   /**
-   * 获取当前用户（不存在则创建）
+   * 获取当前用户
+   * 优先从本地读取，不存在则尝试从云端恢复（根据设备指纹）
    */
-  function getUser() {
+  async function getUser() {
+    let user = loadUser();
+    if (user) {
+      return user;
+    }
+    
+    // 本地没有用户，检查设备是否已在云端注册
+    const deviceId = getDeviceId();
+    try {
+      const response = await fetch('/api/social?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: deviceId })
+      });
+      const result = await response.json();
+      
+      if (result.success && result.user) {
+        // 设备已注册，恢复账号
+        user = result.user;
+        saveUser(user);
+        console.log('✅ 设备已注册，自动恢复账号:', user.nickname);
+        return user;
+      }
+    } catch (e) {
+      console.log('设备检查失败，创建新账号');
+    }
+    
+    // 设备未注册，创建新用户
+    user = createUser();
+    
+    // 将设备 ID 和用户 ID 关联，保存到云端
+    try {
+      await fetch('/api/social?action=register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          user: { ...user, deviceId },
+          userId: deviceId  // 用设备 ID 作为 key
+        })
+      });
+    } catch (e) {
+      console.log('设备注册失败');
+    }
+    
+    return user;
+  }
+  
+  /**
+   * 同步获取用户（不等待云端）
+   */
+  function getUserSync() {
     let user = loadUser();
     if (!user) {
       user = createUser();
@@ -83,8 +174,8 @@ const AccountModule = (() => {
   /**
    * 初始化
    */
-  function init() {
-    const user = getUser();
+  async function init() {
+    const user = await getUser();
     updateMenuHeader(user);
   }
 
@@ -102,7 +193,9 @@ const AccountModule = (() => {
    * 获取用户展示 HTML
    */
   function getUserDisplay() {
-    const user = getUser();
+    const user = getUserSync();
+    return { avatar: user.avatar, nickname: user.nickname, id: user.id };
+  }
   
   /**
    * 显示 ID 登录弹窗
