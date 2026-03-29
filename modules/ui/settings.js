@@ -61,6 +61,45 @@ const SettingsModule = (() => {
   }
 
   /**
+   * 清除所有本地数据
+   */
+  function clearAllData() {
+    if (!confirm('⚠️ 确定要清除所有本地数据吗？\n\n此操作将删除：\n• 账号信息\n• 历史记录\n• 盲盒数据\n• 成就进度\n• 任务进度\n\n此操作不可恢复！')) {
+      return;
+    }
+
+    if (!confirm('🚨 最后确认：真的要清除所有数据吗？')) {
+      return;
+    }
+
+    // 清除所有 localStorage
+    const keysToRemove = [
+      'ai-kitchen-user',
+      'ai-kitchen-device-id',
+      'ai-kitchen-gacha',
+      'ai-kitchen-gacha-history',
+      'ai-kitchen-cook-count',
+      'ai-kitchen-history',
+      'ai-kitchen-achievements',
+      'ai-kitchen-stats',
+      'ai-kitchen-settings',
+      'ai-kitchen-daily-tasks',
+      'ai-kitchen-level',
+      'ai-kitchen-recipe-rank',
+      'ai-kitchen-user-rank',
+    ];
+
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    showToast('✅ 本地数据已清除');
+
+    // 刷新页面
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }
+
+  /**
    * 渲染设置页面
    */
   function renderSettings() {
@@ -104,6 +143,13 @@ const SettingsModule = (() => {
             </div>
             <span class="settings-item-arrow">→</span>
           </div>
+          <div class="settings-item" onclick="SettingsModule.clearAllData()">
+            <div class="settings-item-info">
+              <span class="settings-item-label danger">清除本地数据</span>
+              <span class="settings-item-desc">删除所有本地数据，此操作不可恢复</span>
+            </div>
+            <span class="settings-item-arrow">→</span>
+          </div>
         </div>
       </div>
 
@@ -131,6 +177,7 @@ const SettingsModule = (() => {
     saveSettings,
     toggleSfx,
     toggleBgm,
+    clearAllData,
     renderSettings,
   };
 })();
