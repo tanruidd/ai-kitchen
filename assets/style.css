@@ -1427,6 +1427,181 @@
   font-size: 12px;
 }
 
+/* ========== 好友 Tab 切换 ========== */
+.friends-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.friends-tab {
+  flex: 1;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 8px;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.friends-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.friends-rank-section,
+.gift-history-section {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 24px;
+}
+
+/* ========== 排行榜子 Tab ========== */
+.rank-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.rank-tab {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 6px;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.rank-tab.active {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.rank-item:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.rank-item.rank-me {
+  border-left-color: #f5576c;
+  background: rgba(245, 87, 108, 0.12);
+}
+
+.rank-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-medal {
+  font-size: 20px;
+  min-width: 36px;
+}
+
+.rank-num {
+  font-size: 16px;
+  font-weight: bold;
+  color: rgba(255,255,255,0.5);
+}
+
+.rank-avatar {
+  font-size: 28px;
+  margin: 0 10px;
+}
+
+.rank-info {
+  flex: 1;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.rank-name {
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rank-level {
+  color: rgba(255,255,255,0.45);
+  font-size: 12px;
+}
+
+.me-tag {
+  background: #f5576c;
+  color: white;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.rank-value {
+  color: #fee140;
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 48px;
+  text-align: right;
+}
+
+.my-rank-bar {
+  margin-top: 12px;
+}
+
+.my-rank-info {
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  padding: 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+.my-rank-info strong {
+  color: #fee140;
+}
+
+.rank-legend {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+
+@media (max-width: 480px) {
+  .friends-tab { font-size: 12px; padding: 10px 6px; }
+  .rank-tab { font-size: 11px; padding: 6px 4px; }
+  .rank-name { font-size: 14px; }
+  .rank-value { font-size: 14px; }
+}
+
 /* ========== 弹窗样式 ========== */
 .modal-overlay {
   position: fixed;

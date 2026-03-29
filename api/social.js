@@ -90,6 +90,8 @@ export default async function handler(req, res) {
         return await getDailyGiftStatus(client, body, res);
       case 'register':
         return await registerUser(client, body, res);
+      case 'friend-leaderboard':
+        return await getFriendLeaderboard(client, body, res);
       default:
         return res.status(400).json({ error: 'Unknown action' });
     }
@@ -276,4 +278,58 @@ async function getDailyGiftStatus(client, { userId, friendId }, res) {
   const sent = await client.get(dailyKey);
 
   return res.json({ success: true, sent: !!sent });
+}
+
+// 好友排行榜
+async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks' }, res) {
+  const friendIds = await client.sMembers(`friends:${userId}`);
+  const players = [];
+
+  for (const fid of (friendIds || [])) {
+    const data = await client.get(`user:${fid}`);
+    if (data) {
+      const u = JSON.parse(data);
+      players.push({
+        id: u.id,
+        nickname: u.nickname,
+        avatar: u.avatar,
+        level: u.level || 1,
+        totalCooks: u.totalCooks || 0,
+        totalGacha: u.totalGacha || 0,
+        achievements: u.achievements || 0,
+        lastCooked: u.lastCooked || null,
+      });
+    }
+  }
+
+  // 加上自己
+  const myData = await client.get(`user:${userId}`);
+  if (myData) {
+    const me = JSON.parse(myData);
+    const exists = players.find(p => p.id === me.id);
+    if (!exists) {
+      players.push({
+        id: me.id,
+        nickname: me.nickname,
+        avatar: me.avatar,
+        level: me.level || 1,
+        totalCooks: me.totalCooks || 0,
+        totalGacha: me.totalGacha || 0,
+        achievements: me.achievements || 0,
+        lastCooked: me.lastCooked || null,
+      });
+    }
+  }
+
+  // 排序
+  players.sort((a, b) => {
+    if (sortBy === 'totalCooks') return (b.totalCooks || 0) - (a.totalCooks || 0);
+    if (sortBy === 'totalGacha') return (b.totalGacha || 0) - (a.totalGacha || 0);
+    if (sortBy === 'achievements') return (b.achievements || 0) - (a.achievements || 0);
+    return 0;
+  });
+
+  const meRank = players.findIndex(p => p.id === userId) + 1;
+
+  return res.json({ success: true, players: players.slice(0, 20), myRank: meRank });
 }

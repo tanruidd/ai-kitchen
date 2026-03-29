@@ -70,15 +70,43 @@ const FriendsModule = (() => {
           </button>
         </div>
 
-        <div class="friends-list-section">
-          <h2>好友列表</h2>
+        <div class="friends-tabs">
+          <button class="friends-tab active" id="tab-list" onclick="FriendsModule.switchTab('list')">
+            👥 好友
+          </button>
+          <button class="friends-tab" id="tab-rank" onclick="FriendsModule.switchTab('rank')">
+            🏆 排行
+          </button>
+          <button class="friends-tab" id="tab-gift" onclick="FriendsModule.switchTab('gift')">
+            🎁 礼物
+          </button>
+        </div>
+
+        <div class="friends-list-section tab-content" id="content-list">
           <div class="friends-list" id="friends-list">
             <div class="loading">加载中...</div>
           </div>
         </div>
 
-        <div class="gift-history-section">
-          <h2>收到的礼物</h2>
+        <div class="friends-rank-section tab-content" id="content-rank" style="display:none;">
+          <div class="rank-tabs">
+            <button class="rank-tab active" id="rank-tab-cooks" onclick="FriendsModule.switchRankTab('totalCooks')">
+              🍳 烹饪次数
+            </button>
+            <button class="rank-tab" id="rank-tab-gacha" onclick="FriendsModule.switchRankTab('totalGacha')">
+              🎰 抽盲盒
+            </button>
+            <button class="rank-tab" id="rank-tab-achievements" onclick="FriendsModule.switchRankTab('achievements')">
+              🏅 成就数
+            </button>
+          </div>
+          <div class="rank-list" id="rank-list">
+            <div class="loading">加载中...</div>
+          </div>
+          <div class="my-rank-bar" id="my-rank-bar"></div>
+        </div>
+
+        <div class="gift-history-section tab-content" id="content-gift" style="display:none;">
           <div class="gift-list" id="gift-list">
             <div class="empty-state">暂无礼物记录</div>
           </div>
@@ -97,6 +125,85 @@ const FriendsModule = (() => {
       console.error('renderFriendsPage error:', e);
       alert('Error: ' + e.message);
     }
+  }
+
+  // ============== Tab 切换 ==============
+  function switchTab(tab) {
+    document.querySelectorAll('.friends-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab)?.classList.add('active');
+
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById('content-' + tab)?.style.removeProperty('display');
+
+    if (tab === 'rank') {
+      loadFriendLeaderboard('totalCooks');
+    }
+  }
+
+  // ============== 加载好友排行榜 ==============
+  async function loadFriendLeaderboard(sortBy) {
+    const listEl = document.getElementById('rank-list');
+    const myRankEl = document.getElementById('my-rank-bar');
+    listEl.innerHTML = '<div class="loading">加载中...</div>';
+
+    try {
+      const result = await apiCall('friend-leaderboard', { sortBy });
+
+      if (!result.success || !result.players?.length) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🏆</div>
+            <div>还没有排行数据，快去添加好友吧！</div>
+          </div>`;
+        myRankEl.innerHTML = '';
+        return;
+      }
+
+      const myId = AccountModule?.getUser?.()?.id;
+      const me = result.players.find(p => p.id === myId);
+      const myRank = me ? result.players.indexOf(me) + 1 : null;
+
+      // 渲染排行
+      listEl.innerHTML = result.players.map((player, index) => {
+        const rank = index + 1;
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="rank-num">${rank}</span>`;
+        const isMe = player.id === myId;
+        const value = sortBy === 'totalCooks' ? player.totalCooks : sortBy === 'totalGacha' ? player.totalGacha : player.achievements;
+
+        return `
+          <div class="rank-item ${isMe ? 'rank-me' : ''}" onclick="FriendsModule.showFriendProfile('${player.id}')">
+            <div class="rank-cell rank-medal">${medal}</div>
+            <div class="rank-cell rank-avatar">${player.avatar}</div>
+            <div class="rank-cell rank-info">
+              <div class="rank-name">${player.nickname} ${isMe ? '<span class="me-tag">我</span>' : ''}</div>
+              <div class="rank-level">Lv.${player.level}</div>
+            </div>
+            <div class="rank-cell rank-value">${value || 0}</div>
+          </div>
+        `;
+      }).join('');
+
+      // 我的排名条
+      if (myRank) {
+        myRankEl.innerHTML = `
+          <div class="my-rank-info">
+            <span>我的排名：第 <strong>${myRank}</strong> / ${result.players.length}</span>
+            <span class="rank-legend">* 点击可访问好友主页</span>
+          </div>`;
+      } else {
+        myRankEl.innerHTML = '';
+      }
+
+    } catch (e) {
+      listEl.innerHTML = `<div class="error">加载失败: ${e.message}</div>`;
+    }
+  }
+
+  // ============== 排行子 Tab 切换 ==============
+  function switchRankTab(sortBy) {
+    document.querySelectorAll('.rank-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('rank-tab-' + sortBy)?.classList.add('active');
+    loadFriendLeaderboard(sortBy);
   }
 
   // ============== 加载好友列表 ==============
@@ -468,7 +575,11 @@ const FriendsModule = (() => {
     showGiftModal,
     sendGift,
     removeFriend,
-    closeModal
+    closeModal,
+    switchTab,
+    loadFriendLeaderboard,
+    switchRankTab,
+    initUser
   };
 })();
 
