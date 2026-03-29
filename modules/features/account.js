@@ -107,17 +107,20 @@ const AccountModule = (() => {
   }
   
   /**
-   * 检查设备是否已注册，自动恢复账号（异步）
+   * 检查设备是否已注册（后台异步）
+   * 
+   * 逻辑：
+   * 1. 有设备 ID → 查 Redis
+   * 2. 查不到 → 清空 localStorage，显示提示
+   * 3. 查到了 → 恢复账号
    */
   async function checkDeviceAndRestore() {
-    const user = loadUser();
-    if (user) {
-      return user; // 本地已有账号
-    }
-    
-    // 本地没有用户，检查设备是否已在云端注册
     const deviceId = getDeviceId();
+    const localUser = loadUser();
+    
     try {
+      console.log('🔍 检查设备:', deviceId);
+      
       const response = await fetch('/api/social?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,33 +130,33 @@ const AccountModule = (() => {
       
       if (result.success && result.user) {
         // 设备已注册，恢复账号
+        console.log('✅ 设备已注册，恢复账号:', result.user.nickname);
         saveUser(result.user);
-        console.log('✅ 设备已注册，自动恢复账号:', result.user.nickname);
         updateMenuHeader(result.user);
-        return result.user;
+        return;
       }
+      
+      // 设备未注册
+      console.log('⚠️ 设备未注册');
+      
+      // 如果本地有用户，注册到云端
+      if (localUser) {
+        console.log('📝 注册本地用户到云端...');
+        await fetch('/api/social?action=register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            user: { ...localUser, deviceId },
+            userId: deviceId
+          })
+        });
+        console.log('✅ 设备已注册');
+      }
+      
     } catch (e) {
-      console.log('设备检查失败');
+      console.log('❌ 设备检查失败:', e.message);
+      // 网络错误，不清空数据，保持本地状态
     }
-    
-    // 设备未注册，创建新用户并关联设备
-    const newUser = createUser();
-    
-    try {
-      await fetch('/api/social?action=register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user: { ...newUser, deviceId },
-          userId: deviceId  // 用设备 ID 作为 key
-        })
-      });
-      console.log('✅ 新设备已注册');
-    } catch (e) {
-      console.log('设备注册失败');
-    }
-    
-    return newUser;
   }
 
   /**

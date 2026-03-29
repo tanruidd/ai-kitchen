@@ -132,6 +132,26 @@
     .menu-footer {
       padding: 16px 24px;
       border-top: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .menu-login-btn {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .menu-login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
     .menu-version {
