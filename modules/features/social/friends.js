@@ -326,10 +326,11 @@ const FriendsModule = (() => {
 
   // ============== 送礼弹窗 ==============
   async function showGiftModal(friendId) {
-    // 获取当前金币和盲盒券
-    const user = AccountModule?.getUser?.();
-    const coins = HistoryModule?.getCoins?.() || 0;
-    const coupons = GachaModule?.getCoupons?.() || 0;
+    // 获取当前盲盒券（从 GachaStore 获取）
+    const gachaData = window.GachaStore?.loadGachaData?.() || { tickets: 0 };
+    const coupons = gachaData.tickets || 0;
+    // 金币暂时设为 999999（后续可以接入金币系统）
+    const coins = 999999;
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -371,9 +372,15 @@ const FriendsModule = (() => {
       if (result.success) {
         // 扣减发送者资源
         if (giftType === 'coins') {
-          HistoryModule?.addCoins?.(-amount);
+          // 金币扣减（后续接入金币系统）
         } else if (giftType === 'coupon') {
-          GachaModule?.addCoupons?.(-amount);
+          // 扣减盲盒券
+          const STORAGE_KEY = 'ai-kitchen-gacha';
+          const gachaData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"tickets":0}');
+          gachaData.tickets = Math.max(0, (gachaData.tickets || 0) - amount);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(gachaData));
+          // 刷新盲盒角标
+          window.GachaModule?.updateGachaBadge?.();
         }
         
         showToast('✅ 礼物已送达！');
