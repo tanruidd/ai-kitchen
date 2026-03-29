@@ -366,6 +366,15 @@ const FriendsModule = (() => {
 
   // ============== 送礼 ==============
   async function sendGift(friendId, giftType, amount) {
+    // 检查余额
+    if (giftType === 'coupon') {
+      const gachaData = window.GachaStore?.loadGachaData?.() || { tickets: 0 };
+      if ((gachaData.tickets || 0) < amount) {
+        showToast('❌ 盲盒券不足');
+        return;
+      }
+    }
+
     try {
       const result = await apiCall('send', { friendId, giftType, amount });
       

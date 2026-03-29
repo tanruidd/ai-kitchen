@@ -709,6 +709,21 @@ const GachaModule = (() => {
     showToast(`💳 跳转到支付页面... (购买 ${count} 张卡券)`);
   }
 
+  // 获取盲盒券数量
+  function getCoupons() {
+    const data = loadGachaData();
+    return data.tickets || 0;
+  }
+
+  // 增加/减少盲盒券
+  function addCoupons(amount) {
+    const data = loadGachaData();
+    data.tickets = Math.max(0, (data.tickets || 0) + amount);
+    saveGachaData(data);
+    updateGachaBadge();
+    return data.tickets;
+  }
+
   /* ═══════════════════════════════════════
      对外暴露
      ═══════════════════════════════════════ */
@@ -732,6 +747,8 @@ const GachaModule = (() => {
     getRecipeIngredientStatus,
     getCollectedCount,
     getTotalIngredientCount,
+    getCoupons,
+    addCoupons,
   };
 })();
 
