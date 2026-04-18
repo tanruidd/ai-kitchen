@@ -12,8 +12,8 @@
 const LONG_CAT_CONFIG = {
   apiKey: process.env.LONGCAT_API_KEY,
   endpoint: 'https://api.longcat.chat/openai/v1/chat/completions',
-  model: 'LongCat-Flash-Chat',
-  label: 'LongCat',
+  model: 'LongCat-Flash-Lite',
+  label: 'LongCat-Lite',
 };
 
 // 第二梯队：OpenRouter（降级备用）
