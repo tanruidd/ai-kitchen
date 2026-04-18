@@ -99,7 +99,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      console.log(`🔄 Trying: ${model}`);
+      console.log(`🔄 Trying: ${model} | stream=${stream !== false}`);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -113,26 +113,25 @@ export default async function handler(req, res) {
         }),
       });
 
+      console.log(`📥 ${model} response status: ${response.status}`);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error(`❌ ${model} failed:`, response.status, errorData);
+        console.error(`❌ ${model} failed:`, response.status, JSON.stringify(errorData));
 
-        // 429 限流 -> 尝试下一个模型
         if (response.status === 429) {
           console.warn(`⚠️ Rate limited, trying next...`);
           lastError = { status: 429, model };
           continue;
         }
 
-        // 其他错误 -> 继续降级
         lastError = { status: response.status, data: errorData, model };
         continue;
       }
 
-      console.log(`✅ ${model} succeeded`);
-
       // ========== 流式响应 ==========
       if (stream !== false) {
+        console.log(`✅ ${model} succeeded, piping stream...`);
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
@@ -145,6 +144,8 @@ export default async function handler(req, res) {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
+            // 调试：打印前几个 chunk
+            console.log(`📦 stream chunk (${value.byteLength}b):`, chunk.slice(0, 200));
             res.write(chunk);
           }
           res.end();
@@ -155,7 +156,9 @@ export default async function handler(req, res) {
         }
       } else {
         // ========== 非流式响应 ==========
+        console.log(`✅ ${model} succeeded, parsing JSON...`);
         const data = await response.json();
+        console.log(`📤 response data keys:`, Object.keys(data));
         res.status(200).json(data);
       }
 
