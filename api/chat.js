@@ -3,12 +3,12 @@
  * Vercel Serverless Function
  *
  * 作用：隐藏 API Key，代理前端请求
- * 主模型：LongCat-Flash-Chat（LongCat API）
+ * 主模型：LongCat-Flash-Lite（LongCat API，5000万tokens/天）
  * 降级：OpenRouter 免费模型（stepfun/阶跃星辰）
  */
 
 // ============ 模型配置 ============
-// 第一梯队：LongCat（主），每日免费 50 万 tokens
+// 第一梯队：LongCat（主），每日免费 5000 万 tokens
 const LONG_CAT_CONFIG = {
   apiKey: process.env.LONGCAT_API_KEY,
   endpoint: 'https://api.longcat.chat/openai/v1/chat/completions',
@@ -34,7 +34,7 @@ const allowedOrigins = [
   'http://localhost:5000',
   'https://ai-kitchen.vercel.app',
   'https://www.bikini-bottom.store',
-  'https://game.bikini-bottom.store',  // 当前主域名
+  'https://game.bikini-bottom.store',
 ];
 
 export default async function handler(req, res) {
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
     });
 
     if (result === 'success') return;
-    if (result === 'fatal') return; // 非 429 错误，不尝试降级
+    if (result === 'fatal') return;
     // result === 'retry' → 继续降级
   } else {
     console.warn('⚠️ LONGCAT_API_KEY not configured, skipping to fallback');
@@ -106,7 +106,6 @@ export default async function handler(req, res) {
 
     if (result === 'success') return;
     if (result === 'fatal') return;
-    // result === 'retry' → 继续下一个模型
   }
 
   // 所有模型都失败了
@@ -117,7 +116,7 @@ export default async function handler(req, res) {
 // ============ LongCat API 调用 ============
 async function callLongCat(req, res, { temperature, max_tokens, stream }) {
   try {
-    console.log('🔄 Trying: LongCat-Flash-Chat');
+    console.log(`🔄 Trying: ${LONG_CAT_CONFIG.label} (${LONG_CAT_CONFIG.model})`);
 
     const response = await fetchWithRetry(
       LONG_CAT_CONFIG.endpoint,
@@ -135,13 +134,12 @@ async function callLongCat(req, res, { temperature, max_tokens, stream }) {
           stream,
         }),
       },
-      res,
       stream
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(`❌ LongCat failed:`, response.status, errorData);
+      console.error(`❌ ${LONG_CAT_CONFIG.label} failed:`, response.status, errorData);
 
       if (response.status === 429) {
         console.warn('⚠️ LongCat rate limited, trying fallback...');
@@ -150,12 +148,13 @@ async function callLongCat(req, res, { temperature, max_tokens, stream }) {
       return 'fatal';
     }
 
-    console.log('✅ LongCat succeeded');
+    console.log(`✅ ${LONG_CAT_CONFIG.label} succeeded`);
+    await pipeResponse(response, res, stream);
     return 'success';
 
   } catch (err) {
-    console.error('❌ LongCat exception:', err.message);
-    return 'retry'; // 网络错误，尝试降级
+    console.error(`❌ ${LONG_CAT_CONFIG.label} exception:`, err.message);
+    return 'retry';
   }
 }
 
@@ -188,7 +187,6 @@ async function callOpenRouter(req, res, { model, label, temperature, max_tokens,
           stream,
         }),
       },
-      res,
       stream
     );
 
@@ -204,6 +202,7 @@ async function callOpenRouter(req, res, { model, label, temperature, max_tokens,
     }
 
     console.log(`✅ ${label} succeeded`);
+    await pipeResponse(response, res, stream);
     return 'success';
 
   } catch (err) {
@@ -213,13 +212,13 @@ async function callOpenRouter(req, res, { model, label, temperature, max_tokens,
 }
 
 // ============ 带重试的 fetch（处理 429 限流）============
-async function fetchWithRetry(url, options, res, stream, retries = MAX_RETRIES) {
+async function fetchWithRetry(url, options, retries = MAX_RETRIES) {
   let lastResponse = null;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (attempt > 0) {
-      const waitTime = attempt * 2000; // 指数退避：2s, 4s, 6s
-      console.log(`⏳ Waiting ${waitTime}ms before retry (attempt ${attempt}/${retries})...`);
+      const waitTime = attempt * 2000;
+      console.log(`⏳ Retrying in ${waitTime}ms (attempt ${attempt}/${retries})...`);
       await sleep(waitTime);
     }
 
@@ -233,7 +232,7 @@ async function fetchWithRetry(url, options, res, stream, retries = MAX_RETRIES) 
     if (response.status === 429) {
       const body = await response.json().catch(() => ({}));
       const retryAfter = body?.retry_after ?? 60;
-      console.warn(`⚠️ Rate limited. retry_after=${retryAfter}s`);
+      console.warn(`⚠️ Rate limited, retry_after=${retryAfter}s`);
 
       if (attempt < retries) {
         await sleep(Math.max(retryAfter * 1000, attempt * 2000));
@@ -241,28 +240,27 @@ async function fetchWithRetry(url, options, res, stream, retries = MAX_RETRIES) 
       }
     }
 
-    // 非 200 或超过重试次数
     return response;
   }
 
   return lastResponse;
 }
 
-// ============ 流式响应处理 ============
-function handleStreamResponse(response, res) {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+// ============ 流式 / 非流式响应处理（关键！）============
+async function pipeResponse(response, res, stream) {
+  if (stream) {
+    // ========== 流式响应 ==========
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
 
-  (async () => {
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value, { stream: true });
         res.write(chunk);
       }
@@ -270,11 +268,15 @@ function handleStreamResponse(response, res) {
     } catch (err) {
       console.error('❌ Stream error:', err);
       try {
-        res.write(`data: {"error": "Stream interrupted"}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: 'Stream interrupted' })}\n\n`);
         res.end();
       } catch (_) {}
     }
-  })();
+  } else {
+    // ========== 非流式响应 ==========
+    const data = await response.json();
+    res.status(200).json(data);
+  }
 }
 
 // ============ 工具函数 ============
