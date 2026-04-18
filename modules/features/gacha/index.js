@@ -456,6 +456,21 @@ const GachaModule = (() => {
           return;
         }
         showDrawResult(result);
+
+        // 根据结果类型播放对应音效
+        if (result.type === 'coins') {
+          window.SFX?.play?.('draw', 'coins');
+        } else if (result.type === 'recipe') {
+          window.SFX?.play?.('draw', 'recipe');
+        } else if (result.type === 'ingredient') {
+          if (result.rarity === 'legendary') {
+            window.SFX?.play?.('draw', 'ingredientLegendary');
+          } else if (result.rarity === 'rare' || result.rarity === 'epic') {
+            window.SFX?.play?.('draw', 'ingredientRare');
+          } else {
+            window.SFX?.play?.('draw', 'ingredient');
+          }
+        }
         const ticketsEl = document.querySelector('.gacha-tickets-count');
         if (ticketsEl) {
           const data = loadGachaData();
@@ -767,15 +782,24 @@ const GachaModule = (() => {
     saveGachaData(data);
     updateGachaBadge();
 
-    // 刷新页面上的金币和盲盒券数量
-    const coinEl = document.querySelector('.gacha-coins-strip strong');
-    if (coinEl) coinEl.textContent = AccountModule?.getCoins?.() ?? 0;
+    // 播放购买音效
+    window.SFX?.play?.('buy', 'ticket');
+
+    // 切换到抽奖 tab，并高亮显示券数量变化
+    switchGachaTab('draw');
+
+    // 短暂高亮券数量（闪烁效果）
     const ticketsEl = document.querySelector('.gacha-tickets-count');
-    if (ticketsEl) ticketsEl.textContent = data.tickets;
+    if (ticketsEl) {
+      ticketsEl.textContent = data.tickets;
+      ticketsEl.classList.remove('gacha-tickets-flash');
+      // 触发重排以重放动画
+      void ticketsEl.offsetWidth;
+      ticketsEl.classList.add('gacha-tickets-flash');
+      setTimeout(() => ticketsEl.classList.remove('gacha-tickets-flash'), 800);
+    }
 
     showToast(`✅ 购买成功！+${count} 张盲盒券`);
-    // 刷新商店
-    renderShopTab();
   }
 
   // 获取盲盒券数量
