@@ -45,7 +45,7 @@ function copyRecipe() {
       btn.classList.remove('copied');
     }, 2000);
     showToast('📋 食谱已复制到剪贴板！');
-    window.SFX?.copy();
+    window.SFX?.copy?.();
   }).catch(() => showToast('复制失败，请手动选择复制~'));
 }
 
@@ -59,7 +59,7 @@ async function startCooking() {
 
   isCooking = true;
   cookAbortController = new AbortController();
-  window.SFX?.cook();
+  window.SFX?.cook?.();
 
   const btn           = document.getElementById('cook-btn');
   const loading       = document.getElementById('loading');
@@ -149,7 +149,7 @@ async function startCooking() {
 
     document.getElementById('action-btns').style.display = 'flex';
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.SFX?.done();
+    window.SFX?.done?.();
 
     // 保存当前食谱数据（供分享图等模块使用）
     window._currentRecipe = { input, mode: currentMode, markdown: fullText, modeLabel: window.MODE_LABELS[currentMode] };

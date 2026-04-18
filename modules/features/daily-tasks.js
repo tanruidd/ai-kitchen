@@ -239,7 +239,7 @@ const DailyTaskModule = (() => {
 
     const coinMsg = coinReward > 0 ? ` + 🪙${coinReward} 金币` : '';
     showToast(`🎉 获得 ${task.reward} 张盲盒券${coinMsg}！`);
-    window.SFX?.done();
+    window.SFX?.done?.();
 
     // 更新盲盒角标
     window.GachaModule?.updateGachaBadge?.();

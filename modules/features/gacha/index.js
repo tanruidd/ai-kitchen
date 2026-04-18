@@ -723,7 +723,7 @@ const GachaModule = (() => {
   }
 
   function showGachaResultPage(recipe, config, fullText) {
-    window.SFX?.done();
+    window.SFX?.done?.();
 
     const container = document.querySelector('.container');
     if (container) container.style.display = 'none';

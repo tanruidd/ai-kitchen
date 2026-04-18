@@ -168,7 +168,33 @@ const SFX = (() => {
 
   function isEnabled() { return enabled; }
 
-  return { play, toggle, isEnabled };
+  /* ══════════════════════════════
+     兼容旧版调用（cook/done/copy）
+     某些模块直接调用 window.SFX.cook()/done()/copy()
+  ══════════════════════════════ */
+  function cook() {
+    if (!enabled) return;
+    // 轻快的“开始烹饪”提示音
+    playTone(220, 'triangle', 0.12, 0.25, 0.0);
+    playTone(330, 'triangle', 0.12, 0.25, 0.07);
+    playTone(440, 'triangle', 0.18, 0.22, 0.14);
+  }
+
+  function done() {
+    if (!enabled) return;
+    // “完成/奖励”提示音
+    playChord([523, 659, 784], 'sine', 0.25, 0.22); // C-E-G
+    playTone(1047, 'triangle', 0.35, 0.18, 0.12);   // C6
+  }
+
+  function copy() {
+    if (!enabled) return;
+    // “复制”提示音（短促）
+    playTone(988, 'square', 0.08, 0.18, 0.0);
+    playTone(1319, 'square', 0.08, 0.14, 0.05);
+  }
+
+  return { play, toggle, isEnabled, cook, done, copy };
 })();
 
 window.SFX = SFX;

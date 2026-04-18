@@ -239,7 +239,7 @@ const LevelModule = (() => {
       </div>
     `;
     document.body.appendChild(toast);
-    window.SFX?.done();
+    window.SFX?.done?.();
 
     // 3秒后自动消失
     setTimeout(() => {
