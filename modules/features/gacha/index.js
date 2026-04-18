@@ -695,13 +695,30 @@ const GachaModule = (() => {
     } catch (err) {
       clearInterval(progressInterval);
       mysteryOverlay.remove();
-      // 烹饪失败，退还食材
+
+      // 退还食材（使用 consumeIngredients 同款逻辑，确保一致）
       const data = loadGachaData();
       recipe.requiredIngredients.forEach(id => {
-        if (data.ingredients) data.ingredients[id] = (data.ingredients[id] || 0) + 1;
+        if (data.ingredients && data.ingredients[id] > 0) data.ingredients[id]--;
       });
       saveGachaData(data);
-      showToast(`😱 神秘料理失败了：${err.message}（食材已退还）`);
+      // 刷新 UI 上的食材数量和盲盒徽章
+      updateGachaBadge?.();
+      window.GachaStore?.renderIngredients?.();
+      window.GachaStore?.renderRecipeList?.();
+
+      // 创建一个失败提示卡，让用户明确知道发生了什么
+      const failCard = document.createElement('div');
+      failCard.className = 'gacha-cook-fail-card';
+      failCard.innerHTML = `
+        <div class="gacha-cook-fail-icon">😱</div>
+        <div class="gacha-cook-fail-title">神秘料理施展失败</div>
+        <div class="gacha-cook-fail-reason">${err.name === 'AbortError' ? '⏱️ 网络超时，食材已退还' : '⚠️ ' + (err.message || '未知错误')}</div>
+        <div class="gacha-cook-fail-hint">请检查网络后重新尝试</div>
+        <button class="gacha-cook-fail-retry" onclick="this.closest('.gacha-cook-fail-card').remove(); GachaModule?.switchGachaTab?.('recipes')">🔄 重试</button>
+      `;
+      document.body.appendChild(failCard);
+      setTimeout(() => failCard.classList.add('show'), 50);
     }
   }
 

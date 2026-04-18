@@ -1375,3 +1375,54 @@
 .gacha-tickets-flash {
   animation: gachaTicketsFlash 0.8s ease-out forwards;
 }
+
+/* ── 神秘料理失败提示卡 ── */
+.gacha-cook-fail-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #1e1e2e;
+  border: 2px solid #ff6b6b;
+  border-radius: 16px;
+  padding: 28px 32px;
+  text-align: center;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+  min-width: 260px;
+}
+.gacha-cook-fail-card.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.gacha-cook-fail-icon { font-size: 3rem; margin-bottom: 8px; }
+.gacha-cook-fail-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #ff6b6b;
+  margin-bottom: 8px;
+}
+.gacha-cook-fail-reason {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.gacha-cook-fail-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 16px;
+}
+.gacha-cook-fail-retry {
+  background: #ff6b6b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+.gacha-cook-fail-retry:hover { background: #ff5252; }
