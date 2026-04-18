@@ -9,6 +9,18 @@ let currentMode = 'normal';
 let isCooking   = false;
 let cookAbortController = null;
 
+// 兼容：部分部署环境可能禁用 inline onclick（CSP），因此用 JS 再绑定一次事件
+function bindCookButton() {
+  const btn = document.getElementById('cook-btn');
+  if (!btn) return;
+  // 避免 inline onclick 与 addEventListener 双触发
+  if (btn.hasAttribute('onclick')) btn.removeAttribute('onclick');
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    startCooking();
+  });
+}
+
 /* ── 模式选择 ── */
 function initModeButtons() {
   document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -174,8 +186,9 @@ async function startCooking() {
 }
 
 /* ── 初始化 ── */
-document.addEventListener('DOMContentLoaded', () => {
+function initCookingModule() {
   initModeButtons();
+  bindCookButton();
 
   // Ctrl/Cmd + Enter 快捷键
   document.getElementById('user-input').addEventListener('keydown', e => {
@@ -196,4 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 初始化盲盒角标
   window.GachaModule?.updateGachaBadge();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCookingModule);
+} else {
+  initCookingModule();
+}
+
+// 明确挂到 window，避免某些环境下 inline handler 找不到
+window.startCooking = startCooking;
+window.copyRecipe = copyRecipe;
