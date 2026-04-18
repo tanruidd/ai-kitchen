@@ -37,13 +37,12 @@ const GachaModule = (() => {
     return items[items.length - 1];
   }
 
-  // 金币奖励池配置
+  // 金币奖励池配置（概率调整版）
   const COIN_PRIZES = [
-    { min: 1,   max: 5,   weight: 35, label: '小红包', desc: '聊胜于无的小红包 🤏' },
-    { min: 5,   max: 15,  weight: 30, label: '铜币袋', desc: '蟹老板偷偷塞的小铜币 💰' },
-    { min: 15,  max: 30,  weight: 20, label: '银币袋', desc: '发财了发财了！✨' },
-    { min: 30,  max: 80,  weight: 12, label: '金币袋', desc: '蟹堡王的神秘小金库 🏦' },
-    { min: 80,  max: 200, weight: 3,  label: '宝箱！', desc: '传说中蟹堡王的私房钱！👑' },
+    { min: 1,   max: 5,   weight: 80, label: '小红包',   desc: '聊胜于无的小红包 🤏' },
+    { min: 6,   max: 10,  weight: 17, label: '铜币袋',   desc: '有点收获，继续加油！💰' },
+    { min: 11,  max: 20,  weight: 2,  label: '银币袋',   desc: '手气不错！✨' },
+    { min: 21,  max: 50,  weight: 1,  label: '金币袋',   desc: '欧皇降临！🏦' },
   ];
 
   function drawGacha() {
@@ -767,6 +766,12 @@ const GachaModule = (() => {
     data.tickets = (data.tickets || 0) + count;
     saveGachaData(data);
     updateGachaBadge();
+
+    // 刷新页面上的金币和盲盒券数量
+    const coinEl = document.querySelector('.gacha-coins-strip strong');
+    if (coinEl) coinEl.textContent = AccountModule?.getCoins?.() ?? 0;
+    const ticketsEl = document.querySelector('.gacha-tickets-count');
+    if (ticketsEl) ticketsEl.textContent = data.tickets;
 
     showToast(`✅ 购买成功！+${count} 张盲盒券`);
     // 刷新商店
