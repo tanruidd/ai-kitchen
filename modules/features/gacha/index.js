@@ -97,9 +97,14 @@ const GachaModule = (() => {
       data.ingredients[result.data.id] = (data.ingredients[result.data.id] || 0) + 1;
     }
 
-    // 金币：直接加到账户
+    // 金币：直接加到账户，并刷新页面上显示的金币余额
     if (result.type === 'coins') {
       AccountModule?.addCoins?.(result.data.amount);
+      // 刷新盲盒页面顶部的金币余额显示
+      const coinEl = document.querySelector('.gacha-coins-strip strong');
+      if (coinEl) {
+        coinEl.textContent = AccountModule?.getCoins?.() ?? result.data.amount;
+      }
     }
 
     result.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
