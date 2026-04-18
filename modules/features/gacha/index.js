@@ -634,10 +634,7 @@ const GachaModule = (() => {
 
     const cfg = RARITY_CONFIG[recipe.rarity];
 
-    // 返回主页
-    window.MenuModule?.goBack();
-
-    // 显示加载动画
+    // 显示加载动画（不切主页，遮罩叠在当前界面之上）
     const mysteryOverlay = document.createElement('div');
     mysteryOverlay.className = 'mystery-cooking-overlay';
     mysteryOverlay.id = 'mystery-overlay';
