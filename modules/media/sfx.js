@@ -194,7 +194,22 @@ const SFX = (() => {
     playTone(1319, 'square', 0.08, 0.14, 0.05);
   }
 
-  return { play, toggle, isEnabled, cook, done, copy };
+  function dice() {
+    if (!enabled) return;
+    // “随机/骰子”提示音（轻快上跳）
+    playTone(659, 'triangle', 0.07, 0.18, 0.0);
+    playTone(784, 'triangle', 0.07, 0.18, 0.06);
+    playTone(988, 'triangle', 0.09, 0.16, 0.12);
+  }
+
+  function tag() {
+    if (!enabled) return;
+    // “点选标签”提示音（短叮）
+    playTone(880, 'sine', 0.06, 0.12, 0.0);
+    playTone(1175, 'sine', 0.06, 0.10, 0.045);
+  }
+
+  return { play, toggle, isEnabled, cook, done, copy, dice, tag };
 })();
 
 window.SFX = SFX;

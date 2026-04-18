@@ -203,7 +203,7 @@ const ImageModule = (() => {
       }
     }
 
-    window.SFX?.tag();
+    window.SFX?.tag?.();
   }
 
   /**
