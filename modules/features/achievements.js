@@ -223,6 +223,7 @@ const AchievementModule = (() => {
       newAchievements.forEach(ach => {
         showToast(`🏆 解锁成就：${ach.name}`);
       });
+      window.AccountModule?.syncStatsDebounced?.();
     }
 
     return newAchievements;

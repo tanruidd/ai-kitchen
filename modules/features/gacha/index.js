@@ -755,6 +755,7 @@ const GachaModule = (() => {
     // 全局排行榜已移除，改为好友排行榜
     window.FriendsModule?.updateFriendRank?.('cook', 1);
     window.AchievementModule?.checkAchievements();
+    window.AccountModule?.syncStatsDebounced?.();
     window._currentGachaResult = { recipe, config, fullText };
   }
 

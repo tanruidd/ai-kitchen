@@ -188,6 +188,9 @@ async function startCooking() {
     // 增加经验
     window.LevelModule?.onCook();
 
+    // 异步同步统计数据到 Redis（不阻塞 UI，带防抖）
+    window.AccountModule?.syncStatsDebounced?.();
+
   } catch (err) {
     loading.style.display = 'none';
     // 用户主动离开页面 / 手动中断 → 静默，不报错

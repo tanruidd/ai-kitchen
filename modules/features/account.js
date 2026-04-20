@@ -1,5 +1,5 @@
 /**
- * account.js — 智能账号系统
+ * account.js - 智能账号系统
  *
  * 功能：
  * - 设备指纹识别，避免同一设备重复注册
@@ -9,14 +9,14 @@
  * - 云端同步：数据保存到 Redis
  *
  * 对外暴露：
- *   AccountModule.getUser()        — 获取当前用户信息
- *   AccountModule.init()           — 初始化账号（页面加载时调用）
- *   AccountModule.updateNickname() — 打开修改昵称弹窗
- *   AccountModule.updateAvatar()   — 切换头像
- *   AccountModule.renderAccountPage() — 渲染账号页面
- *   AccountModule.getUserDisplay() — 获取用户展示信息（昵称+头像）
- *   AccountModule.showLoginModal() — 显示 ID 登录弹窗
- *   AccountModule.syncToCloud()    — 同步数据到云端
+ *   AccountModule.getUser()        - 获取当前用户信息
+ *   AccountModule.init()           - 初始化账号（页面加载时调用）
+ *   AccountModule.updateNickname() - 打开修改昵称弹窗
+ *   AccountModule.updateAvatar()   - 切换头像
+ *   AccountModule.renderAccountPage() - 渲染账号页面
+ *   AccountModule.getUserDisplay() - 获取用户展示信息（昵称+头像）
+ *   AccountModule.showLoginModal() - 显示 ID 登录弹窗
+ *   AccountModule.syncToCloud()    - 同步数据到云端
  */
 
 const AccountModule = (() => {
@@ -140,10 +140,10 @@ const AccountModule = (() => {
   function getUser() {
     return loadUser();
   }
-  
+
   /**
    * 检查设备是否已注册（后台异步）
-   * 
+   *
    * 逻辑：
    * 1. 有设备 ID → 查 Redis
    * 2. 查不到 → 清空 localStorage，显示提示
@@ -152,17 +152,17 @@ const AccountModule = (() => {
   async function checkDeviceAndRestore() {
     const deviceId = getDeviceId();
     const localUser = loadUser();
-    
+
     try {
       console.log('🔍 检查设备:', deviceId);
-      
+
       const response = await fetch('/api/social?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: deviceId })
       });
       const result = await response.json();
-      
+
       if (result.success && result.user) {
         // 设备已注册，恢复账号
         console.log('✅ 设备已注册，恢复账号:', result.user.nickname);
@@ -170,24 +170,24 @@ const AccountModule = (() => {
         updateMenuHeader(result.user);
         return;
       }
-      
+
       // 设备未注册
       console.log('⚠️ 设备未注册');
-      
+
       // 如果本地有用户，注册到云端
       if (localUser) {
         console.log('📝 注册本地用户到云端...');
         await fetch('/api/social?action=register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             user: { ...localUser, deviceId },
             userId: deviceId
           })
         });
         console.log('✅ 设备已注册');
       }
-      
+
     } catch (e) {
       console.log('❌ 设备检查失败:', e.message);
       // 网络错误，不清空数据，保持本地状态
@@ -219,7 +219,7 @@ const AccountModule = (() => {
     }
     updateMenuDisplay();
   }
-  
+
   /**
    * 更新菜单显示（根据登录状态）
    */
@@ -228,7 +228,7 @@ const AccountModule = (() => {
     const avatarEl = document.getElementById('menu-user-avatar');
     const nameEl = document.getElementById('menu-user-name');
     const levelEl = document.getElementById('menu-user-level');
-    
+
     if (user) {
       // 已登录
       if (avatarEl) avatarEl.textContent = user.avatar;
@@ -627,7 +627,7 @@ const AccountModule = (() => {
   async function doLogin() {
     const input = document.getElementById('login-user-id');
     const userId = input?.value?.trim();
-    
+
     if (!userId) {
       showToast('请输入用户 ID');
       return;
@@ -635,15 +635,15 @@ const AccountModule = (() => {
 
     try {
       showToast('🔄 正在登录...');
-      
+
       const response = await fetch('/api/social?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success && result.user) {
         // 保存用户数据到本地
         saveUser(result.user);
@@ -664,18 +664,32 @@ const AccountModule = (() => {
    */
   async function syncToCloud() {
     const user = getUser();
-    
+    if (!user) {
+      showToast('❌ 请先登录或创建账号');
+      return;
+    }
+
+    // 同步统计字段（成就、烹饪、盲盒数）
+    const cookCount = parseInt(localStorage.getItem('ai-kitchen-cook-count') || '0', 10);
+    const gachaData = JSON.parse(localStorage.getItem('ai-kitchen-gacha') || '{"tickets":0,"inventory":[]}');
+    const achievementsData = JSON.parse(localStorage.getItem('ai-kitchen-achievements') || '{}');
+    const stats = {
+      totalCooks: cookCount,
+      totalGacha: gachaData.inventory?.length || 0,
+      achievements: Object.keys(achievementsData).length || 0,
+    };
+
     try {
       showToast('🔄 正在同步...');
-      
+
       const response = await fetch('/api/social?action=sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user })
+        body: JSON.stringify({ user: { ...user, ...stats } })
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         showToast('✅ 数据已同步到云端！');
       } else {
@@ -684,6 +698,15 @@ const AccountModule = (() => {
     } catch (e) {
       showToast('❌ 同步失败: ' + e.message);
     }
+  }
+
+  // 防抖同步（烹饪/盲盒/成就更新后调用，避免频繁请求）
+  function syncStatsDebounced() {
+    if (window._statsSyncTimer) return;
+    window._statsSyncTimer = setTimeout(() => {
+      window.AccountModule?.syncToCloud?.();
+      window._statsSyncTimer = null;
+    }, 5000);
   }
 
   return {
@@ -709,6 +732,7 @@ const AccountModule = (() => {
     showLoginModal,
     doLogin,
     syncToCloud,
+    syncStatsDebounced,
   };
 })();
 
