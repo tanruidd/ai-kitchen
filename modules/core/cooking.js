@@ -65,7 +65,6 @@ async function startCooking() {
     cookAbortController.abort();
   }
   cookAbortController = new AbortController();
-  cookAbortController = new AbortController();
   window.SFX?.cook?.();
 
   // 重新获取 DOM 元素（安全防护）
@@ -88,20 +87,6 @@ async function startCooking() {
   if (errorBox)      errorBox.style.display      = 'none';
   const actionBtns = document.getElementById('action-btns');
   if (actionBtns)   actionBtns.style.display     = 'none';
-(fix: sfx.js重复加载 + cooking.js防御性编程 + 新增烹饪音效)
-
-  const btn           = document.getElementById('cook-btn');
-  const loading       = document.getElementById('loading');
-  const resultSection = document.getElementById('result-section');
-  const errorBox      = document.getElementById('error-box');
-
-  // 重置状态
-  btn.disabled = true;
-  btn.textContent = '🍳 正在烹饪中...';
-  loading.style.display       = 'block';
-  resultSection.style.display = 'none';
-  errorBox.style.display      = 'none';
-  document.getElementById('action-btns').style.display = 'none';
 
   const systemPrompt = window.MODE_PROMPTS[currentMode];
   const userMessage  = `请根据以下描述生成食谱：\n\n${input}`;
@@ -176,7 +161,7 @@ async function startCooking() {
     // 渲染配图
     window.ImageModule?.renderImageSection(input, outputEl);
 
-    document.getElementById('action-btns').style.display = 'flex';
+    if (actionBtns) actionBtns.style.display = 'flex';
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.SFX?.done?.();
 
@@ -185,9 +170,6 @@ async function startCooking() {
 
     // 保存到历史记录
     saveCurrentResult(input, currentMode, fullText);
-
-    // 增加盲盒计数
-    // 盲盒券不再通过烹饪获得，改为金币购买
 
     // 更新排行榜
     window.LeaderboardModule?.updateRecipeRank(input, currentMode);
@@ -209,8 +191,10 @@ async function startCooking() {
   } finally {
     isCooking = false;
     cookAbortController = null;
-    btn.disabled = false;
-    btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-shine"></span>🍔 再来一道！继续烹饪！';
+    }
   }
 }
 
