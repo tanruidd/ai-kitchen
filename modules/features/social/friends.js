@@ -159,8 +159,11 @@ const FriendsModule = (() => {
     const myRankEl = document.getElementById('my-rank-bar');
     listEl.innerHTML = '<div class="loading">加载中...</div>';
 
+    // 从 localStorage 读取统计数据
+    const localStats = buildLocalStats();
+
     try {
-      const result = await apiCall('friend-leaderboard', { sortBy });
+      const result = await apiCall('friend-leaderboard', { sortBy, localStats });
 
       if (!result.success || !result.players?.length) {
         listEl.innerHTML = `

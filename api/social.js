@@ -75,7 +75,13 @@ export default async function handler(req, res) {
       case 'search':
         return await searchUser(client, body, res);
       case 'add':
-        return await addFriend(client, body, res);
+        return await addFriendRequest(client, body, res);
+      case 'pending':
+        return await getPendingRequests(client, body, res);
+      case 'accept':
+        return await acceptFriendRequest(client, body, res);
+      case 'reject':
+        return await rejectFriendRequest(client, body, res);
       case 'remove':
         return await removeFriend(client, body, res);
       case 'list':
@@ -176,23 +182,117 @@ async function searchUser(client, { userId, keyword }, res) {
   return res.json({ success: true, users: users.slice(0, 10) });
 }
 
-// 添加好友
-async function addFriend(client, { userId, friendId }, res) {
+// 发送好友请求（不再直接加好友）
+async function addFriendRequest(client, { userId, friendId }, res) {
   if (userId === friendId) {
     return res.json({ success: false, error: '不能添加自己为好友' });
   }
 
-  const friendsKey = `friends:${userId}`;
-  const friends = await client.sMembers(friendsKey);
-  
-  if (friends.includes(friendId)) {
+  // 检查是否已经是好友
+  const isFriend = await client.sIsMember(`friends:${userId}`, friendId);
+  if (isFriend) {
     return res.json({ success: false, error: '已经是好友了' });
   }
-  
-  await client.sAdd(friendsKey, friendId);
-  await client.sAdd(`friends:${friendId}`, userId);
 
-  return res.json({ success: true });
+  // 检查是否已发送过请求（pending 状态）
+  const existingRequestKey = `friend_request:${userId}:${friendId}`;
+  const existingRequest = await client.hGetAll(existingRequestKey);
+  if (existingRequest && existingRequest.status === 'pending') {
+    return res.json({ success: false, error: '请求已发送，请等待对方处理' });
+  }
+
+  // 检查对方是否已向我发送请求 → 如果有，自动接受
+  const reverseRequestKey = `friend_request:${friendId}:${userId}`;
+  const reverseRequest = await client.hGetAll(reverseRequestKey);
+  if (reverseRequest && reverseRequest.status === 'pending') {
+    // 自动接受：双向加好友
+    await client.sAdd(`friends:${userId}`, friendId);
+    await client.sAdd(`friends:${friendId}`, userId);
+    // 更新请求状态
+    await client.hSet(reverseRequestKey, 'status', 'accepted');
+    // 从接收者的待处理集合中移除
+    await client.sRem(`friend_request:${userId}`, friendId);
+    return res.json({ success: true, message: '对方已向你发送请求，已自动成为好友！' });
+  }
+
+  // 获取发送者信息
+  const senderData = await client.get(`user:${userId}`);
+  const sender = senderData ? JSON.parse(senderData) : {};
+
+  // 创建待处理请求
+  const timestamp = Date.now();
+  await client.sAdd(`friend_request:${friendId}`, userId);
+  await client.hSet(`friend_request:${userId}:${friendId}`, {
+    status: 'pending',
+    timestamp: String(timestamp),
+    fromNickname: sender.nickname || '未知用户',
+    fromAvatar: sender.avatar || '👤'
+  });
+
+  return res.json({ success: true, message: '请求已发送，等待对方同意' });
+}
+
+// 获取待处理好友请求列表
+async function getPendingRequests(client, { userId }, res) {
+  const senderIds = await client.sMembers(`friend_request:${userId}`);
+  const requests = [];
+
+  for (const senderId of (senderIds || [])) {
+    const requestKey = `friend_request:${senderId}:${userId}`;
+    const requestData = await client.hGetAll(requestKey);
+    
+    if (requestData && requestData.status === 'pending') {
+      requests.push({
+        senderId,
+        fromNickname: requestData.fromNickname || '未知用户',
+        fromAvatar: requestData.fromAvatar || '👤',
+        timestamp: parseInt(requestData.timestamp, 10) || 0
+      });
+    } else {
+      // 清理已非 pending 的条目
+      await client.sRem(`friend_request:${userId}`, senderId);
+    }
+  }
+
+  return res.json({ success: true, requests });
+}
+
+// 接受好友请求
+async function acceptFriendRequest(client, { userId, senderId }, res) {
+  const requestKey = `friend_request:${senderId}:${userId}`;
+  const requestData = await client.hGetAll(requestKey);
+
+  if (!requestData || requestData.status !== 'pending') {
+    return res.json({ success: false, error: '请求不存在或已处理' });
+  }
+
+  // 双向加好友
+  await client.sAdd(`friends:${userId}`, senderId);
+  await client.sAdd(`friends:${senderId}`, userId);
+
+  // 更新请求状态
+  await client.hSet(requestKey, 'status', 'accepted');
+  // 从接收者的待处理集合中移除
+  await client.sRem(`friend_request:${userId}`, senderId);
+
+  return res.json({ success: true, message: '已添加为好友' });
+}
+
+// 拒绝好友请求
+async function rejectFriendRequest(client, { userId, senderId }, res) {
+  const requestKey = `friend_request:${senderId}:${userId}`;
+  const requestData = await client.hGetAll(requestKey);
+
+  if (!requestData || requestData.status !== 'pending') {
+    return res.json({ success: false, error: '请求不存在或已处理' });
+  }
+
+  // 更新请求状态
+  await client.hSet(requestKey, 'status', 'rejected');
+  // 从接收者的待处理集合中移除
+  await client.sRem(`friend_request:${userId}`, senderId);
+
+  return res.json({ success: true, message: '已拒绝请求' });
 }
 
 // 删除好友
@@ -244,18 +344,34 @@ async function sendGift(client, { userId, friendId, giftType, amount }, res) {
 }
 
 // 获取好友主页
-async function getFriendProfile(client, { userId, friendId }, res) {
+async function getFriendProfile(client, { userId, friendId, localStats }, res) {
   const userData = await client.get(`user:${friendId}`);
   if (!userData) {
     return res.json({ success: false, error: '用户不存在' });
   }
 
   const user = JSON.parse(userData);
+  const ls = localStats?.[friendId];
+
+  // 检查是否有待处理的好友请求
+  const requestKey = `friend_request:${userId}:${friendId}`;
+  let isPending = false;
+  try {
+    const requestData = await client.hGetAll(requestKey);
+    if (requestData && requestData.status === 'pending') {
+      isPending = true;
+    }
+  } catch (e) { /* ignore */ }
+
   return res.json({
     success: true,
     profile: {
       id: user.id, nickname: user.nickname, avatar: user.avatar,
-      level: user.level || 1, totalCooks: 0, totalGacha: 0, achievements: 0
+      level: user.level || 1,
+      totalCooks: ls?.totalCooks ?? (user.totalCooks || 0),
+      totalGacha: ls?.totalGacha ?? (user.totalGacha || 0),
+      achievements: ls?.achievements ?? (user.achievements || 0),
+      isPending
     }
   });
 }
@@ -285,7 +401,7 @@ async function getDailyGiftStatus(client, { userId, friendId }, res) {
 }
 
 // 好友排行榜
-async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks' }, res) {
+async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks', localStats }, res) {
   const friendIds = await client.sMembers(`friends:${userId}`);
   const players = [];
 
@@ -293,14 +409,15 @@ async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks' }, r
     const data = await client.get(`user:${fid}`);
     if (data) {
       const u = JSON.parse(data);
+      const ls = localStats?.friends?.[fid];
       players.push({
         id: u.id,
         nickname: u.nickname,
         avatar: u.avatar,
         level: u.level || 1,
-        totalCooks: u.totalCooks || 0,
-        totalGacha: u.totalGacha || 0,
-        achievements: u.achievements || 0,
+        totalCooks: ls?.totalCooks ?? (u.totalCooks || 0),
+        totalGacha: ls?.totalGacha ?? (u.totalGacha || 0),
+        achievements: ls?.achievements ?? (u.achievements || 0),
         lastCooked: u.lastCooked || null,
       });
     }
@@ -312,14 +429,15 @@ async function getFriendLeaderboard(client, { userId, sortBy = 'totalCooks' }, r
     const me = JSON.parse(myData);
     const exists = players.find(p => p.id === me.id);
     if (!exists) {
+      const ls = localStats?.me;
       players.push({
         id: me.id,
         nickname: me.nickname,
         avatar: me.avatar,
         level: me.level || 1,
-        totalCooks: me.totalCooks || 0,
-        totalGacha: me.totalGacha || 0,
-        achievements: me.achievements || 0,
+        totalCooks: ls?.totalCooks ?? (me.totalCooks || 0),
+        totalGacha: ls?.totalGacha ?? (me.totalGacha || 0),
+        achievements: ls?.achievements ?? (me.achievements || 0),
         lastCooked: me.lastCooked || null,
       });
     }
