@@ -15,6 +15,41 @@
 const PremiumShareModule = (() => {
   const STORAGE_KEY = 'ai-kitchen-premium-share';
 
+  // 默认偏好
+  const DEFAULT_PREFS = {
+    style: 'normal',
+    watermark: true,
+    qrcode: true,
+  };
+
+  /**
+   * 读取偏好（从 localStorage）
+   */
+  function loadPrefs() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return { ...DEFAULT_PREFS, ...JSON.parse(raw) };
+    } catch {}
+    return { ...DEFAULT_PREFS };
+  }
+
+  /**
+   * 保存偏好（写入 localStorage）
+   */
+  function savePrefs(prefs) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+    } catch {}
+  }
+
+  /**
+   * 初始化（页面加载时恢复偏好）
+   */
+  function init() {
+    const prefs = loadPrefs();
+    window._premiumSharePrefs = prefs;
+  }
+
   // 分享图风格
   const SHARE_STYLES = {
     michelin: {
@@ -119,7 +154,8 @@ const PremiumShareModule = (() => {
     if (!container) return;
 
     const recipe = getRecipeData();
-    const currentMode = window._currentRecipe?.mode || 'normal';
+    const prefs = window._premiumSharePrefs || loadPrefs();
+    const currentMode = prefs.style;
 
     container.innerHTML = `
       <div class="premium-share-styles">
@@ -143,11 +179,11 @@ const PremiumShareModule = (() => {
 
       <div class="premium-share-options">
         <label class="premium-share-checkbox">
-          <input type="checkbox" id="premium-share-watermark" checked />
+          <input type="checkbox" id="premium-share-watermark" ${prefs.watermark ? 'checked' : ''} />
           <span>添加水印</span>
         </label>
         <label class="premium-share-checkbox">
-          <input type="checkbox" id="premium-share-qrcode" checked />
+          <input type="checkbox" id="premium-share-qrcode" ${prefs.qrcode ? 'checked' : ''} />
           <span>添加二维码</span>
         </label>
       </div>
@@ -167,6 +203,20 @@ const PremiumShareModule = (() => {
 
     // 生成预览
     generatePreview(currentMode, recipe.title, recipe.markdown);
+
+    // 绑定 checkbox 变更持久化
+    document.getElementById('premium-share-watermark')?.addEventListener('change', (e) => {
+      const prefs = window._premiumSharePrefs || loadPrefs();
+      prefs.watermark = e.target.checked;
+      window._premiumSharePrefs = prefs;
+      savePrefs(prefs);
+    });
+    document.getElementById('premium-share-qrcode')?.addEventListener('change', (e) => {
+      const prefs = window._premiumSharePrefs || loadPrefs();
+      prefs.qrcode = e.target.checked;
+      window._premiumSharePrefs = prefs;
+      savePrefs(prefs);
+    });
   }
 
   /**
@@ -211,6 +261,11 @@ const PremiumShareModule = (() => {
       btn.classList.remove('active');
     });
     document.querySelector(`.premium-share-style-btn[data-style="${style}"]`)?.classList.add('active');
+
+    const prefs = window._premiumSharePrefs || loadPrefs();
+    prefs.style = style;
+    window._premiumSharePrefs = prefs;
+    savePrefs(prefs);
 
     const recipe = getRecipeData();
     generatePreview(style, recipe.title, recipe.markdown);
@@ -357,6 +412,7 @@ const PremiumShareModule = (() => {
   }
 
   return {
+    init,
     openSharePanel,
     closeSharePanel,
     generateImage,
@@ -367,3 +423,6 @@ const PremiumShareModule = (() => {
 })();
 
 window.PremiumShareModule = PremiumShareModule;
+
+// 自动初始化（页面加载时恢复偏好）
+PremiumShareModule.init();

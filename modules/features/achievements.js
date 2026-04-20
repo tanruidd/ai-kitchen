@@ -224,6 +224,8 @@ const AchievementModule = (() => {
         showToast(`🏆 解锁成就：${ach.name}`);
       });
       window.AccountModule?.syncStatsDebounced?.();
+      // 解锁成就后刷新排行榜显示（如果排行榜页已打开）
+      window.FriendsModule?.switchRankTab?.(window.FriendsModule?._currentRankTab || 'totalCooks');
     }
 
     return newAchievements;

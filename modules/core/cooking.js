@@ -92,7 +92,13 @@ async function startCooking() {
   const userMessage  = `请根据以下描述生成食谱：\n\n${input}`;
 
   try {
-    const response = await fetch('/api/chat', {
+    let lastToastMsg = null;
+    const retryToast = (attempt) => {
+      if (lastToastMsg) showToast(lastToastMsg);
+      lastToastMsg = `⏳ 网络不佳，正在重试 (${attempt}/3)...`;
+      showToast(lastToastMsg);
+    };
+    const response = await window.fetchWithRetry('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: cookAbortController.signal,
@@ -106,7 +112,7 @@ async function startCooking() {
         max_tokens:  1800,
         stream:      true,
       }),
-    });
+    }, 3, retryToast);
 
     if (!response.ok) {
       const errText = await response.text();

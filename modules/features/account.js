@@ -682,11 +682,11 @@ const AccountModule = (() => {
     try {
       showToast('🔄 正在同步...');
 
-      const response = await fetch('/api/social?action=sync', {
+      const response = await window.fetchWithRetry('/api/social?action=sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: { ...user, ...stats } })
-      });
+      }, 3);
 
       const result = await response.json();
 
