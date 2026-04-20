@@ -167,15 +167,16 @@ const FriendsModule = (() => {
   // ============== 构建本地统计数据 ==============
   function buildLocalStats() {
     try {
-      const accountData = JSON.parse(localStorage.getItem('ai-kitchen-account') || '{}');
-      const historyData = JSON.parse(localStorage.getItem('ai-kitchen-history') || '[]');
+      const accountData = JSON.parse(localStorage.getItem('ai-kitchen-user') || '{}');
+      const cookCount = parseInt(localStorage.getItem('ai-kitchen-cook-count') || '0', 10);
+      const gachaData = JSON.parse(localStorage.getItem('ai-kitchen-gacha') || '{"tickets":0,"inventory":[]}');
       const achievementsData = JSON.parse(localStorage.getItem('ai-kitchen-achievements') || '[]');
 
       return {
         me: {
-          totalCooks: accountData.totalCooks || historyData.length || 0,
-          totalGacha: accountData.totalGacha || 0,
-          achievements: (accountData.achievements || achievementsData || []).length || 0,
+          totalCooks: cookCount,
+          totalGacha: gachaData.inventory?.length || 0,
+          achievements: achievementsData.length || 0,
         },
         friends: {},
       };
