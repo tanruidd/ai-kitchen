@@ -77,6 +77,9 @@ const FriendsModule = (() => {
           <button class="friends-tab" id="tab-rank" onclick="FriendsModule.switchTab('rank')">
             🏆 排行
           </button>
+          <button class="friends-tab" id="tab-requests" onclick="FriendsModule.switchTab('requests')">
+            📨 请求 <span class="badge" id="request-count"></span>
+          </button>
           <button class="friends-tab" id="tab-steal" onclick="FriendsModule.switchTab('steal')">
             🍳 偷菜
           </button>
@@ -107,6 +110,12 @@ const FriendsModule = (() => {
             <div class="loading">加载中...</div>
           </div>
           <div class="my-rank-bar" id="my-rank-bar"></div>
+        </div>
+
+        <div class="friends-requests-section tab-content" id="content-requests" style="display:none;">
+          <div class="requests-list" id="requests-list">
+            <div class="loading">加载中...</div>
+          </div>
         </div>
 
         <div class="friends-steal-section tab-content" id="content-steal" style="display:none;">
@@ -150,6 +159,29 @@ const FriendsModule = (() => {
       loadFriendLeaderboard('totalCooks');
     } else if (tab === 'steal') {
       loadStealStatus();
+    } else if (tab === 'requests') {
+      loadPendingRequests();
+    }
+  }
+
+  // ============== 构建本地统计数据 ==============
+  function buildLocalStats() {
+    try {
+      const accountData = JSON.parse(localStorage.getItem('ai-kitchen-account') || '{}');
+      const historyData = JSON.parse(localStorage.getItem('ai-kitchen-history') || '[]');
+      const achievementsData = JSON.parse(localStorage.getItem('ai-kitchen-achievements') || '[]');
+
+      return {
+        me: {
+          totalCooks: accountData.totalCooks || historyData.length || 0,
+          totalGacha: accountData.totalGacha || 0,
+          achievements: (accountData.achievements || achievementsData || []).length || 0,
+        },
+        friends: {},
+      };
+    } catch (e) {
+      console.warn('buildLocalStats failed:', e);
+      return { me: { totalCooks: 0, totalGacha: 0, achievements: 0 }, friends: {} };
     }
   }
 
@@ -218,6 +250,88 @@ const FriendsModule = (() => {
     document.querySelectorAll('.rank-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('rank-tab-' + sortBy)?.classList.add('active');
     loadFriendLeaderboard(sortBy);
+  }
+
+  // ============== 好友请求系统 ==============
+  async function loadPendingRequests() {
+    const listEl = document.getElementById('requests-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="loading">加载中...</div>';
+
+    try {
+      const result = await apiCall('pending');
+
+      if (!result.success || !result.requests?.length) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div>暂无待处理的好友请求～</div>
+          </div>`;
+        updateRequestBadge(0);
+        return;
+      }
+
+      updateRequestBadge(result.requests.length);
+
+      listEl.innerHTML = result.requests.map(req => `
+        <div class="request-item" id="request-${req.fromId}">
+          <div class="request-info">
+            <div class="request-avatar">${req.fromAvatar || '👤'}</div>
+            <div class="request-detail">
+              <div class="request-name">${req.fromNickname || '未知用户'}</div>
+              <div class="request-time">${formatTime(req.timestamp)}</div>
+            </div>
+          </div>
+          <div class="request-actions">
+            <button class="btn-accept" onclick="FriendsModule.acceptRequest('${req.fromId}')">✅ 同意</button>
+            <button class="btn-reject" onclick="FriendsModule.rejectRequest('${req.fromId}')">❌ 拒绝</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      console.error('loadPendingRequests failed:', e);
+      listEl.innerHTML = '<div class="error-state">加载失败，请重试</div>';
+    }
+  }
+
+  function updateRequestBadge(count) {
+    const badge = document.getElementById('request-count');
+    if (badge) badge.textContent = count > 0 ? count : '';
+  }
+
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(Number(ts));
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+    return d.toLocaleDateString('zh-CN');
+  }
+
+  async function acceptRequest(senderId) {
+    const result = await apiCall('accept', { friendId: senderId });
+    if (result.success) {
+      showToast(`✅ 已添加 ${senderId} 为好友！`);
+      document.getElementById('request-' + senderId)?.remove();
+      const remaining = document.querySelectorAll('.request-item').length;
+      updateRequestBadge(remaining);
+    } else {
+      showToast('❌ ' + (result.error || '操作失败'));
+    }
+  }
+
+  async function rejectRequest(senderId) {
+    const result = await apiCall('reject', { friendId: senderId });
+    if (result.success) {
+      showToast('已拒绝好友请求');
+      document.getElementById('request-' + senderId)?.remove();
+      const remaining = document.querySelectorAll('.request-item').length;
+      updateRequestBadge(remaining);
+    } else {
+      showToast('❌ ' + (result.error || '操作失败'));
+    }
   }
 
   // ============== 偷菜系统 ==============
@@ -439,7 +553,7 @@ const FriendsModule = (() => {
             <div class="user-name">${user.nickname}</div>
             <div class="user-level">Lv.${user.level || 1}</div>
           </div>
-          <button class="add-btn" onclick="FriendsModule.addFriend('${user.id}')">➕ 添加</button>
+          <button class="add-btn" onclick="FriendsModule.addFriend('${user.id}')">📨 发送请求</button>
         </div>
       `;
       
@@ -454,7 +568,7 @@ const FriendsModule = (() => {
       const result = await apiCall('add', { friendId });
       
       if (result.success) {
-        showToast('✅ 添加成功！');
+        showToast(result.message || '✅ 请求已发送，等待对方同意！');
         closeModal();
         loadFriendsList();
       } else {
@@ -468,9 +582,12 @@ const FriendsModule = (() => {
   // ============== 显示好友主页 ==============
   async function showFriendProfile(friendId) {
     const resultEl = document.getElementById('search-result');
-    
+
+    const localStats = buildLocalStats();
+    const myStats = localStats.friends?.[friendId];
+
     try {
-      const result = await apiCall('profile', { friendId });
+      const result = await apiCall('profile', { friendId, localStats });
       
       if (!result.success) {
         showToast('❌ ' + (result.error || '获取失败'));
@@ -687,6 +804,9 @@ const FriendsModule = (() => {
     loadStealStatus,
     doSteal,
     initUser,
+    loadPendingRequests,
+    acceptRequest,
+    rejectRequest,
   };
 })();
 
