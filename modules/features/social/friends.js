@@ -170,13 +170,13 @@ const FriendsModule = (() => {
       const accountData = JSON.parse(localStorage.getItem('ai-kitchen-user') || '{}');
       const cookCount = parseInt(localStorage.getItem('ai-kitchen-cook-count') || '0', 10);
       const gachaData = JSON.parse(localStorage.getItem('ai-kitchen-gacha') || '{"tickets":0,"inventory":[]}');
-      const achievementsData = JSON.parse(localStorage.getItem('ai-kitchen-achievements') || '[]');
+      const achievementsData = JSON.parse(localStorage.getItem('ai-kitchen-achievements') || '{}');
 
       return {
         me: {
           totalCooks: cookCount,
           totalGacha: gachaData.inventory?.length || 0,
-          achievements: achievementsData.length || 0,
+          achievements: (achievementsData.achievements || []).length || 0,
         },
         friends: {},
       };

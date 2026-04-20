@@ -177,6 +177,11 @@ async function startCooking() {
     // 检查成就
     window.AchievementModule?.checkAchievements();
 
+    // 保存烹饪次数（供排行榜使用）
+    const raw = localStorage.getItem('ai-kitchen-cook-count');
+    const count = (parseInt(raw, 10) || 0) + 1;
+    localStorage.setItem('ai-kitchen-cook-count', String(count));
+
     // 更新每日任务
     window.DailyTaskModule?.onCook(currentMode);
 
@@ -188,6 +193,10 @@ async function startCooking() {
     // 用户主动离开页面 / 手动中断 → 静默，不报错
     if (err.name === 'AbortError') return;
     showError(`😱 哎呀，厨房着火了！${err.message}`);
+    // 非中断错误也要记录一次烹饪尝试（网络问题是主要场景）
+    const raw = localStorage.getItem('ai-kitchen-cook-count');
+    const count = (parseInt(raw, 10) || 0) + 1;
+    localStorage.setItem('ai-kitchen-cook-count', String(count));
   } finally {
     isCooking = false;
     cookAbortController = null;
