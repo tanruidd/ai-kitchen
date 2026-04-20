@@ -176,7 +176,7 @@ const FriendsModule = (() => {
         me: {
           totalCooks: cookCount,
           totalGacha: gachaData.inventory?.length || 0,
-          achievements: (achievementsData.achievements || []).length || 0,
+          achievements: Object.keys(achievementsData).length || 0,
         },
         friends: {},
       };
