@@ -123,6 +123,25 @@ const SFX = (() => {
     playTone(784, 'sine', 0.3, 0.2, 0.3);
   }
 
+  /** 主烹饪开始 — 火热启动音 */
+  function sfxCook() {
+    const c = getCtx();
+    const t = c.currentTime;
+    playTone(440, 'sawtooth', 0.15, 0.3, 0.0);   // A4 锯齿波（模拟火热）
+    playTone(554, 'sawtooth', 0.12, 0.3, 0.1);   // C#5
+    playTone(659, 'triangle', 0.2, 0.35, 0.18);  // E5 三角波（柔和收尾）
+  }
+
+  /** 烹饪完成 — 胜利号角 */
+  function sfxDone() {
+    const c = getCtx();
+    const t = c.currentTime;
+    playChord([523, 659, 784], 'sine', 0.4, 0.3);     // C 大三和弦
+    playTone(1047, 'triangle', 0.5, 0.4, 0.15);       // C6 延音
+    playTone(1319, 'sine', 0.4, 0.25, 0.35);           // E6 装饰音
+    playTone(1568, 'sine', 0.6, 0.2, 0.5);             // G6 结尾泛音
+  }
+
   /** 购买 — 确认音 */
   function sfxBuyTicket() {
     const c = getCtx();
@@ -132,6 +151,13 @@ const SFX = (() => {
     playTone(1047, 'triangle', 0.2, 0.4, 0.08);  // C6
     // 满意的下滑
     playTone(784, 'sine', 0.25, 0.25, 0.15);
+  }
+
+  /** 复制 — 短促提示音 */
+  function sfxCopy() {
+    const c = getCtx();
+    playTone(1047, 'sine', 0.08, 0.3, 0.0);  // C6
+    playTone(1319, 'sine', 0.15, 0.3, 0.06);  // E6
   }
 
   /* ══════════════════════════════
@@ -148,6 +174,12 @@ const SFX = (() => {
     },
     buy: {
       ticket:           sfxBuyTicket,
+    },
+    copy: {
+      default:          sfxCopy,
+    },
+    cook: {
+      cooking:          sfxCook,
     },
   };
 
@@ -174,29 +206,31 @@ const SFX = (() => {
   ══════════════════════════════ */
   function cook() {
     if (!enabled) return;
-    // 轻快的“开始烹饪”提示音
-    playTone(220, 'triangle', 0.12, 0.25, 0.0);
-    playTone(330, 'triangle', 0.12, 0.25, 0.07);
-    playTone(440, 'triangle', 0.18, 0.22, 0.14);
+    // 主烹饪开始 — 火热启动音
+    playTone(440, 'sawtooth', 0.15, 0.3, 0.0);   // A4 锯齿波（模拟火热）
+    playTone(554, 'sawtooth', 0.12, 0.3, 0.1);   // C#5
+    playTone(659, 'triangle', 0.2, 0.35, 0.18);  // E5 三角波（柔和收尾）
   }
 
   function done() {
     if (!enabled) return;
-    // “完成/奖励”提示音
-    playChord([523, 659, 784], 'sine', 0.25, 0.22); // C-E-G
-    playTone(1047, 'triangle', 0.35, 0.18, 0.12);   // C6
+    // 烹饪完成 — 胜利号角
+    playChord([523, 659, 784], 'sine', 0.4, 0.3);     // C 大三和弦
+    playTone(1047, 'triangle', 0.5, 0.4, 0.15);       // C6 延音
+    playTone(1319, 'sine', 0.4, 0.25, 0.35);          // E6 装饰音
+    playTone(1568, 'sine', 0.6, 0.2, 0.5);           // G6 结尾泛音
   }
 
   function copy() {
     if (!enabled) return;
-    // “复制”提示音（短促）
-    playTone(988, 'square', 0.08, 0.18, 0.0);
-    playTone(1319, 'square', 0.08, 0.14, 0.05);
+    // 复制 — 短促提示音
+    playTone(1047, 'sine', 0.08, 0.3, 0.0);   // C6
+    playTone(1319, 'sine', 0.15, 0.3, 0.06);  // E6
   }
 
   function dice() {
     if (!enabled) return;
-    // “随机/骰子”提示音（轻快上跳）
+    // 随机/骰子提示音（轻快上跳）
     playTone(659, 'triangle', 0.07, 0.18, 0.0);
     playTone(784, 'triangle', 0.07, 0.18, 0.06);
     playTone(988, 'triangle', 0.09, 0.16, 0.12);
@@ -204,12 +238,13 @@ const SFX = (() => {
 
   function tag() {
     if (!enabled) return;
-    // “点选标签”提示音（短叮）
+    // 点选标签提示音（短叮）
     playTone(880, 'sine', 0.06, 0.12, 0.0);
     playTone(1175, 'sine', 0.06, 0.10, 0.045);
   }
 
   return { play, toggle, isEnabled, cook, done, copy, dice, tag };
+(fix: sfx.js重复加载 + cooking.js防御性编程 + 新增烹饪音效)
 })();
 
 window.SFX = SFX;

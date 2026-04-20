@@ -51,15 +51,44 @@ function copyRecipe() {
 
 /* ── 主烹饪函数 ── */
 async function startCooking() {
-  const input = document.getElementById('user-input').value.trim();
+  const input = document.getElementById('user-input')?.value?.trim?.();
   if (!input) {
     showError('🧽 哎呀！请先告诉海绵宝宝你想吃什么嘛～');
     return;
   }
 
+  if (isCooking) return; // 防止重复点击
   isCooking = true;
+
+  // 清理上一次的 abort controller
+  if (cookAbortController) {
+    cookAbortController.abort();
+  }
+  cookAbortController = new AbortController();
   cookAbortController = new AbortController();
   window.SFX?.cook?.();
+
+  // 重新获取 DOM 元素（安全防护）
+  const btn           = document.getElementById('cook-btn');
+  const loading       = document.getElementById('loading');
+  const resultSection = document.getElementById('result-section');
+  const errorBox      = document.getElementById('error-box');
+
+  if (!btn || !loading) {
+    isCooking = false;
+    console.error('❌ 找不到烹饪按钮或加载元素');
+    return;
+  }
+
+  // 重置状态
+  btn.disabled = true;
+  btn.textContent = '🍳 正在烹饪中...';
+  loading.style.display       = 'block';
+  if (resultSection) resultSection.style.display = 'none';
+  if (errorBox)      errorBox.style.display      = 'none';
+  const actionBtns = document.getElementById('action-btns');
+  if (actionBtns)   actionBtns.style.display     = 'none';
+(fix: sfx.js重复加载 + cooking.js防御性编程 + 新增烹饪音效)
 
   const btn           = document.getElementById('cook-btn');
   const loading       = document.getElementById('loading');

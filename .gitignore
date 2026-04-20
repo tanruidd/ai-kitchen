@@ -6,3 +6,7 @@
 # Dependencies
 node_modules/
 screenshot.png
+
+# ── Spec-Kit 规范文档（本地留存，不同步到 Git）──
+.specify/
+specs/
