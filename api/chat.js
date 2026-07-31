@@ -11,13 +11,15 @@
  * OpenAI 格式:   data: {...}\n\ndata: {...}\n\ndata: [DONE]
  */
 
-// 模型优先级列表（按顺序尝试）
+// 模型优先级列表（按顺序尝试，已实测可用）
 const MODEL_FALLBACKS = [
-  'LongCat-Flash-Lite',                    // 主模型：LongCat（优先使用）
-  'stepfun/step-3.5-flash:free',           // 降级：阶跃星辰
-  'arcee-ai/trinity-large-preview:free',   // 降级：Arcee Trinity
-  'z-ai/glm-4.5-air:free',                // 降级：智谱 GLM
-  'nvidia/nemotron-3-ultra-550b-a55b:free', // 降级：NVIDIA Nemotron
+  'LongCat-Flash-Lite',                         // 主模型：LongCat（优先使用）
+  'google/gemma-4-26b-a4b-it:free',             // 降级1：Google Gemma（快速稳定）
+  'nvidia/nemotron-3-ultra-550b-a55b:free',     // 降级2：NVIDIA Nemotron Ultra（1M上下文）
+  'nvidia/nemotron-3-super-120b-a12b:free',     // 降级3：NVIDIA Nemotron Super
+  'poolside/laguna-s-2.1:free',                 // 降级4：Poolside Laguna
+  'openai/gpt-oss-20b:free',                    // 降级5：OpenAI OSS模型
+  'openrouter/free',                            // 降级6：OpenRouter自动路由（兜底）
 ];
 
 // API 配置
