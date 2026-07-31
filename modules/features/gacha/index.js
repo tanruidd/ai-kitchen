@@ -666,7 +666,7 @@ const GachaModule = (() => {
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          model: 'stepfun/step-3.5-flash:free',
+          model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
           messages: [
             { role: 'system', content: GACHA_SYSTEM_PROMPT },
             { role: 'user', content: recipe.prompt },

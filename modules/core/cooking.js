@@ -103,7 +103,7 @@ async function startCooking() {
       headers: { 'Content-Type': 'application/json' },
       signal: cookAbortController.signal,
       body: JSON.stringify({
-        model:       'stepfun/step-3.5-flash:free',
+        model:       'nvidia/nemotron-3-ultra-550b-a55b:free',
         messages:    [
           { role: 'system', content: systemPrompt },
           { role: 'user',   content: userMessage  },
