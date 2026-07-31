@@ -17,7 +17,7 @@ const MODEL_FALLBACKS = [
   'stepfun/step-3.5-flash:free',           // 降级：阶跃星辰
   'arcee-ai/trinity-large-preview:free',   // 降级：Arcee Trinity
   'z-ai/glm-4.5-air:free',                // 降级：智谱 GLM
-  'nvidia/nemotron-3-super-120b-a12a:free', // 降级：NVIDIA Nemotron
+  'nvidia/nemotron-3-ultra-550b-a55b:free', // 降级：NVIDIA Nemotron
 ];
 
 // API 配置
